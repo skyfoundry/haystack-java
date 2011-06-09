@@ -91,6 +91,8 @@ table { padding-left: 3em; }
 
 <li><code>HStr</code>: wraps java.lang.String</li>
 
+<li><code>HUri</code>: models a URI as a string value</li>
+
 <li><code>HRef</code>: reference with identifier string and optional display string</li>
 
 <li><code>HDate</code>: date as year, month, day</li>
@@ -146,6 +148,8 @@ for (Iterator it = tags.iterator(); it.hasNext(); )
 
 <li>Str value is encoded as string literal using Java-styled backslash escapes</li>
 
+<li>Uri value is encoded with <code>`</code> backticks</li>
+
 <li>Ref value is encoded inside "&lt;xxxx>" followed by optional display name as string literal</li>
 
 <li>Date value is encoded in ISO 8601 as "YYYY-MM-DD"</li>
@@ -168,7 +172,7 @@ dis:"Damper", point, val:10%, lastRead:2011-06-08T17:07:34-04:00 New_York</pre>
 <pre>// tags
 &lt;tags>        := &lt;tag> (&lt;sp> "," &lt;sp> &lt;tag>)*
 &lt;tag>         := &lt;name> [":" &lt;val>]
-&lt;val>         := &lt;bool> | &lt;num> | &lt;str> | &lt;ref> | &lt;date> | &lt;time> | &lt;dateTime>
+&lt;val>         := &lt;bool> | &lt;num> | &lt;str> | &lt;uri> | &lt;ref> | &lt;date> | &lt;time> | &lt;dateTime>
 &lt;sp>          := 0x20 space
 
 // name identifiers
@@ -196,6 +200,10 @@ dis:"Damper", point, val:10%, lastRead:2011-06-08T17:07:34-04:00 New_York</pre>
                  "\$" | "\'" | "\`" | "\\" |
                  "\u" &lt;hexDigit> &lt;hexDigit> &lt;hexDigit> &lt;hexDigit>
 &lt;hexDigit>    := ('a'-'f') | ('A'-'F') | &lt;digit>
+
+// uri value
+&lt;uri>         := '`' &lt;uriChar>* '`'
+&lt;uriChar>     := any ASCII char between 0x20 and 0x7f except "`" 0x60
 
 // ref value
 &lt;ref>         := "&lt;" refChar ">" [&lt;str>]
