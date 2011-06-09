@@ -35,6 +35,7 @@ The 'HVal' subclasses for each of the haystack tag types:
  - 'HBool': true/false boolean values
  - 'HNum': number as 64-bit double with optional unit name
  - 'HStr': wraps java.lang.String
+ - 'HUri': models a URI as a string value
  - 'HRef': reference with identifier string and optional display string
  - 'HDate': date as year, month, day
  - 'HTime': time as hour, minute, second, milliseconds
@@ -86,6 +87,7 @@ The basic format follows these rules:
 - Num value is encoded as Java-styled floating point number with optional
   [unit name]`http://project-haystack.org/doc/Units`
 - Str value is encoded as string literal using Java-styled backslash escapes
+- Uri value is encoded with '`' backticks
 - Ref value is encoded inside "<xxxx>" followed by optional display name as string literal
 - Date value is encoded in ISO 8601 as "YYYY-MM-DD"
 - Time value is encoded in ISO 8601 as "hh:mm:ss[.FFF]"
@@ -104,7 +106,7 @@ Formal BNF grammer of the string encoding:
   // tags
   <tags>        := <tag> (<sp> "," <sp> <tag>)*
   <tag>         := <name> [":" <val>]
-  <val>         := <bool> | <num> | <str> | <ref> | <date> | <time> | <dateTime>
+  <val>         := <bool> | <num> | <str> | <uri> | <ref> | <date> | <time> | <dateTime>
   <sp>          := 0x20 space
 
   // name identifiers
@@ -132,6 +134,10 @@ Formal BNF grammer of the string encoding:
                    "\$" | "\'" | "\`" | "\\" |
                    "\u" <hexDigit> <hexDigit> <hexDigit> <hexDigit>
   <hexDigit>    := ('a'-'f') | ('A'-'F') | <digit>
+
+  // uri value
+  <uri>         := '`' <uriChar>* '`'
+  <uriChar>     := any ASCII char between 0x20 and 0x7f except "`" 0x60
 
   // ref value
   <ref>         := "<" refChar ">" [<str>]

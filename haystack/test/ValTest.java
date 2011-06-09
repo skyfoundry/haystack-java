@@ -91,6 +91,22 @@ public class ValTest extends Test
     try {HVal.read("\"hi\" "); fail(); } catch (ParseException e) { verbose(e.toString()); verify(true); }
   }
 
+  public void testUri()
+  {
+    // equality
+    verifyEq(HUri.make("a"), HUri.make("a"));
+    verifyNotEq(HUri.make("a"), HUri.make("b"));
+    verify(HUri.make("") == HUri.make(""));
+
+    // encoding
+    verifyIO(HUri.make("http://foo.com/f?q"), "`http://foo.com/f?q`");
+
+    // errors
+    try {HUri.make("`bad`").write(); fail(); } catch (IllegalArgumentException e) { verbose(e.toString()); verify(true); }
+    try {HVal.read("`no end"); fail(); } catch (ParseException e) { verbose(e.toString()); verify(true); }
+    try {HVal.read("`new\nline`"); fail(); } catch (ParseException e) { verbose(e.toString()); verify(true); }
+  }
+
   public void testRef()
   {
     // equality (ignore dis)

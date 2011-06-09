@@ -1,0 +1,8 @@
+# ignore files
+
+# globs in any directory
+syntax: glob
+
+Thumbs.db
+temp/
+haystack.jar

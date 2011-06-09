@@ -126,6 +126,7 @@ public class HReader
     {
       case '<': return readRefVal();
       case '"': return readStrVal();
+      case '`': return readUriVal();
       case '-':
         if (peek == 'I') return readWordVal();
         return readNumVal();
@@ -376,6 +377,21 @@ public class HReader
     if ('a' <= c && c <= 'f') return c - 'a' + 10;
     if ('A' <= c && c <= 'F') return c - 'A' + 10;
     throw errChar("Invalid hex char");
+  }
+
+  private HVal readUriVal()
+  {
+    consume(); // opening backtick
+    StringBuilder s = new StringBuilder();
+    while (cur != '`')
+    {
+      if (cur < 0) throw err("Unexpected end of uri literal");
+      if (cur == '\n' || cur == '\r') throw err("Unexpected newline in uri literal");
+      s.append((char)cur);
+      consume();
+    }
+    consume(); // opening backtick
+    return HUri.make(s.toString());
   }
 
 //////////////////////////////////////////////////////////////////////////
