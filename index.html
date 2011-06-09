@@ -1,0 +1,208 @@
+<html>
+<head>
+<title>Haystack Java Toolkit</title>
+<style type="text/css">
+<!--
+body {
+  background: #ffffff;
+}
+
+h1 {
+  color: #000;
+  background: #eee;
+  border-bottom: 1px solid black;
+  padding-left: 5px;
+  font-size: 18pt;
+}
+
+h1.title {
+  color: #144b7a;
+  background: none;
+  font-size: 24pt;
+  border: none;
+}
+
+h2 {
+  font-size: 16pt;
+  padding-left: 0.5em;
+  width: 40%;
+}
+
+h3, h4, h5, h6
+{
+  font-size: 14pt;
+  padding-left: 0.5em;
+}
+
+p {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+pre {
+  font-family: monospace;
+  padding-left: 4em;
+  color: #008000;
+}
+
+ul { padding-left: 2em; }
+ol {   padding-left: 2em; }
+li {   margin: 0.3em; }
+table { padding-left: 3em; }
+-->
+</style>
+</head>
+<body>
+
+<!-- Title Block -->
+<h1 class='title'>Haystack Java Toolkit</h1>
+<h1 id='overview'>Overview </h1>
+
+<p><a href='http://project-haystack.org/'>Project Haystack</a> defines a tagging library for modeling building systems such as HVAC, lighting, and energy equipment.  This toolkit provides a simple, small Java API for working with haystack tags:</p>
+
+<ul>
+<li><strong>Modeling</strong>: simple APIs for modeling tags and their scalar values.</li>
+
+<li><strong>String Serialization</strong>: encoding and decoding tags using simple plain text format</li>
+</ul>
+
+<p>All code is written to work with Java 1.4 and J2ME (no use of newer Java features such as generics).  This code is all open sourced under the Academic Free License version 3.0 (same license used as Project Haystack).</p>
+
+<h1 id='model'>Model APIs </h1>
+
+<p>The API is designed to model tags using the following key classes:</p>
+
+<ul>
+<li><code>HTags</code>: immutable map of name/value tag pairs</li>
+
+<li><code>HVal</code>: base class for tag value types</li>
+
+<li><code>HTagsBuilder</code>: builder used to construct an HTags instance</li>
+</ul>
+
+<p>The <code>HVal</code> subclasses for each of the haystack tag types:</p>
+
+<ul>
+<li><code>HMarker</code>: singleton value for marker tag</li>
+
+<li><code>HBool</code>: true/false boolean values</li>
+
+<li><code>HNum</code>: number as 64-bit double with optional unit name</li>
+
+<li><code>HStr</code>: wraps java.lang.String</li>
+
+<li><code>HRef</code>: reference with identifier string and optional display string</li>
+
+<li><code>HDate</code>: date as year, month, day</li>
+
+<li><code>HTime</code>: time as hour, minute, second, milliseconds</li>
+
+<li><code>HDateTime</code>: date time with timezone offset and timezone name</li>
+</ul>
+
+<p>The <code>HTags</code> and <code>HVal</code> classes are immutable, once an instance is constructed it cannot be modified.  The <code>HTagsBuilder</code> class is used to build an immutable <code>HTags</code> instance:</p>
+
+<pre>// using builder API
+HTags tags = new HTagsBuilder()
+                   .add("dis", "Building A")
+                   .add("area", 13500)
+                   .add("built", HDate.make(1970,6,3))
+                   .add("site")
+                   .toTags();
+
+// if performance isn't critical, just use string
+HTags tags = HTags.read("dis:\"Building A\", area:13500, built: 1970-06-03, site");</pre>
+
+<p>Once an instance is created, you can query for the tags using the <code>HTags.get</code> method or iterate with <code>HTags.iterator</code> method:</p>
+
+<pre>tags.get("dis")     // evalutes to HStr("Building A")
+tags.get("site")    // evaluates to HMarker.VAL
+tags.has("site")    // evaluates to true
+
+// iterate all the name/value pairs
+for (Iterator it = tags.iterator(); it.hasNext(); )
+{
+  Map.Entry e = (Map.Entry)it.next();
+  String name = (String)e.getKey();
+  HVal val    = (HVal)e.getValue();
+}</pre>
+
+<h1 id='format'>Plaintext Format </h1>
+
+<p>The toolkit supports a simple plaintext format for serializing and deserializing tags to/from string.  This format is designed to be easy to read/write by humans but is also extremely efficient for serializing tags between machines.</p>
+
+<p>The basic format follows these rules:</p>
+
+<ul>
+<li>Encode each entity's tags on a single line separated by newline "\n" character</li>
+
+<li>Encode tags as comma separated list of "name:val" pairs</li>
+
+<li>Marker value is encoded as "name" omitting ":val"</li>
+
+<li>Bool value is encoded as "true" or "false"</li>
+
+<li>Num value is encoded as Java-styled floating point number with optional <a href='http://project-haystack.org/doc/Units'>unit name</a></li>
+
+<li>Str value is encoded as string literal using Java-styled backslash escapes</li>
+
+<li>Ref value is encoded inside "&lt;xxxx>" followed by optional display name as string literal</li>
+
+<li>Date value is encoded in ISO 8601 as "YYYY-MM-DD"</li>
+
+<li>Time value is encoded in ISO 8601 as "hh:mm:ss[.FFF]"</li>
+
+<li>DateTime value is encoded in ISO 8601 as "YYYY-MM-DD'T'hh:mm:ss[.FFF]zz tz" where "tz" is a standard <a href='http://project-haystack.org/doc/TimeZones'>timezone name</a></li>
+
+<li>Must always use UTF-8 for input/output</li>
+</ul>
+
+<p>Here are some simple examples:</p>
+
+<pre>id:&lt;site-a>, dis:"Site-A", site, built: 1970-06-03, occStart: 09:30:00
+dis:"Site-A RTU-1", ahu, equip, siteRef:&lt;site-a> "Site A"
+dis:"Damper", point, val:10%, lastRead:2011-06-08T17:07:34-04:00 New_York</pre>
+
+<p>Formal BNF grammer of the string encoding:</p>
+
+<pre>// tags
+&lt;tags>        := &lt;tag> (&lt;sp> "," &lt;sp> &lt;tag>)*
+&lt;tag>         := &lt;name> [":" &lt;val>]
+&lt;val>         := &lt;bool> | &lt;num> | &lt;str> | &lt;ref> | &lt;date> | &lt;time> | &lt;dateTime>
+&lt;sp>          := 0x20 space
+
+// name identifiers
+&lt;name>        :=  &lt;alphaLo> (&lt;alphaLo> | &lt;alphaHi> | &lt;digit> | '_')*
+&lt;alphaLo>     := ('a' - 'z')
+&lt;alphaHi>     := ('A' - 'Z')
+&lt;digit>       := ('0' - '9')
+&lt;digits>      := &lt;digit> (&lt;digit> | "_")*
+
+// bool value
+&lt;bool>        := "true" | "false"
+
+// num value
+&lt;number>      := &lt;decimal> | "INF" | "-INF" | "NaN"
+&lt;decimal>     := ["-"] &lt;digits> ["." &lt;digits>] [&lt;exp>] [&lt;unit>]
+&lt;exp>         := ("e"|"E") ["+"|"-"] &lt;digits>
+&lt;unit>        := &lt;unitChar>*
+&lt;unitChar>    := &lt;alpha> | "%" | "_" | "/" | "$" | any char > 128
+
+// str value
+&lt;str>         := '"' &lt;strChar>* '"'
+&lt;strChar>     := &lt;unicodeChar> | &lt;escapeChar>
+&lt;unicodeChar> := any 16-bit Unicode char >= 0x20 and not "$"
+&lt;escapeChar>  := "\b" | "\f" | "\n" | "\r" | "\r" | "\t" | "\"" |
+                 "\$" | "\'" | "\`" | "\\" |
+                 "\u" &lt;hexDigit> &lt;hexDigit> &lt;hexDigit> &lt;hexDigit>
+&lt;hexDigit>    := ('a'-'f') | ('A'-'F') | &lt;digit>
+
+// ref value
+&lt;ref>         := "&lt;" refChar ">" [&lt;str>]
+&lt;refChar>     := any ASCII char between 0x20 and 0x7f except ">" 0x3e
+
+// date/time values
+&lt;date>        := YYYY-MM-DD
+&lt;time>        := hh:mm:ss[.FFF]
+&lt;dateTime>    := YYYY-MM-DD'T'h:mm:ss[.FFF]zz tz</pre>
+</body></html>

@@ -1,0 +1,144 @@
+**************************************************************************
+** title:      Haystack Java Toolkit
+** author:     Brian Frank
+** created:    11 Nov 10
+** copyright:   Copyright (c) 2011, SkyFoundry, LLC
+**************************************************************************
+
+Overview [#overview]
+********************
+
+[Project Haystack]`http://project-haystack.org/` defines a
+tagging library for modeling building systems such as HVAC, lighting,
+and energy equipment.  This toolkit provides a simple, small Java API for
+working with haystack tags:
+
+ - **Modeling**: simple APIs for modeling tags and their scalar values.
+ - **String Serialization**: encoding and decoding tags using simple plain text format
+
+All code is written to work with Java 1.4 and J2ME (no use of newer Java
+features such as generics).  This code is all open sourced under the Academic
+Free License version 3.0 (same license used as Project Haystack).
+
+Model APIs [#model]
+*******************
+
+The API is designed to model tags using the following key classes:
+
+- 'HTags': immutable map of name/value tag pairs
+- 'HVal': base class for tag value types
+- 'HTagsBuilder': builder used to construct an HTags instance
+
+The 'HVal' subclasses for each of the haystack tag types:
+
+ - 'HMarker': singleton value for marker tag
+ - 'HBool': true/false boolean values
+ - 'HNum': number as 64-bit double with optional unit name
+ - 'HStr': wraps java.lang.String
+ - 'HRef': reference with identifier string and optional display string
+ - 'HDate': date as year, month, day
+ - 'HTime': time as hour, minute, second, milliseconds
+ - 'HDateTime': date time with timezone offset and timezone name
+
+The 'HTags' and 'HVal' classes are immutable, once an instance is
+constructed it cannot be modified.  The 'HTagsBuilder' class is used
+to build an immutable 'HTags' instance:
+
+  // using builder API
+  HTags tags = new HTagsBuilder()
+                     .add("dis", "Building A")
+                     .add("area", 13500)
+                     .add("built", HDate.make(1970,6,3))
+                     .add("site")
+                     .toTags();
+
+  // if performance isn't critical, just use string
+  HTags tags = HTags.read("dis:\"Building A\", area:13500, built: 1970-06-03, site");
+
+Once an instance is created, you can query for the tags using the
+'HTags.get' method or iterate with 'HTags.iterator' method:
+
+  tags.get("dis")     // evalutes to HStr("Building A")
+  tags.get("site")    // evaluates to HMarker.VAL
+  tags.has("site")    // evaluates to true
+
+  // iterate all the name/value pairs
+  for (Iterator it = tags.iterator(); it.hasNext(); )
+  {
+    Map.Entry e = (Map.Entry)it.next();
+    String name = (String)e.getKey();
+    HVal val    = (HVal)e.getValue();
+  }
+
+Plaintext Format [#format]
+**************************
+The toolkit supports a simple plaintext format for serializing and
+deserializing tags to/from string.  This format is designed to be
+easy to read/write by humans but is also extremely efficient for
+serializing tags between machines.
+
+The basic format follows these rules:
+
+- Encode each entity's tags on a single line separated by newline "\n" character
+- Encode tags as comma separated list of "name:val" pairs
+- Marker value is encoded as "name" omitting ":val"
+- Bool value is encoded as "true" or "false"
+- Num value is encoded as Java-styled floating point number with optional
+  [unit name]`http://project-haystack.org/doc/Units`
+- Str value is encoded as string literal using Java-styled backslash escapes
+- Ref value is encoded inside "<xxxx>" followed by optional display name as string literal
+- Date value is encoded in ISO 8601 as "YYYY-MM-DD"
+- Time value is encoded in ISO 8601 as "hh:mm:ss[.FFF]"
+- DateTime value is encoded in ISO 8601 as "YYYY-MM-DD'T'hh:mm:ss[.FFF]zz tz"
+  where "tz" is a standard [timezone name]`http://project-haystack.org/doc/TimeZones`
+- Must always use UTF-8 for input/output
+
+Here are some simple examples:
+
+  id:<site-a>, dis:"Site-A", site, built: 1970-06-03, occStart: 09:30:00
+  dis:"Site-A RTU-1", ahu, equip, siteRef:<site-a> "Site A"
+  dis:"Damper", point, val:10%, lastRead:2011-06-08T17:07:34-04:00 New_York
+
+Formal BNF grammer of the string encoding:
+
+  // tags
+  <tags>        := <tag> (<sp> "," <sp> <tag>)*
+  <tag>         := <name> [":" <val>]
+  <val>         := <bool> | <num> | <str> | <ref> | <date> | <time> | <dateTime>
+  <sp>          := 0x20 space
+
+  // name identifiers
+  <name>        :=  <alphaLo> (<alphaLo> | <alphaHi> | <digit> | '_')*
+  <alphaLo>     := ('a' - 'z')
+  <alphaHi>     := ('A' - 'Z')
+  <digit>       := ('0' - '9')
+  <digits>      := <digit> (<digit> | "_")*
+
+  // bool value
+  <bool>        := "true" | "false"
+
+  // num value
+  <number>      := <decimal> | "INF" | "-INF" | "NaN"
+  <decimal>     := ["-"] <digits> ["." <digits>] [<exp>] [<unit>]
+  <exp>         := ("e"|"E") ["+"|"-"] <digits>
+  <unit>        := <unitChar>*
+  <unitChar>    := <alpha> | "%" | "_" | "/" | "$" | any char > 128
+
+  // str value
+  <str>         := '"' <strChar>* '"'
+  <strChar>     := <unicodeChar> | <escapeChar>
+  <unicodeChar> := any 16-bit Unicode char >= 0x20 and not "$"
+  <escapeChar>  := "\b" | "\f" | "\n" | "\r" | "\r" | "\t" | "\"" |
+                   "\$" | "\'" | "\`" | "\\" |
+                   "\u" <hexDigit> <hexDigit> <hexDigit> <hexDigit>
+  <hexDigit>    := ('a'-'f') | ('A'-'F') | <digit>
+
+  // ref value
+  <ref>         := "<" refChar ">" [<str>]
+  <refChar>     := any ASCII char between 0x20 and 0x7f except ">" 0x3e
+
+  // date/time values
+  <date>        := YYYY-MM-DD
+  <time>        := hh:mm:ss[.FFF]
+  <dateTime>    := YYYY-MM-DD'T'h:mm:ss[.FFF]zz tz
+
