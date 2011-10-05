@@ -112,6 +112,16 @@ public class HDateTime extends HVal
            tzOffset == x.tzOffset && tz.equals(x.tz);
   }
 
+  /** Comparison based on millis. */
+  public int compareTo(Object that)
+  {
+    long thisMillis = this.millis();
+    long thatMillis = ((HDateTime)that).millis();
+    if (thisMillis < thatMillis) return -1;
+    else if (thisMillis > thatMillis) return 1;
+    return 0;
+  }
+
   /** Encode value to string format */
   public void write(StringBuilder s)
   {

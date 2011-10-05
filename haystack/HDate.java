@@ -53,6 +53,15 @@ public class HDate extends HVal
     return year == x.year && month == x.month && day == x.day;
   }
 
+  /** Return sort order as negative, 0, or positive */
+  public int compareTo(Object that)
+  {
+    HDate x = (HDate)that;
+    if (year < x.year)   return -1; else if (year > x.year)   return 1;
+    if (month < x.month) return -1; else if (month > x.month) return 1;
+    if (day < x.day)     return -1; else if (day > x.day)     return 1;
+    return 0;
+  }
 
   /** Four digit year such as 2011 */
   public final int year;

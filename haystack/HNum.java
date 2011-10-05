@@ -93,6 +93,15 @@ public class HNum extends HVal
     return unit.equals(x.unit);
   }
 
+  /** Return sort order as negative, 0, or positive */
+  public int compareTo(Object that)
+  {
+    double thatVal = ((HNum)that).val;
+    if (this.val < thatVal) return -1;
+    if (this.val == thatVal) return 0;
+    return 1;
+  }
+
   /** Encode value to string format */
   public void write(StringBuilder s)
   {

@@ -32,6 +32,10 @@ public class ValTest extends Test
     verify(HBool.make(true) == HBool.TRUE);
     verify(HBool.make(false) == HBool.FALSE);
 
+    // compare
+    verify(HBool.FALSE.compareTo(HBool.TRUE) < 0);
+    verify(HBool.TRUE.compareTo(HBool.TRUE) == 0);
+
     // encoding
     verifyIO(HBool.TRUE, "true");
     verifyIO(HBool.FALSE, "false");
@@ -44,6 +48,11 @@ public class ValTest extends Test
     verifyNotEq(HNum.make(2), HNum.make(2, "%"));
     verifyNotEq(HNum.make(2, "%"), HNum.make(2));
     verify(HNum.make(0) == HNum.make(0.0));
+
+    // compare
+    verify(HNum.make(9).compareTo(HNum.make(11)) < 0);
+    verify(HNum.make(-3).compareTo(HNum.make(-4)) > 0);
+    verify(HNum.make(-23).compareTo(HNum.make(-23)) == 0);
 
     // encoding
     verifyIO(HNum.make(123), "123.0");
@@ -77,6 +86,10 @@ public class ValTest extends Test
     verifyNotEq(HStr.make("a"), HStr.make("b"));
     verify(HStr.make("") == HStr.make(""));
 
+    // compare
+    verify(HStr.make("abc").compareTo(HStr.make("z")) < 0);
+    verify(HStr.make("Foo").compareTo(HStr.make("Foo")) == 0);
+
     // encoding
     verifyIO(HStr.make("hello"), "\"hello\"");
     verifyIO(HStr.make("_ \\ \" \n \r \t \u0011 _"), "\"_ \\\\ \\\" \\n \\r \\t \\u0011 _\"");
@@ -97,6 +110,10 @@ public class ValTest extends Test
     verifyEq(HUri.make("a"), HUri.make("a"));
     verifyNotEq(HUri.make("a"), HUri.make("b"));
     verify(HUri.make("") == HUri.make(""));
+
+    // compare
+    verify(HUri.make("abc").compareTo(HUri.make("z")) < 0);
+    verify(HUri.make("Foo").compareTo(HUri.make("Foo")) == 0);
 
     // encoding
     verifyIO(HUri.make("http://foo.com/f?q"), "`http://foo.com/f?q`");
@@ -135,6 +152,12 @@ public class ValTest extends Test
     verifyNotEq(HDate.make(2011, 6, 7), HDate.make(2011, 2, 7));
     verifyNotEq(HDate.make(2011, 6, 7), HDate.make(2009, 6, 7));
 
+    // compare
+    verify(HDate.make(2011, 6, 9).compareTo(HDate.make(2011, 6, 21)) < 0);
+    verify(HDate.make(2011, 10, 9).compareTo(HDate.make(2011, 3, 21)) > 0);
+    verify(HDate.make(2010, 6, 9).compareTo(HDate.make(2000, 9, 30)) > 0);
+    verify(HDate.make(2010, 6, 9).compareTo(HDate.make(2010, 6, 9))  == 0);
+
     // encoding
     verifyIO(HDate.make(2011, 6, 7), "2011-06-07");
     verifyIO(HDate.make(2011,10,10), "2011-10-10");
@@ -151,6 +174,13 @@ public class ValTest extends Test
     verifyNotEq(HTime.make(1, 2, 3, 4), HTime.make(9, 2, 3, 4));
     verifyNotEq(HTime.make(1, 2, 3, 4), HTime.make(1, 9, 3, 4));
     verifyNotEq(HTime.make(1, 2, 3, 4), HTime.make(1, 2, 9, 9));
+
+    // compare
+    verify(HTime.make(0, 0, 0, 0).compareTo(HTime.make(0, 0, 0, 9)) < 0);
+    verify(HTime.make(0, 0, 0, 0).compareTo(HTime.make(0, 0, 1, 0)) < 0);
+    verify(HTime.make(0, 1, 0, 0).compareTo(HTime.make(0, 0, 0, 0)) > 0);
+    verify(HTime.make(0, 0, 0, 0).compareTo(HTime.make(2, 0, 0, 0)) < 0);
+    verify(HTime.make(2, 0, 0, 0).compareTo(HTime.make(2, 0, 0, 0)) == 0);
 
     // encoding
     verifyIO(HTime.make(2, 3), "02:03:00");
@@ -181,6 +211,16 @@ public class ValTest extends Test
     verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0), HDateTime.make(2011, 1, 2, 3, 4, 9, "UTC", 0));
     verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0), HDateTime.make(2011, 1, 2, 3, 4, 5, "London", 0));
     verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0), HDateTime.make(2011, 1, 2, 3, 4, 5, "London", 3600));
+
+    // compare
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0)) == 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2011, 1, 2, 3, 4, 6, "UTC", 0)) < 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2011, 1, 2, 3, 5, 5, "UTC", 0)) < 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2011, 1, 2, 4, 4, 5, "UTC", 0)) < 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2011, 1, 3, 3, 4, 5, "UTC", 0)) < 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2011, 2, 2, 3, 4, 5, "UTC", 0)) < 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2012, 1, 2, 3, 4, 5, "UTC", 0)) < 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2011, 1, 2, 3, 4, 0, "UTC", 0)) > 0);
 
     // encoding
     HDateTime ts = HDateTime.make(1307377618069L, TimeZone.getTimeZone("America/New_York"));
