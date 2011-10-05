@@ -141,6 +141,91 @@ public class QueryTest extends Test
     verifyEq(actual, expected);
   }
 
+//////////////////////////////////////////////////////////////////////////
+// Include
+//////////////////////////////////////////////////////////////////////////
+
+  public void testInclude()
+  {
+    HTags a = new HTagsBuilder()
+      .add("dis", "a")
+      .add("num", 100)
+      .add("foo", 99)
+      .add("date", HDate.make(2011,10,5))
+      .toTags();
+
+   HTags b = new HTagsBuilder()
+      .add("dis", "b")
+      .add("num", 200)
+      .add("foo", 88)
+      .add("date", HDate.make(2011,10,20))
+      .add("bar")
+      .add("ref", HRef.make("a"))
+      .toTags();
+
+   HTags c = new HTagsBuilder()
+      .add("dis", "c")
+      .add("num", 300)
+      .add("ref", HRef.make("b"))
+      .add("bar")
+      .toTags();
+
+    final HashMap db = new HashMap();
+    db.put("a", a);
+    db.put("b", b);
+    db.put("c", c);
+
+    verifyInclude(db, "dis",                "a,b,c");
+    verifyInclude(db, "dis == \"b\"",       "b");
+    verifyInclude(db, "dis != \"b\"",       "a,c");
+    verifyInclude(db, "dis <= \"b\"",       "a,b");
+    verifyInclude(db, "dis >  \"b\"",       "c");
+    verifyInclude(db, "num < 200",          "a");
+    verifyInclude(db, "num <= 200",         "a,b");
+    verifyInclude(db, "num > 200",          "c");
+    verifyInclude(db, "num >= 200",         "b,c");
+    verifyInclude(db, "date",               "a,b");
+    verifyInclude(db, "date == 2011-10-20", "b");
+    verifyInclude(db, "date < 2011-10-10",  "a");
+    verifyInclude(db, "foo",                "a,b");
+    verifyInclude(db, "not foo",            "c");
+    verifyInclude(db, "foo == 88",          "b");
+    verifyInclude(db, "foo != 88",          "a");
+    verifyInclude(db, "foo == \"x\"",       "");
+    verifyInclude(db, "ref",                "b,c");
+    verifyInclude(db, "ref->dis",           "b,c");
+    verifyInclude(db, "ref->dis == \"a\"",  "b");
+    verifyInclude(db, "ref->bar",           "c");
+    verifyInclude(db, "not ref->bar",       "a,b");
+    verifyInclude(db, "foo and bar",        "b");
+    verifyInclude(db, "foo or bar",         "a,b,c");
+    verifyInclude(db, "(foo and bar) or num==300",  "b,c");
+    verifyInclude(db, "foo and bar and num==300",   "");
+  }
+
+  void verifyInclude(final HashMap map, String query, String expected)
+  {
+    HDatabase db = new HDatabase()
+    {
+      public HTags find(String id) { return (HTags)map.get(id); }
+    };
+
+    HQuery q = HQuery.read(query);
+
+    String actual = "";
+    for (int c='a'; c<='c'; ++c)
+    {
+      String id = "" + (char)c;
+      if (q.include(db, db.find(id)))
+        actual += actual.length() > 0 ? ","+id : id;
+    }
+    verifyEq(expected, actual);
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// Utils
+//////////////////////////////////////////////////////////////////////////
+
   HNum n(double v) { return HNum.make(v); }
   HNum n(double v, String u) { return HNum.make(v, u); }
 
