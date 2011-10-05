@@ -11,7 +11,7 @@ package haystack;
  * HVal is the base class for representing haystack tag
  * scalar values as an immutable class.
  */
-public abstract class HVal
+public abstract class HVal implements Comparable
 {
   /** Package private constructor */
   HVal() {}
@@ -32,6 +32,12 @@ public abstract class HVal
 
   /** Equality is value based */
   public abstract boolean equals(Object that);
+
+  /** Return sort order as negative, 0, or positive */
+  public int compareTo(Object that)
+  {
+    return toString().compareTo(that.toString());
+  }
 
   /** Decode a string into a HVal, throw ParseException if
       not formatted correctly */

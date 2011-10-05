@@ -80,6 +80,18 @@ public class HTime extends HVal
     return hour == x.hour && min == x.min && sec == x.sec && ms == x.ms;
   }
 
+  /** Return sort order as negative, 0, or positive */
+  public int compareTo(Object that)
+  {
+    HTime x = (HTime)that;
+    if (hour < x.hour) return -1; else if (hour > x.hour) return 1;
+    if (min < x.min)   return -1; else if (min > x.min)   return 1;
+    if (sec < x.sec)   return -1; else if (sec > x.sec)   return 1;
+    if (ms < x.ms)     return -1; else if (ms > x.ms)     return 1;
+
+    return 0;
+  }
+
   /** Encode value to string format */
   public void write(StringBuilder s)
   {
