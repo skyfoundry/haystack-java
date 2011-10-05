@@ -15,6 +15,7 @@ working with haystack tags:
 
  - **Modeling**: simple APIs for modeling tags and their scalar values.
  - **String Serialization**: encoding and decoding tags using simple plain text format
+ - **Query**: simple query language AST and parser
 
 All code is written to work with Java 1.4 and J2ME (no use of newer Java
 features such as generics).  This code is all open sourced under the Academic
@@ -147,4 +148,63 @@ Formal BNF grammer of the string encoding:
   <date>        := YYYY-MM-DD
   <time>        := hh:mm:ss[.FFF]
   <dateTime>    := YYYY-MM-DD'T'h:mm:ss[.FFF]zz tz
+
+Query Language [#query]
+***********************
+The toolkit includes a simple tag based query modeled by the 'HQuery' class.
+You can parse a query using 'read' and use 'include' to check if a 'HTags'
+instance matches the query:
+
+  HQuery query = HQuery.read("site and area > 15000");
+  boolean match = query.include(db, rec);
+
+The simple usage is just a tag name which matches any record that
+has the tag (regardless of its value):
+
+  site  // query any record with the "site" tag
+
+To match a tag value you can use any of the equality or comparison
+operators:
+
+  geoPostalCode == "23220"   // equal to
+  geoPostalCode != "23220"   // not equal to
+  temp < 75                  // less than
+  temp <= 75                 // less than or equal to
+  temp > 75                  // greater than
+  temp >= 75                 // greater than or equal to
+
+Compare operators can use all the standard scalar from the [plain text]`#format`
+format.
+
+You can combine filters using 'and', 'or', or 'not':
+
+  site or equip             // has site or equip tag
+  equip and hvac            // has equip and hvac tag
+  equip and not ahu         // has equip tag, but not the ahu tag
+
+You use the '->' to dereference a tag which has a Ref value.  For
+example if your 'equip' rec has a 'siteRef' tag that references the
+site, you can query for equip in a given city such as:
+
+  equip and siteRef->geoCity == "Chicago"
+
+The way to read the above expression is match a record if:
+  - it has equip tag
+  - and it has a siteRef tag which is a Ref
+  - and what the siteRef tag points to has the geoCity tag
+  - and that the site's geoCity tag is equal to "Chicago"
+
+The formal grammar of the query langauge:
+   <query>      :=  <predicate>
+   <predicate>  :=  <condOr>
+   <condOr>     :=  <condAnd> ("or" <condAnd>)*
+   <condAnd>    :=  <term> ("and" <term>)*
+   <term>       :=  <parens> | <has> | <missing> | <cmp>
+   <parens>     :=  "(" <predicate> ")"
+   <has>        :=  <path>
+   <missing>    :=  "not" <path>
+   <cmp>        :=  <path> <cmpOp> <val>
+   <cmpOp>      :=  "=" | "!=" | "<" | "<=" | ">" | ">="
+   <path>       :=  <name> ("->" <name>)*
+   <val>        :=  same as plain text format
 
