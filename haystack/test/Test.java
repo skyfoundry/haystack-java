@@ -24,6 +24,7 @@ public abstract class Test
   {
     "ValTest",
     "TagsTest",
+    "QueryTest",
   };
 
 //////////////////////////////////////////////////////////////////////////
