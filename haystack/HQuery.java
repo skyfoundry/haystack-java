@@ -207,7 +207,7 @@ public abstract class HQuery
     PathQuery(Path p) { path = p; }
     public final boolean include(HDatabase db, HTags tags)
     {
-      HVal val = tags.get(path.get(0));
+      HVal val = tags.get(path.get(0), false);
       if (path.size() != 1)
       {
         HTags nt = tags;
@@ -216,7 +216,7 @@ public abstract class HQuery
           if (!(val instanceof HRef)) { val = null; break; }
           nt = db.find(((HRef)val).val);
           if (nt == null) { val = null; break; }
-          val = nt.get(path.get(i));
+          val = nt.get(path.get(i), false);
         }
       }
       return doInclude(val);
@@ -285,7 +285,7 @@ public abstract class HQuery
   {
     Ne(Path p, HVal v) { super(p, v); }
     final String cmpStr() { return "!="; }
-    final boolean doInclude(HVal v) { return v == null || !v.equals(val); }
+    final boolean doInclude(HVal v) { return v != null && !v.equals(val); }
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -296,7 +296,7 @@ public abstract class HQuery
   {
     Lt(Path p, HVal v) { super(p, v); }
     final String cmpStr() { return "<"; }
-    final boolean doInclude(HVal v) { return sameType(v) && val.compareTo(v) < 0; }
+    final boolean doInclude(HVal v) { return sameType(v) && v.compareTo(val) < 0; }
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -307,7 +307,7 @@ public abstract class HQuery
   {
     Le(Path p, HVal v) { super(p, v); }
     final String cmpStr() { return "<="; }
-    final boolean doInclude(HVal v) { return sameType(v) && val.compareTo(v) <= 0; }
+    final boolean doInclude(HVal v) { return sameType(v) && v.compareTo(val) <= 0; }
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -318,7 +318,7 @@ public abstract class HQuery
   {
     Gt(Path p, HVal v) { super(p, v); }
     final String cmpStr() { return ">"; }
-    final boolean doInclude(HVal v) { return sameType(v) && val.compareTo(v) > 0; }
+    final boolean doInclude(HVal v) { return sameType(v) && v.compareTo(val) > 0; }
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -329,7 +329,7 @@ public abstract class HQuery
   {
     Ge(Path p, HVal v) { super(p, v); }
     final String cmpStr() { return ">="; }
-    final boolean doInclude(HVal v) { return sameType(v) && val.compareTo(v) >= 0; }
+    final boolean doInclude(HVal v) { return sameType(v) && v.compareTo(val) >= 0; }
   }
 
 //////////////////////////////////////////////////////////////////////////
