@@ -8,6 +8,7 @@
 package haystack;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * HReader is used to parse tags and scalar values from an input stream.
@@ -392,6 +393,100 @@ public class HReader
     }
     consume(); // opening backtick
     return HUri.make(s.toString());
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// HQuery
+//////////////////////////////////////////////////////////////////////////
+
+  /** Read a HQuery from stream */
+  HQuery readQueryEos()
+  {
+    skipSpace();
+    HQuery q = readQueryOr();
+    skipSpace();
+    if (cur >= 0) throw errChar("Expected end of stream");
+    return q;
+  }
+
+  private HQuery readQueryOr()
+  {
+    HQuery q = readQueryAnd();
+    skipSpace();
+    if (cur != 'o') return q;
+    if (!readId().equals("or")) throw err("Expecting 'or' keyword");
+    skipSpace();
+    return q.or(readQueryOr());
+  }
+
+  private HQuery readQueryAnd()
+  {
+    HQuery q = readQueryAtomic();
+    skipSpace();
+    if (cur != 'a') return q;
+    if (!readId().equals("and")) throw err("Expecting 'and' keyword");
+    skipSpace();
+    return q.and(readQueryAnd());
+  }
+
+  private HQuery readQueryAtomic()
+  {
+    skipSpace();
+    if (cur == '(') return readQueryParens();
+
+    HQuery.Path path = readQueryPath();
+    skipSpace();
+
+    if (path.toString().equals("not")) { return new HQuery.Missing(readQueryPath()); }
+
+    if (cur == '=' && peek == '=') { consumeCmp(); return new HQuery.Eq(path, readVal()); }
+    if (cur == '!' && peek == '=') { consumeCmp(); return new HQuery.Ne(path, readVal()); }
+    if (cur == '<' && peek == '=') { consumeCmp(); return new HQuery.Le(path, readVal()); }
+    if (cur == '>' && peek == '=') { consumeCmp(); return new HQuery.Ge(path, readVal()); }
+    if (cur == '<')                { consumeCmp(); return new HQuery.Lt(path, readVal()); }
+    if (cur == '>')                { consumeCmp(); return new HQuery.Gt(path, readVal()); }
+
+    return new HQuery.Has(path);
+  }
+
+  private HQuery readQueryParens()
+  {
+    consume();
+    skipSpace();
+    HQuery q = readQueryOr();
+    if (cur != ')') throw err("Expecting ')'");
+    consume();
+    return q;
+  }
+
+  private void consumeCmp()
+  {
+    consume();
+    if (cur == '=') consume();
+    skipSpace();
+  }
+
+  private HQuery.Path readQueryPath()
+  {
+    // read first tag name
+    String id = readId();
+
+    // if not pathed, optimize for common case
+    if (cur != '-' || peek != '>') return new HQuery.Path1(id);
+
+    // parse path
+    StringBuilder s = new StringBuilder().append(id);
+    ArrayList acc = new ArrayList();
+    acc.add(id);
+    while (cur == '-' || peek == '>')
+    {
+      consume();
+      consume();
+      id = readId();
+      acc.add(id);
+      s.append('-').append('>').append(id);
+    }
+    return new HQuery.PathN(s.toString(), (String[])acc.toArray(new String[acc.size()]));
   }
 
 //////////////////////////////////////////////////////////////////////////
