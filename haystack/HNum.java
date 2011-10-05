@@ -7,6 +7,8 @@
 //
 package haystack;
 
+import java.text.*;
+
 /**
  * HStr wraps a 64-bit floating point number and optional unit name.
  */
@@ -110,7 +112,13 @@ public class HNum extends HVal
     else if (Double.isNaN(val)) s.append("NaN");
     else
     {
-      s.append(val);
+      // don't let fractions
+      String format = "#0.###";
+      double abs = val; if (abs < 0) abs = -abs;
+      if (abs < 0.00001) format = "#0.#########";
+      else if (abs < 0.01) format = "#0.######";
+      s.append(new DecimalFormat(format).format(val));
+
       if (unit != null)
       {
         for (int i=0; i<unit.length(); ++i)
