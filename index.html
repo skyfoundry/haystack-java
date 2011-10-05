@@ -64,6 +64,8 @@ table { padding-left: 3em; }
 <li><strong>Modeling</strong>: simple APIs for modeling tags and their scalar values.</li>
 
 <li><strong>String Serialization</strong>: encoding and decoding tags using simple plain text format</li>
+
+<li><strong>Query</strong>: simple query language AST and parser</li>
 </ul>
 
 <p>All code is written to work with Java 1.4 and J2ME (no use of newer Java features such as generics).  This code is all open sourced under the Academic Free License version 3.0 (same license used as Project Haystack).</p>
@@ -213,4 +215,63 @@ dis:"Damper", point, val:10%, lastRead:2011-06-08T17:07:34-04:00 New_York</pre>
 &lt;date>        := YYYY-MM-DD
 &lt;time>        := hh:mm:ss[.FFF]
 &lt;dateTime>    := YYYY-MM-DD'T'h:mm:ss[.FFF]zz tz</pre>
+
+<h2 id='query'>Query Language </h2>
+
+<p>The toolkit includes a simple tag based query modeled by the <code>HQuery</code> class. You can parse a query using <code>read</code> and use <code>include</code> to check if a <code>HTags</code> instance matches the query:</p>
+
+<pre>HQuery query = HQuery.read("site and area > 15000");
+boolean match = query.include(db, rec);</pre>
+
+<p>The simple usage is just a tag name which matches any record that has the tag (regardless of its value):</p>
+
+<pre>site  // query any record with the "site" tag</pre>
+
+<p>To match a tag value you can use any of the equality or comparison operators:</p>
+
+<pre>geoPostalCode == "23220"   // equal to
+geoPostalCode != "23220"   // not equal to
+temp &lt; 75                  // less than
+temp &lt;= 75                 // less than or equal to
+temp > 75                  // greater than
+temp >= 75                 // greater than or equal to</pre>
+
+<p>Compare operators can use all the standard scalar from the <a href='#format'>plain text</a> format.</p>
+
+<p>You can combine filters using <code>and</code>, <code>or</code>, or <code>not</code>:</p>
+
+<pre>site or equip             // has site or equip tag
+equip and hvac            // has equip and hvac tag
+equip and not ahu         // has equip tag, but not the ahu tag</pre>
+
+<p>You use the <code>-></code> to dereference a tag which has a Ref value.  For example if your <code>equip</code> rec has a <code>siteRef</code> tag that references the site, you can query for equip in a given city such as:</p>
+
+<pre>equip and siteRef->geoCity == "Chicago"</pre>
+
+<p>The way to read the above expression is match a record if:</p>
+
+<ul>
+<li>it has equip tag</li>
+
+<li>and it has a siteRef tag which is a Ref</li>
+
+<li>and what the siteRef tag points to has the geoCity tag</li>
+
+<li>and that the site's geoCity tag is equal to "Chicago"</li>
+</ul>
+
+<p>The formal grammar of the query langauge:</p>
+
+<pre>&lt;query>      :=  &lt;predicate>
+&lt;predicate>  :=  &lt;condOr>
+&lt;condOr>     :=  &lt;condAnd> ("or" &lt;condAnd>)*
+&lt;condAnd>    :=  &lt;term> ("and" &lt;term>)*
+&lt;term>       :=  &lt;parens> | &lt;has> | &lt;missing> | &lt;cmp>
+&lt;parens>     :=  "(" &lt;predicate> ")"
+&lt;has>        :=  &lt;path>
+&lt;missing>    :=  "not" &lt;path>
+&lt;cmp>        :=  &lt;path> &lt;cmpOp> &lt;val>
+&lt;cmpOp>      :=  "=" | "!=" | "&lt;" | "&lt;=" | ">" | ">="
+&lt;path>       :=  &lt;name> ("->" &lt;name>)*
+&lt;val>        :=  same as plain text format</pre>
 </body></html>
