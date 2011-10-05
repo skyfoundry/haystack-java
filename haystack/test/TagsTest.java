@@ -86,7 +86,7 @@ public class TagsTest extends Test
       HTags.EMPTY);
     verifyIO("foo_12",
       new HTagsBuilder().add("foo_12").toTags());
-    verifyIO("fooBar:123.0ft",
+    verifyIO("fooBar:123ft",
       new HTagsBuilder().add("fooBar", 123, "ft").toTags());
     verifyIO("dis:\"Bob\",bday:1970-06-03,marker",
       new HTagsBuilder().add("dis", "Bob").add("bday", HDate.make(1970,6,3)).add("marker").toTags());

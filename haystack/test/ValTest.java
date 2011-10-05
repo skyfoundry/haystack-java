@@ -55,14 +55,15 @@ public class ValTest extends Test
     verify(HNum.make(-23).compareTo(HNum.make(-23)) == 0);
 
     // encoding
-    verifyIO(HNum.make(123), "123.0");
+    verifyIO(HNum.make(123), "123");
     verifyIO(HNum.make(123.4, "m/s"), "123.4m/s");
+    verifyIO(HNum.make(9.6, "m/s"), "9.6m/s");
     verifyIO(HNum.make(-5.2, "\u00b0F"), "-5.2\u00b0F");
-    verifyIO(HNum.make(23, "%"), "23.0%");
-    verifyIO(HNum.make(2.4e-8, "fl_oz"), "2.4E-8fl_oz");
-    verifyIO(HNum.make(2.4e14, "$"), "2.4E14$");
-    verifyEq(HVal.read("2.4E14fl_oz"), HNum.make(2.4e14, "fl_oz"));
-    verifyEq(HVal.read("2.4e14fl_oz"), HNum.make(2.4e14, "fl_oz"));
+    verifyIO(HNum.make(23, "%"), "23%");
+    verifyIO(HNum.make(2.4e-3, "fl_oz"), "0.0024fl_oz");
+    verifyIO(HNum.make(2.4e5, "$"), "240000$");
+    verifyEq(HVal.read("1234.56fl_oz"), HNum.make(1234.56, "fl_oz"));
+    verifyEq(HVal.read("0.000028fl_oz"), HNum.make(0.000028, "fl_oz"));
 
     // specials
     verifyIO(HNum.make(Double.NEGATIVE_INFINITY), "-INF");
