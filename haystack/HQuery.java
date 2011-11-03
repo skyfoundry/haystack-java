@@ -98,7 +98,7 @@ public abstract class HQuery
 //////////////////////////////////////////////////////////////////////////
 
   /* Return if given tags entity matches this query. */
-  public abstract boolean include(HDatabase db, HTags tags);
+  public abstract boolean include(HTags tags, Pather pather);
 
   /** String encoding */
   public final String toString()
@@ -120,6 +120,20 @@ public abstract class HQuery
   {
     if (!(that instanceof HQuery)) return false;
     return toString().equals(that.toString());
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// HQuery.Path
+//////////////////////////////////////////////////////////////////////////
+
+  /** Pather is a callback interface used to resolve query paths. */
+  public interface Pather
+  {
+    /**
+     * Given a HRef string identifier, resolve to an entity's
+     * HTags respresentation or ref is not found return null.
+     */
+    public HTags find(String ref);
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -205,7 +219,7 @@ public abstract class HQuery
   static abstract class PathQuery extends HQuery
   {
     PathQuery(Path p) { path = p; }
-    public final boolean include(HDatabase db, HTags tags)
+    public final boolean include(HTags tags, Pather pather)
     {
       HVal val = tags.get(path.get(0), false);
       if (path.size() != 1)
@@ -214,7 +228,7 @@ public abstract class HQuery
         for (int i=1; i<path.size(); ++i)
         {
           if (!(val instanceof HRef)) { val = null; break; }
-          nt = db.find(((HRef)val).val);
+          nt = pather.find(((HRef)val).val);
           if (nt == null) { val = null; break; }
           val = nt.get(path.get(i), false);
         }
@@ -363,9 +377,9 @@ public abstract class HQuery
   {
     And(HQuery a, HQuery b) { super(a, b); }
     final String keyword() { return "and"; }
-    public final boolean include(HDatabase db, HTags tags)
+    public final boolean include(HTags tags, Pather pather)
     {
-      return a.include(db, tags) && b.include(db, tags);
+      return a.include(tags, pather) && b.include(tags, pather);
     }
   }
 
@@ -377,9 +391,9 @@ public abstract class HQuery
   {
     Or(HQuery a, HQuery b) { super(a, b); }
     final String keyword() { return "or"; }
-    public final boolean include(HDatabase db, HTags tags)
+    public final boolean include(HTags tags, Pather pather)
     {
-      return a.include(db, tags) || b.include(db, tags);
+      return a.include(tags, pather) || b.include(tags, pather);
     }
   }
 

@@ -7,8 +7,6 @@
 //
 package haystack;
 
-import java.util.HashMap;
-
 /**
  * MissingTagException is thrown when attempting to perform
  * a checked get on HTags for a tag not present.
