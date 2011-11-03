@@ -98,7 +98,7 @@ public abstract class HQuery
 //////////////////////////////////////////////////////////////////////////
 
   /* Return if given tags entity matches this query. */
-  public abstract boolean include(HTags tags, Pather pather);
+  public abstract boolean include(HDict dict, Pather pather);
 
   /** String encoding */
   public final String toString()
@@ -131,9 +131,9 @@ public abstract class HQuery
   {
     /**
      * Given a HRef string identifier, resolve to an entity's
-     * HTags respresentation or ref is not found return null.
+     * HDict respresentation or ref is not found return null.
      */
-    public HTags find(String ref);
+    public HDict find(String ref);
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -219,12 +219,12 @@ public abstract class HQuery
   static abstract class PathQuery extends HQuery
   {
     PathQuery(Path p) { path = p; }
-    public final boolean include(HTags tags, Pather pather)
+    public final boolean include(HDict dict, Pather pather)
     {
-      HVal val = tags.get(path.get(0), false);
+      HVal val = dict.get(path.get(0), false);
       if (path.size() != 1)
       {
-        HTags nt = tags;
+        HDict nt = dict;
         for (int i=1; i<path.size(); ++i)
         {
           if (!(val instanceof HRef)) { val = null; break; }
@@ -377,9 +377,9 @@ public abstract class HQuery
   {
     And(HQuery a, HQuery b) { super(a, b); }
     final String keyword() { return "and"; }
-    public final boolean include(HTags tags, Pather pather)
+    public final boolean include(HDict dict, Pather pather)
     {
-      return a.include(tags, pather) && b.include(tags, pather);
+      return a.include(dict, pather) && b.include(dict, pather);
     }
   }
 
@@ -391,9 +391,9 @@ public abstract class HQuery
   {
     Or(HQuery a, HQuery b) { super(a, b); }
     final String keyword() { return "or"; }
-    public final boolean include(HTags tags, Pather pather)
+    public final boolean include(HDict dict, Pather pather)
     {
-      return a.include(tags, pather) || b.include(tags, pather);
+      return a.include(dict, pather) || b.include(dict, pather);
     }
   }
 
