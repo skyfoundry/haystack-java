@@ -45,6 +45,9 @@ public class HTime extends HVal
                      c.get(Calendar.MILLISECOND));
   }
 
+  /** Singleton for midnight 00:00 */
+  static final HTime MIDNIGHT = new HTime(0, 0, 0, 0);
+
   /** Private constructor */
   private HTime(int hour, int min, int sec, int ms)
   {

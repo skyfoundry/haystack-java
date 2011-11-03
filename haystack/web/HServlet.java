@@ -61,12 +61,13 @@ public class HServlet extends HttpServlet
     // get the database
     HDatabase db = db();
 
-    // parse path, first component of path is action
+    // parse URI path into "/{action}/{id}
     String path = req.getPathInfo();
     if (path == null || path.length() == 0) path = "/";
     int slash = path.indexOf('/', 1);
     if (slash < 0) slash = path.length();
     String action = path.substring(1, slash);
+    String id = slash+1 >= path.length() ? "" : path.substring(slash+1);
 
     // argument is query string on GET or content on POST
     String arg;
@@ -86,16 +87,16 @@ public class HServlet extends HttpServlet
 
     // process action
     HTags[] result = null;
-    if (action.equals("query")) result = onQuery(req, res, db, arg);
+    if (action.equals("query"))    result = onQuery(req, res, db, arg);
+    else if (action.equals("his")) result = onHis(req, res, db, id, arg);
     else res.sendError(HttpServletResponse.SC_NOT_FOUND);
     if (result == null) return;
 
-    /*
     // debug
     dumpReq(req);
     System.out.println("action = '" + action + "'");
+    System.out.println("id     = '" + id + "'");
     System.out.println("arg    = '" + arg + "'");
-    */
 
     // setup response
     res.setStatus(HttpServletResponse.SC_OK);
@@ -133,6 +134,30 @@ public class HServlet extends HttpServlet
      }
 
      return db.query(query);
+   }
+
+//////////////////////////////////////////////////////////////////////////
+// History
+//////////////////////////////////////////////////////////////////////////
+
+   HTags[] onHis(HttpServletRequest req, HttpServletResponse res,
+                 HDatabase db, String id, String queryStr)
+      throws ServletException, IOException
+   {
+      // lookup entity
+      HTags rec = db.get(id, false);
+      if (rec == null)
+      {
+        res.sendError(HttpServletResponse.SC_NOT_FOUND, "Unknown entity: " + id);
+        return null;
+      }
+
+      // parse date range
+      // TODO: hard code to today for now
+      HDate today = HDate.today();
+      HDateTime start = HDateTime.make(today, HTime.make(0, 0), HTimeZone.UTC, 0);
+      HDateTime end   = HDateTime.make(today, HTime.make(23, 59), HTimeZone.UTC, 0);
+      return db.his(rec, start, end);
    }
 
 //////////////////////////////////////////////////////////////////////////

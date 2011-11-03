@@ -159,6 +159,15 @@ public class ValTest extends Test
     verify(HDate.make(2010, 6, 9).compareTo(HDate.make(2000, 9, 30)) > 0);
     verify(HDate.make(2010, 6, 9).compareTo(HDate.make(2010, 6, 9))  == 0);
 
+    // plus/minus
+    verifyEq(HDate.make(2011, 12, 1).minusDays(0), HDate.make(2011, 12, 1));
+    verifyEq(HDate.make(2011, 12, 1).minusDays(1), HDate.make(2011, 11, 30));
+    verifyEq(HDate.make(2011, 12, 1).minusDays(-2), HDate.make(2011, 12, 3));
+    verifyEq(HDate.make(2011, 12, 1).plusDays(2), HDate.make(2011, 12, 3));
+    verifyEq(HDate.make(2011, 12, 1).plusDays(31), HDate.make(2012, 1, 1));
+    verifyEq(HDate.make(2008, 3, 3).minusDays(3), HDate.make(2008, 2, 29));
+    verifyEq(HDate.make(2008, 3, 3).minusDays(4), HDate.make(2008, 2, 28));
+
     // encoding
     verifyIO(HDate.make(2011, 6, 7), "2011-06-07");
     verifyIO(HDate.make(2011,10,10), "2011-10-10");
@@ -200,36 +209,58 @@ public class ValTest extends Test
     try {HVal.read("13:45:00.4561"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
   }
 
+  public void testTz()
+  {
+    verifyTz("New_York", "America/New_York");
+    verifyTz("Chicago",  "America/Chicago");
+    verifyTz("Phoenix",  "America/Phoenix");
+    verifyTz("London",   "Europe/London");
+    verifyTz("UTC",      "Etc/UTC");
+  }
+
+  private void verifyTz(String name, String javaId)
+  {
+    HTimeZone tz = HTimeZone.make(name);
+    TimeZone java = TimeZone.getTimeZone(javaId);
+    verifyEq(tz.name, name);
+    verifyEq(tz.java, java);
+    verifyEq(tz, HTimeZone.make(java));
+  }
+
   public void testDateTime()
   {
     // equality
-    verifyEq(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0), HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0));
-    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0), HDateTime.make(2009, 1, 2, 3, 4, 5, "UTC", 0));
-    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0), HDateTime.make(2011, 9, 2, 3, 4, 5, "UTC", 0));
-    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0), HDateTime.make(2011, 1, 9, 3, 4, 5, "UTC", 0));
-    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0), HDateTime.make(2011, 1, 2, 9, 4, 5, "UTC", 0));
-    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0), HDateTime.make(2011, 1, 2, 3, 9, 5, "UTC", 0));
-    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0), HDateTime.make(2011, 1, 2, 3, 4, 9, "UTC", 0));
-    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0), HDateTime.make(2011, 1, 2, 3, 4, 5, "London", 0));
-    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0), HDateTime.make(2011, 1, 2, 3, 4, 5, "London", 3600));
+    HTimeZone utc = HTimeZone.UTC;
+    HTimeZone london = HTimeZone.make("London");
+
+    verifyEq(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0), HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0));
+    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0), HDateTime.make(2009, 1, 2, 3, 4, 5, utc, 0));
+    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0), HDateTime.make(2011, 9, 2, 3, 4, 5, utc, 0));
+    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0), HDateTime.make(2011, 1, 9, 3, 4, 5, utc, 0));
+    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0), HDateTime.make(2011, 1, 2, 9, 4, 5, utc, 0));
+    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0), HDateTime.make(2011, 1, 2, 3, 9, 5, utc, 0));
+    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0), HDateTime.make(2011, 1, 2, 3, 4, 9, utc, 0));
+    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0), HDateTime.make(2011, 1, 2, 3, 4, 5, london, 0));
+    verifyNotEq(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0), HDateTime.make(2011, 1, 2, 3, 4, 5, london, 3600));
 
     // compare
-    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0)) == 0);
-    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2011, 1, 2, 3, 4, 6, "UTC", 0)) < 0);
-    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2011, 1, 2, 3, 5, 5, "UTC", 0)) < 0);
-    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2011, 1, 2, 4, 4, 5, "UTC", 0)) < 0);
-    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2011, 1, 3, 3, 4, 5, "UTC", 0)) < 0);
-    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2011, 2, 2, 3, 4, 5, "UTC", 0)) < 0);
-    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2012, 1, 2, 3, 4, 5, "UTC", 0)) < 0);
-    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, "UTC", 0).compareTo(HDateTime.make(2011, 1, 2, 3, 4, 0, "UTC", 0)) > 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0).compareTo(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0)) == 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0).compareTo(HDateTime.make(2011, 1, 2, 3, 4, 6, utc, 0)) < 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0).compareTo(HDateTime.make(2011, 1, 2, 3, 5, 5, utc, 0)) < 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0).compareTo(HDateTime.make(2011, 1, 2, 4, 4, 5, utc, 0)) < 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0).compareTo(HDateTime.make(2011, 1, 3, 3, 4, 5, utc, 0)) < 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0).compareTo(HDateTime.make(2011, 2, 2, 3, 4, 5, utc, 0)) < 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0).compareTo(HDateTime.make(2012, 1, 2, 3, 4, 5, utc, 0)) < 0);
+    verify(HDateTime.make(2011, 1, 2, 3, 4, 5, utc, 0).compareTo(HDateTime.make(2011, 1, 2, 3, 4, 0, utc, 0)) > 0);
 
     // encoding
-    HDateTime ts = HDateTime.make(1307377618069L, TimeZone.getTimeZone("America/New_York"));
+    HDateTime ts = HDateTime.make(1307377618069L, HTimeZone.make("New_York"));
     verifyIO(ts, "2011-06-06T12:26:58.069-04:00 New_York");
     verifyEq(ts.date.write(), "2011-06-06");
     verifyEq(ts.time.write(), "12:26:58.069");
     verifyEq(ts.tzOffset, -4*60*60);
-    verifyEq(ts.tz, "New_York");
+    verifyEq(ts.tz.name, "New_York");
+    verifyEq(ts.tz.java.getID(), "America/New_York");
     verifyEq(ts.millis(), 1307377618069L);
 
     // convert back to millis
@@ -237,15 +268,15 @@ public class ValTest extends Test
     verifyEq(ts.millis(), 1307377618069L);
 
     // different timezones
-    ts = HDateTime.make(949478640000L, TimeZone.getTimeZone("America/New_York"));
+    ts = HDateTime.make(949478640000L, HTimeZone.make("New_York"));
     verifyIO(ts, "2000-02-02T03:04:00-05:00 New_York");
-    ts = HDateTime.make(949478640000L, TimeZone.getTimeZone("Etc/UTC"));
+    ts = HDateTime.make(949478640000L, HTimeZone.make("UTC"));
     verifyIO(ts, "2000-02-02T08:04:00Z UTC");
-    ts = HDateTime.make(949478640000L, TimeZone.getTimeZone("Asia/Taipei"));
+    ts = HDateTime.make(949478640000L, HTimeZone.make("Taipei"));
     verifyIO(ts, "2000-02-02T16:04:00+08:00 Taipei");
-    verifyIO(HDateTime.make(2011, 6, 7, 11, 3, 43, "GMT+10", -36000),
+    verifyIO(HDateTime.make(2011, 6, 7, 11, 3, 43, HTimeZone.make("GMT+10"), -36000),
              "2011-06-07T11:03:43-10:00 GMT+10");
-    verifyIO(HDateTime.make(HDate.make(2011, 6, 8), HTime.make(4, 7, 33, 771), "GMT-7", 25200),
+    verifyIO(HDateTime.make(HDate.make(2011, 6, 8), HTime.make(4, 7, 33, 771), HTimeZone.make("GMT-7"), 25200),
              "2011-06-08T04:07:33.771+07:00 GMT-7");
 
     // errors
@@ -254,6 +285,26 @@ public class ValTest extends Test
     try {HVal.read("2000-02-02T03:04:00-05:!0 New_York"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
     try {HVal.read("2000-02-02T03:04:00-05:00"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
     try {HVal.read("2000-02-02T03:04:00-05:00 @"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
+  }
+
+  public void testMidnight()
+  {
+    verifyMidnight(HDate.make(2011, 11, 3),  "UTC",      "2011-11-03T00:00:00Z UTC");
+    verifyMidnight(HDate.make(2011, 11, 3),  "New_York", "2011-11-03T00:00:00-04:00 New_York");
+    verifyMidnight(HDate.make(2011, 12, 15), "Chicago",  "2011-12-15T00:00:00-06:00 Chicago");
+    verifyMidnight(HDate.make(2008, 2, 29),  "Phoenix",  "2008-02-29T00:00:00-07:00 Phoenix");
+  }
+
+  private void verifyMidnight(HDate date, String tzName, String str)
+  {
+    HDateTime ts = date.midnight(HTimeZone.make(tzName));
+    verifyEq(ts.date, date);
+    verifyEq(ts.time.hour, 0);
+    verifyEq(ts.time.min,  0);
+    verifyEq(ts.time.sec,  0);
+    verifyEq(ts.write(), str);
+    verifyEq(ts, HVal.read(ts.write()));
+    verifyEq(ts.millis(), ((HDateTime)HVal.read(str)).millis());
   }
 
   public void verifyIO(HVal val, String s)

@@ -18,7 +18,7 @@ public abstract class HDatabase
 {
 
 //////////////////////////////////////////////////////////////////////////
-// Lookup and query
+// Get
 //////////////////////////////////////////////////////////////////////////
 
   /**
@@ -37,6 +37,16 @@ public abstract class HDatabase
     if (checked) throw new UnknownEntityException(id);
     return null;
   }
+
+  /**
+   * Implementation hook to resolve an identifier into an entity.
+   * Return null if id does not resolve an entity
+   */
+  protected abstract HTags find(String id);
+
+//////////////////////////////////////////////////////////////////////////
+// Query
+//////////////////////////////////////////////////////////////////////////
 
   /**
    * Convenience for query(HQuery.read(queryStr)).
@@ -66,19 +76,20 @@ public abstract class HDatabase
     public HTags find(String id) { return find(id); }
   };
 
-//////////////////////////////////////////////////////////////////////////
-// Sub-class hooks
-//////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Implementation hook to resolve an identifier into an entity.
-   * Return null if id does not resolve an entity
-   */
-  protected abstract HTags find(String id);
-
   /**
    * Implementation hook to iterate every entity in the database.
    */
   protected abstract Iterator iterator();
+
+//////////////////////////////////////////////////////////////////////////
+// History
+//////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Given a history entity, return all the timestamp/value history
+   * samples for the given inclusive timerange.  If no samples are available
+   * for the range return an empty array.
+   */
+  public abstract HTags[] his(HTags entity, HDateTime start, HDateTime end);
 
 }
