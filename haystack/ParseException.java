@@ -7,8 +7,6 @@
 //
 package haystack;
 
-import java.util.HashMap;
-
 /**
  * ParseException is thrown when there is an exception read
  * from HReader.

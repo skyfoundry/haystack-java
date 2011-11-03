@@ -13,8 +13,11 @@ class Build : BuildJava
   new make()
   {
     jar = scriptDir.uri + `haystack.jar`
+    cp  = [scriptDir.uri + `lib/servlet.jar`]
     mainClass = "haystack.test.Test"
     packages = ["haystack",
+                "haystack.db",
+                "haystack.web",
                 "haystack.test"]
   }
 

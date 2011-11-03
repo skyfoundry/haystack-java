@@ -205,7 +205,7 @@ public class QueryTest extends Test
 
   void verifyInclude(final HashMap map, String query, String expected)
   {
-    HDatabase db = new HDatabase()
+    HQuery.Pather db = new HQuery.Pather()
     {
       public HTags find(String id) { return (HTags)map.get(id); }
     };
@@ -216,7 +216,7 @@ public class QueryTest extends Test
     for (int c='a'; c<='c'; ++c)
     {
       String id = "" + (char)c;
-      if (q.include(db, db.find(id)))
+      if (q.include(db.find(id), db))
         actual += actual.length() > 0 ? ","+id : id;
     }
     verifyEq(expected, actual);
