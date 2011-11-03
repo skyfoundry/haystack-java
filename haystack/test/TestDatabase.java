@@ -41,5 +41,23 @@ public class TestDatabase extends HDatabase
 
   protected Iterator iterator() { return recs.values().iterator(); }
 
+  public HTags[] his(HTags entity, HDateTime start, HDateTime end)
+  {
+    // generate dummy 10min data
+    ArrayList acc = new ArrayList();
+    HDateTime ts = start;
+    boolean isBool = ((HStr)entity.get("kind")).val.equals("Bool");
+    while (ts.compareTo(end) <= 0)
+    {
+      HVal val = isBool ?
+        HBool.make(acc.size() % 2 == 0) :
+        HNum.make(acc.size());
+      HTags item = new HTagsBuilder().add("ts", ts).add("val", val).toTags();
+      acc.add(item);
+      ts = HDateTime.make(ts.millis() + 10*60*1000);
+    }
+    return (HTags[])acc.toArray(new HTags[acc.size()]);
+  }
+
   HashMap recs = new HashMap();
 }

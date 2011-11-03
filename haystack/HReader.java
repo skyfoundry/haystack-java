@@ -260,7 +260,7 @@ public class HReader
       if (!isTz(cur)) throw errChar("Expected timezone name");
       while (isTz(cur)) { tz.append((char)cur); consume(); }
 
-      return HDateTime.make(date, time, tz.toString(), tzOffset);
+      return HDateTime.make(date, time, HTimeZone.make(tz.toString()), tzOffset);
     }
 
     // if we have unit, parse that

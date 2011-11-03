@@ -17,20 +17,38 @@ import java.util.TimeZone;
 public class HDateTime extends HVal
 {
   /** Constructor with basic fields */
-  public static HDateTime make(HDate date, HTime time, String tz, int tzOffset)
+  public static HDateTime make(HDate date, HTime time, HTimeZone tz, int tzOffset)
   {
     if (date == null || time == null || tz == null) throw new IllegalArgumentException("null args");
     return new HDateTime(date, time, tz, tzOffset);
   }
 
+  /** Constructor with date, time, tz, but no tzOffset */
+  public static HDateTime make(HDate date, HTime time, HTimeZone tz)
+  {
+    // use calendar to decode millis to fields
+    GregorianCalendar c = new GregorianCalendar(date.year, date.month-1, date.day, time.hour, time.min, time.sec);
+    c.setTimeZone(tz.java);
+
+    // tzOffset
+    int tzOffset = c.get(Calendar.ZONE_OFFSET) / 1000 + c.get(Calendar.DST_OFFSET) / 1000;
+
+    // millis
+    long millis = c.getTimeInMillis();
+
+    HDateTime ts = new HDateTime(date, time, tz, tzOffset);
+    ts.millis = millis;
+    return ts;
+  }
+
   /** Constructor with date and time (to sec) fields */
-  public static HDateTime make(int year, int month, int day, int hour, int min, int sec, String tz, int tzOffset)
+  public static HDateTime make(int year, int month, int day, int hour, int min, int sec, HTimeZone tz, int tzOffset)
   {
     return make(HDate.make(year, month, day), HTime.make(hour, min, sec), tz, tzOffset);
   }
 
   /** Constructor with date and time (to min) fields */
-  public static HDateTime make(int year, int month, int day, int hour, int min, String tz, int tzOffset)
+  public static HDateTime make(int year, int month, int day, int hour, int min, HTimeZone tz, int tzOffset)
   {
     return make(HDate.make(year, month, day), HTime.make(hour, min), tz, tzOffset);
   }
@@ -38,31 +56,32 @@ public class HDateTime extends HVal
   /** Constructor with Java millis since Java epoch and local timezone */
   public static HDateTime make(long millis)
   {
-    return make(millis, TimeZone.getDefault());
+    return make(millis, HTimeZone.DEFAULT);
   }
 
   /** Constructor with Java millis and Java TimeZone instance */
-  public static HDateTime make(long millis, TimeZone tz)
+  public static HDateTime make(long millis, HTimeZone tz)
   {
     // use calendar to decode millis to fields
-    Calendar c = new GregorianCalendar(tz);
+    Calendar c = new GregorianCalendar(tz.java);
     c.setTimeInMillis(millis);
 
     // tzOffset
     int tzOffset = c.get(Calendar.ZONE_OFFSET) / 1000 + c.get(Calendar.DST_OFFSET) / 1000;
 
-    // tz city name
-    String tzName = tz.getID();
-    int slash = tzName.indexOf('/');
-    if (slash > 0) tzName = tzName.substring(slash+1);
-
-    HDateTime ts = new HDateTime(HDate.make(c), HTime.make(c), tzName, tzOffset);
+    HDateTime ts = new HDateTime(HDate.make(c), HTime.make(c), tz, tzOffset);
     ts.millis = millis;
     return ts;
   }
 
+  /** Get HDateTime for current time in default timezone */
+  public static HDateTime now()
+  {
+    return make(System.currentTimeMillis());
+  }
+
   /** Private constructor */
-  private HDateTime(HDate date, HTime time, String tz, int tzOffset)
+  private HDateTime(HDate date, HTime time, HTimeZone tz, int tzOffset)
   {
     this.date     = date;
     this.time     = time;
@@ -79,8 +98,8 @@ public class HDateTime extends HVal
   /** Offset in seconds from UTC including DST offset */
   public final int tzOffset;
 
-  /** Timezone name as Olson database city name */
-  public final String tz;
+  /** Timezone as Olson database city name */
+  public final HTimeZone tz;
 
   /** Get this date time as Java milliseconds since epoch */
   public long millis()

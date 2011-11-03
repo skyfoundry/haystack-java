@@ -31,6 +31,12 @@ public class HDate extends HVal
                      c.get(Calendar.DAY_OF_MONTH));
   }
 
+  /** Get HDate for current time in default timezone */
+  public static HDate today()
+  {
+    return HDateTime.now().date;
+  }
+
   /** Private constructor */
   private HDate(int year, int month, int day)
   {
@@ -79,5 +85,68 @@ public class HDate extends HVal
     if (month < 10) s.append('0'); s.append(month).append('-');
     if (day < 10) s.append('0');   s.append(day);
   }
+
+  /** Convert this date into HDateTime for midnight in given timezone. */
+  public HDateTime midnight(HTimeZone tz)
+  {
+    return HDateTime.make(this, HTime.MIDNIGHT, tz);
+  }
+
+  /** Return date in future given number of days */
+  public HDate plusDays(int numDays)
+  {
+    if (numDays == 0) return this;
+    if (numDays < 0) return minusDays(-numDays);
+    int year  = this.year;
+    int month = this.month;
+    int day   = this.day;
+    for (; numDays > 0; --numDays)
+    {
+      day++;
+      if (day > daysInMonth(year, month))
+      {
+        day = 1;
+        month++;
+        if (month > 12) { month = 1; year++; }
+      }
+    }
+    return make(year, month, day);
+  }
+
+  /** Return date in past given number of days */
+  public HDate minusDays(int numDays)
+  {
+    if (numDays == 0) return this;
+    if (numDays < 0) return plusDays(-numDays);
+    int year  = this.year;
+    int month = this.month;
+    int day   = this.day;
+    for (; numDays > 0; --numDays)
+    {
+      day--;
+      if (day <= 0)
+      {
+        month--;
+        if (month < 1) { month = 12; year--; }
+        day = daysInMonth(year, month);
+      }
+    }
+    return make(year, month, day);
+  }
+
+  /** Return if given year a leap year */
+  public static boolean isLeapYear(int year)
+  {
+    if ((year & 3) != 0) return false;
+    return (year % 100 != 0) || (year % 400 == 0);
+  }
+
+  /** Return number of days in given year (2xxx) and month (1-12) */
+  private static int daysInMonth(int year, int mon)
+  {
+    return isLeapYear(year) ? daysInMonLeap[mon] : daysInMon[mon];
+  }
+  private static final int daysInMon[]     = { -1, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+  private static final int daysInMonLeap[] = { -1, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 }
