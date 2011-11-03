@@ -9,7 +9,7 @@ package haystack;
 
 /**
  * MissingTagException is thrown when attempting to perform
- * a checked get on HTags for a tag not present.
+ * a checked get on HDict for a tag not present.
  */
 public class MissingTagException extends RuntimeException
 {

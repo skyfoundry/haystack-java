@@ -57,22 +57,22 @@ public class HReader
     try { in.close(); } catch (IOException e) { e.printStackTrace(); }
   }
 
-  /** Read tags and check that we read whole stream. */
-  HTags readTagsEos()
+  /** Read dict and check that we read whole stream. */
+  HDict readDictEos()
   {
-    HTags tags = readTags();
+    HDict dict = readDict();
     if (cur >= 0) throw errChar("Expected end of stream");
-    return tags;
+    return dict;
   }
 
   /** Read a set of name/value tags. */
-  public HTags readTags()
+  public HDict readDict()
   {
     // emtpy
-    if (!isIdStart(cur)) return HTags.EMPTY;
+    if (!isIdStart(cur)) return HDict.EMPTY;
 
     // parse pairs
-    HTagsBuilder b = new HTagsBuilder();
+    HDictBuilder b = new HDictBuilder();
     while (true)
     {
       // name
@@ -95,7 +95,7 @@ public class HReader
       consume();
       skipSpace();
     }
-    return b.toTags();
+    return b.toDict();
   }
 
   private String readId()

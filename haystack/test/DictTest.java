@@ -11,15 +11,15 @@ import haystack.*;
 import java.util.*;
 
 /**
- * TagsTest tests the HTags class
+ * DictTest tests the HDict class
  */
-public class TagsTest extends Test
+public class DictTest extends Test
 {
   public void testEmpty()
   {
-    HTags tags = new HTagsBuilder().toTags();
-    verify(tags == HTags.EMPTY);
-    verifyEq(tags, HTags.EMPTY);
+    HDict tags = new HDictBuilder().toDict();
+    verify(tags == HDict.EMPTY);
+    verifyEq(tags, HDict.EMPTY);
 
     // size
     verifyEq(tags.size(), 0);
@@ -35,13 +35,13 @@ public class TagsTest extends Test
 
   public void testBasics()
   {
-    HTags tags = new HTagsBuilder()
+    HDict tags = new HDictBuilder()
        .add("id", HRef.make("aaaa-bbbb"))
        .add("site")
        .add("geoAddr", "Richmond, Va")
        .add("area", 1200, "ft")
        .add("date", HDate.make(2000, 12, 3))
-       .toTags();
+       .toDict();
 
     // size
     verifyEq(tags.size(), 5);
@@ -64,40 +64,40 @@ public class TagsTest extends Test
 
   public void testEquality()
   {
-    HTags a = new HTagsBuilder().add("x").toTags();
-    verifyEq(a, new HTagsBuilder().add("x").toTags());
-    verifyNotEq(a, new HTagsBuilder().add("x", 3).toTags());
-    verifyNotEq(a, new HTagsBuilder().add("y").toTags());
-    verifyNotEq(a, new HTagsBuilder().add("x").add("y").toTags());
+    HDict a = new HDictBuilder().add("x").toDict();
+    verifyEq(a, new HDictBuilder().add("x").toDict());
+    verifyNotEq(a, new HDictBuilder().add("x", 3).toDict());
+    verifyNotEq(a, new HDictBuilder().add("y").toDict());
+    verifyNotEq(a, new HDictBuilder().add("x").add("y").toDict());
 
-    a = new HTagsBuilder().add("x").add("y", "str").toTags();
-    verifyEq(a, new HTagsBuilder().add("x").add("y", "str").toTags());
-    verifyEq(a, new HTagsBuilder().add("y", "str").add("x").toTags());
-    verifyNotEq(a, new HTagsBuilder().add("x", "str").add("y", "str").toTags());
-    verifyNotEq(a, new HTagsBuilder().add("x").add("y", "strx").toTags());
-    verifyNotEq(a, new HTagsBuilder().add("y", "str").toTags());
-    verifyNotEq(a, new HTagsBuilder().add("x").toTags());
-    verifyNotEq(a, new HTagsBuilder().add("x").add("yy", "str").toTags());
+    a = new HDictBuilder().add("x").add("y", "str").toDict();
+    verifyEq(a, new HDictBuilder().add("x").add("y", "str").toDict());
+    verifyEq(a, new HDictBuilder().add("y", "str").add("x").toDict());
+    verifyNotEq(a, new HDictBuilder().add("x", "str").add("y", "str").toDict());
+    verifyNotEq(a, new HDictBuilder().add("x").add("y", "strx").toDict());
+    verifyNotEq(a, new HDictBuilder().add("y", "str").toDict());
+    verifyNotEq(a, new HDictBuilder().add("x").toDict());
+    verifyNotEq(a, new HDictBuilder().add("x").add("yy", "str").toDict());
   }
 
   public void testIO()
   {
     verifyIO("",
-      HTags.EMPTY);
+      HDict.EMPTY);
     verifyIO("foo_12",
-      new HTagsBuilder().add("foo_12").toTags());
+      new HDictBuilder().add("foo_12").toDict());
     verifyIO("fooBar:123ft",
-      new HTagsBuilder().add("fooBar", 123, "ft").toTags());
+      new HDictBuilder().add("fooBar", 123, "ft").toDict());
     verifyIO("dis:\"Bob\",bday:1970-06-03,marker",
-      new HTagsBuilder().add("dis", "Bob").add("bday", HDate.make(1970,6,3)).add("marker").toTags());
+      new HDictBuilder().add("dis", "Bob").add("bday", HDate.make(1970,6,3)).add("marker").toDict());
     verifyIO("dis  :  \"Bob\" , bday : 1970-06-03 , marker",
-      new HTagsBuilder().add("dis", "Bob").add("bday", HDate.make(1970,6,3)).add("marker").toTags());
+      new HDictBuilder().add("dis", "Bob").add("bday", HDate.make(1970,6,3)).add("marker").toDict());
   }
 
-  void verifyIO(String s, HTags tags)
+  void verifyIO(String s, HDict tags)
   {
-    // println("  :: " +  HTags.read(s));
+    // println("  :: " +  HDict.read(s));
     if (tags.size() <= 1) verifyEq(tags.write(), s);
-    verifyEq(HTags.read(s), tags);
+    verifyEq(HDict.read(s), tags);
   }
 }

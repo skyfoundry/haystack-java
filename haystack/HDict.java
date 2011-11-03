@@ -12,10 +12,10 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 /**
- * HTags is an immutable map of name/HVal pairs.  Use HTagsBuilder
- * to construct a HTags instance.
+ * HDict is an immutable map of name/HVal pairs.  Use HDictBuilder
+ * to construct a HDict instance.
  */
-public class HTags
+public class HDict
 {
 
 //////////////////////////////////////////////////////////////////////////
@@ -23,10 +23,10 @@ public class HTags
 //////////////////////////////////////////////////////////////////////////
 
   /** Singleton for empty set of tags. */
-  public static final HTags EMPTY = new HTags(new HashMap(11));
+  public static final HDict EMPTY = new HDict(new HashMap(11));
 
-  /** Package private constructor used by HTagsBuilder */
-  HTags(HashMap map) { this.map = map; }
+  /** Package private constructor used by HDictBuilder */
+  HDict(HashMap map) { this.map = map; }
 
 //////////////////////////////////////////////////////////////////////////
 // Access
@@ -73,19 +73,19 @@ public class HTags
   /** Equality is tags */
   public boolean equals(Object that)
   {
-    if (!(that instanceof HTags)) return false;
-    return map.equals(((HTags)that).map);
+    if (!(that instanceof HDict)) return false;
+    return map.equals(((HDict)that).map);
   }
 
 //////////////////////////////////////////////////////////////////////////
 // Encoding
 //////////////////////////////////////////////////////////////////////////
 
-  /** Decode a string into a HTags, throw ParseException if
+  /** Decode a string into a HDict, throw ParseException if
       not formatted correctly */
-  public static HTags read(String s)
+  public static HDict read(String s)
   {
-    return new HReader(s).readTagsEos();
+    return new HReader(s).readDictEos();
   }
 
   /** Encode value to string format */

@@ -86,7 +86,7 @@ public class HServlet extends HttpServlet
     }
 
     // process action
-    HTags[] result = null;
+    HDict[] result = null;
     if (action.equals("query"))    result = onQuery(req, res, db, arg);
     else if (action.equals("his")) result = onHis(req, res, db, id, arg);
     else res.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -117,7 +117,7 @@ public class HServlet extends HttpServlet
 // Query
 //////////////////////////////////////////////////////////////////////////
 
-   HTags[] onQuery(HttpServletRequest req, HttpServletResponse res,
+   HDict[] onQuery(HttpServletRequest req, HttpServletResponse res,
                   HDatabase db, String queryStr)
       throws ServletException, IOException
    {
@@ -140,12 +140,12 @@ public class HServlet extends HttpServlet
 // History
 //////////////////////////////////////////////////////////////////////////
 
-   HTags[] onHis(HttpServletRequest req, HttpServletResponse res,
+   HDict[] onHis(HttpServletRequest req, HttpServletResponse res,
                  HDatabase db, String id, String queryStr)
       throws ServletException, IOException
    {
       // lookup entity
-      HTags rec = db.get(id, false);
+      HDict rec = db.get(id, false);
       if (rec == null)
       {
         res.sendError(HttpServletResponse.SC_NOT_FOUND, "Unknown entity: " + id);

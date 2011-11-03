@@ -28,20 +28,20 @@ public class TestDatabase extends HDatabase
   private void addPoint(String dis, String kind)
   {
     String id = "id-" + recs.size();
-    HTags rec = new HTagsBuilder()
+    HDict rec = new HDictBuilder()
       .add("id",   HRef.make(id))
       .add("dis",  dis)
       .add("kind", kind)
       .add("tz",   "New_York")
-      .toTags();
+      .toDict();
     recs.put(id, rec);
   }
 
-  protected HTags find(String id) { return (HTags)recs.get(id); }
+  protected HDict find(String id) { return (HDict)recs.get(id); }
 
   protected Iterator iterator() { return recs.values().iterator(); }
 
-  public HTags[] his(HTags entity, HDateTime start, HDateTime end)
+  public HDict[] his(HDict entity, HDateTime start, HDateTime end)
   {
     // generate dummy 10min data
     ArrayList acc = new ArrayList();
@@ -52,11 +52,11 @@ public class TestDatabase extends HDatabase
       HVal val = isBool ?
         HBool.make(acc.size() % 2 == 0) :
         HNum.make(acc.size());
-      HTags item = new HTagsBuilder().add("ts", ts).add("val", val).toTags();
+      HDict item = new HDictBuilder().add("ts", ts).add("val", val).toDict();
       acc.add(item);
       ts = HDateTime.make(ts.millis() + 10*60*1000);
     }
-    return (HTags[])acc.toArray(new HTags[acc.size()]);
+    return (HDict[])acc.toArray(new HDict[acc.size()]);
   }
 
   HashMap recs = new HashMap();

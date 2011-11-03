@@ -24,15 +24,15 @@ public abstract class HDatabase
   /**
    * Convenience for get(id, true)
    */
-  public HTags get(String id) { return get(id, true); }
+  public HDict get(String id) { return get(id, true); }
 
   /**
    * Lookup an entity by it's unique identifier.  If not found then
    * return null or throw an UnknownEntityException based on checked.
    */
-  public HTags get(String id, boolean checked)
+  public HDict get(String id, boolean checked)
   {
-    HTags rec = find(id);
+    HDict rec = find(id);
     if (rec != null) return rec;
     if (checked) throw new UnknownEntityException(id);
     return null;
@@ -42,7 +42,7 @@ public abstract class HDatabase
    * Implementation hook to resolve an identifier into an entity.
    * Return null if id does not resolve an entity
    */
-  protected abstract HTags find(String id);
+  protected abstract HDict find(String id);
 
 //////////////////////////////////////////////////////////////////////////
 // Query
@@ -52,7 +52,7 @@ public abstract class HDatabase
    * Convenience for query(HQuery.read(queryStr)).
    * Throw ParseException if query is invalid.
    */
-  public HTags[] query(String queryStr)
+  public HDict[] query(String queryStr)
   {
     return query(HQuery.read(queryStr));
   }
@@ -60,20 +60,20 @@ public abstract class HDatabase
   /**
    * Return list of every entity that matches given query.
    */
-  public HTags[] query(HQuery query)
+  public HDict[] query(HQuery query)
   {
     ArrayList acc = new ArrayList();
     for (Iterator it = iterator(); it.hasNext(); )
     {
-      HTags rec = (HTags)it.next();
+      HDict rec = (HDict)it.next();
       if (query.include(rec, queryPather)) acc.add(rec);
     }
-    return (HTags[])acc.toArray(new HTags[acc.size()]);
+    return (HDict[])acc.toArray(new HDict[acc.size()]);
   }
 
   private HQuery.Pather queryPather = new HQuery.Pather()
   {
-    public HTags find(String id) { return find(id); }
+    public HDict find(String id) { return find(id); }
   };
 
   /**
@@ -90,6 +90,6 @@ public abstract class HDatabase
    * samples for the given inclusive timerange.  If no samples are available
    * for the range return an empty array.
    */
-  public abstract HTags[] his(HTags entity, HDateTime start, HDateTime end);
+  public abstract HDict[] his(HDict entity, HDateTime start, HDateTime end);
 
 }

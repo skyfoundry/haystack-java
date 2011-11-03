@@ -147,28 +147,28 @@ public class QueryTest extends Test
 
   public void testInclude()
   {
-    HTags a = new HTagsBuilder()
+    HDict a = new HDictBuilder()
       .add("dis", "a")
       .add("num", 100)
       .add("foo", 99)
       .add("date", HDate.make(2011,10,5))
-      .toTags();
+      .toDict();
 
-   HTags b = new HTagsBuilder()
+   HDict b = new HDictBuilder()
       .add("dis", "b")
       .add("num", 200)
       .add("foo", 88)
       .add("date", HDate.make(2011,10,20))
       .add("bar")
       .add("ref", HRef.make("a"))
-      .toTags();
+      .toDict();
 
-   HTags c = new HTagsBuilder()
+   HDict c = new HDictBuilder()
       .add("dis", "c")
       .add("num", 300)
       .add("ref", HRef.make("b"))
       .add("bar")
-      .toTags();
+      .toDict();
 
     final HashMap db = new HashMap();
     db.put("a", a);
@@ -207,7 +207,7 @@ public class QueryTest extends Test
   {
     HQuery.Pather db = new HQuery.Pather()
     {
-      public HTags find(String id) { return (HTags)map.get(id); }
+      public HDict find(String id) { return (HDict)map.get(id); }
     };
 
     HQuery q = HQuery.read(query);

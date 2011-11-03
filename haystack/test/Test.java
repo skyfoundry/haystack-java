@@ -23,7 +23,7 @@ public abstract class Test
   public static String[] tests =
   {
     "ValTest",
-    "TagsTest",
+    "DictTest",
     "QueryTest",
   };
 
