@@ -26,9 +26,9 @@ Model APIs [#model]
 
 The API is designed to model tags using the following key classes:
 
-- 'HTags': immutable map of name/value tag pairs
+- 'HDict': immutable map of name/value tag pairs
 - 'HVal': base class for tag value types
-- 'HTagsBuilder': builder used to construct an HTags instance
+- 'HDictBuilder': builder used to construct an HDict instance
 
 The 'HVal' subclasses for each of the haystack tag types:
 
@@ -42,23 +42,23 @@ The 'HVal' subclasses for each of the haystack tag types:
  - 'HTime': time as hour, minute, second, milliseconds
  - 'HDateTime': date time with timezone offset and timezone name
 
-The 'HTags' and 'HVal' classes are immutable, once an instance is
-constructed it cannot be modified.  The 'HTagsBuilder' class is used
-to build an immutable 'HTags' instance:
+The 'HDict' and 'HVal' classes are immutable, once an instance is
+constructed it cannot be modified.  The 'HDictBuilder' class is used
+to build an immutable 'HDict' instance:
 
   // using builder API
-  HTags tags = new HTagsBuilder()
+  HDict tags = new HDictBuilder()
                      .add("dis", "Building A")
                      .add("area", 13500)
                      .add("built", HDate.make(1970,6,3))
                      .add("site")
-                     .toTags();
+                     .toDict();
 
   // if performance isn't critical, just use string
-  HTags tags = HTags.read("dis:\"Building A\", area:13500, built: 1970-06-03, site");
+  HDict tags = HDict.read("dis:\"Building A\", area:13500, built: 1970-06-03, site");
 
 Once an instance is created, you can query for the tags using the
-'HTags.get' method or iterate with 'HTags.iterator' method:
+'HDict.get' method or iterate with 'HDict.iterator' method:
 
   tags.get("dis")     // evalutes to HStr("Building A")
   tags.get("site")    // evaluates to HMarker.VAL
@@ -152,7 +152,7 @@ Formal BNF grammer of the string encoding:
 Query Language [#query]
 ***********************
 The toolkit includes a simple tag based query modeled by the 'HQuery' class.
-You can parse a query using 'read' and use 'include' to check if a 'HTags'
+You can parse a query using 'read' and use 'include' to check if a 'HDict'
 instance matches the query:
 
   HQuery query = HQuery.read("site and area > 15000");
