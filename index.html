@@ -75,11 +75,11 @@ table { padding-left: 3em; }
 <p>The API is designed to model tags using the following key classes:</p>
 
 <ul>
-<li><code>HTags</code>: immutable map of name/value tag pairs</li>
+<li><code>HDict</code>: immutable map of name/value tag pairs</li>
 
 <li><code>HVal</code>: base class for tag value types</li>
 
-<li><code>HTagsBuilder</code>: builder used to construct an HTags instance</li>
+<li><code>HDictBuilder</code>: builder used to construct an HDict instance</li>
 </ul>
 
 <p>The <code>HVal</code> subclasses for each of the haystack tag types:</p>
@@ -104,20 +104,20 @@ table { padding-left: 3em; }
 <li><code>HDateTime</code>: date time with timezone offset and timezone name</li>
 </ul>
 
-<p>The <code>HTags</code> and <code>HVal</code> classes are immutable, once an instance is constructed it cannot be modified.  The <code>HTagsBuilder</code> class is used to build an immutable <code>HTags</code> instance:</p>
+<p>The <code>HDict</code> and <code>HVal</code> classes are immutable, once an instance is constructed it cannot be modified.  The <code>HDictBuilder</code> class is used to build an immutable <code>HDict</code> instance:</p>
 
 <pre>// using builder API
-HTags tags = new HTagsBuilder()
+HDict tags = new HDictBuilder()
                    .add("dis", "Building A")
                    .add("area", 13500)
                    .add("built", HDate.make(1970,6,3))
                    .add("site")
-                   .toTags();
+                   .toDict();
 
 // if performance isn't critical, just use string
-HTags tags = HTags.read("dis:\"Building A\", area:13500, built: 1970-06-03, site");</pre>
+HDict tags = HDict.read("dis:\"Building A\", area:13500, built: 1970-06-03, site");</pre>
 
-<p>Once an instance is created, you can query for the tags using the <code>HTags.get</code> method or iterate with <code>HTags.iterator</code> method:</p>
+<p>Once an instance is created, you can query for the tags using the <code>HDict.get</code> method or iterate with <code>HDict.iterator</code> method:</p>
 
 <pre>tags.get("dis")     // evalutes to HStr("Building A")
 tags.get("site")    // evaluates to HMarker.VAL
@@ -218,7 +218,7 @@ dis:"Damper", point, val:10%, lastRead:2011-06-08T17:07:34-04:00 New_York</pre>
 
 <h2 id='query'>Query Language </h2>
 
-<p>The toolkit includes a simple tag based query modeled by the <code>HQuery</code> class. You can parse a query using <code>read</code> and use <code>include</code> to check if a <code>HTags</code> instance matches the query:</p>
+<p>The toolkit includes a simple tag based query modeled by the <code>HQuery</code> class. You can parse a query using <code>read</code> and use <code>include</code> to check if a <code>HDict</code> instance matches the query:</p>
 
 <pre>HQuery query = HQuery.read("site and area > 15000");
 boolean match = query.include(db, rec);</pre>
