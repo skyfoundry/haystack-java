@@ -69,7 +69,7 @@ public class HDictBuilder
   public final HDict toDict()
   {
     if (map == null || map.isEmpty()) return HDict.EMPTY;
-    HDict dict = new HDict(this.map);
+    HDict dict = new HDict.MapImpl(this.map);
     this.map = null;
     return dict;
   }
