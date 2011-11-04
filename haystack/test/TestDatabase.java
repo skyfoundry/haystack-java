@@ -97,9 +97,9 @@ public class TestDatabase extends HDatabase
 
   protected Iterator iterator() { return recs.values().iterator(); }
 
-  public HDict[] his(HDict entity, HDateTimeRange range)
+  public HHisItem[] his(HDict entity, HDateTimeRange range)
   {
-    // generate dummy 10min data
+    // generate dummy 15min data
     ArrayList acc = new ArrayList();
     HDateTime ts = range.start;
     boolean isBool = ((HStr)entity.get("kind")).val.equals("Bool");
@@ -108,11 +108,11 @@ public class TestDatabase extends HDatabase
       HVal val = isBool ?
         HBool.make(acc.size() % 2 == 0) :
         HNum.make(acc.size());
-      HDict item = new HDictBuilder().add("ts", ts).add("val", val).toDict();
+      HDict item = HHisItem.make(ts, val);
       acc.add(item);
-      ts = HDateTime.make(ts.millis() + 10*60*1000);
+      ts = HDateTime.make(ts.millis() + 15*60*1000);
     }
-    return (HDict[])acc.toArray(new HDict[acc.size()]);
+    return (HHisItem[])acc.toArray(new HHisItem[acc.size()]);
   }
 
   HashMap recs = new HashMap();
