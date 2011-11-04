@@ -66,6 +66,8 @@ table { padding-left: 3em; }
 <li><strong>String Serialization</strong>: encoding and decoding tags using simple plain text format</li>
 
 <li><strong>Query</strong>: simple query language AST and parser</li>
+
+<li><strong>Servlet</strong>: servlet with simple Rest HTTP API to query entities by their tags and access historical time-series data</li>
 </ul>
 
 <p>All code is written to work with Java 1.4 and J2ME (no use of newer Java features such as generics).  This code is all open sourced under the Academic Free License version 3.0 (same license used as Project Haystack).</p>
@@ -274,4 +276,56 @@ equip and not ahu         // has equip tag, but not the ahu tag</pre>
 &lt;cmpOp>      :=  "=" | "!=" | "&lt;" | "&lt;=" | ">" | ">="
 &lt;path>       :=  &lt;name> ("->" &lt;name>)*
 &lt;val>        :=  same as plain text format</pre>
+
+<h2 id='rest'>Rest API </h2>
+
+<p>The <code>HServlet</code> class provides a Java Servlet that can be used to expose Haystack tagged data over a simple HTTP API.  The following URIs are published:</p>
+
+<pre>GET  {haystack}/query?{query}
+POST {haystack}/query
+GET  {haystack}/his/{id}?{range}</pre>
+
+<p>For all URIs you can pass the query string as part of the URI query after the <code>?</code>, but it must be correctly encoded.  Or you can use a POST request and pass the query as the request content.</p>
+
+<h3 id='restQuery'>Rest Query </h3>
+
+<p>A query request takes a tag query in the query string or as the POST content which.  The query string must adhere to <a href='#query'>HQuery grammar</a>. Any matching entities in the server are returned in plain text as encoded tags.  Every entity must have an <code>id</code> tag.</p>
+
+<p>Error conditions:</p>
+
+<ul>
+<li>400: if query is not valid query format</li>
+</ul>
+
+<h3 id='restHis'>Rest His </h3>
+
+<p>A his request takes an entity id and a date range and returns history items as ts, val pair encoded tags.  The date range should match the syntax supported by <code>HDateTimeRange</code>:</p>
+
+<ul>
+<li>"today"</li>
+
+<li>"yesterday"</li>
+
+<li>"{date}"</li>
+
+<li>"{date},{date}"</li>
+
+<li>"{dateTime},{dateTime}"</li>
+
+<li>"{dateTime}"  // anything after given timestamp</li>
+</ul>
+
+<p>Date based ranges are always inferred to be from midnight of starting date to midnight of the day after ending date using the timezone of the his entity being queried.</p>
+
+<p>Error conditions:</p>
+
+<ul>
+<li>404: if id does not map to known entity</li>
+
+<li>404: if entity does implement the <code>his</code> tag</li>
+
+<li>404: if entity does define a valid <code>tz</code> tag</li>
+
+<li>400: if date range is not properly formatted</li>
+</ul>
 </body></html>

@@ -154,6 +154,9 @@ public abstract class HDict
 // MapEntry
 //////////////////////////////////////////////////////////////////////////
 
+  /** Create Map.Entry for given name/value tag pair */
+  protected static Entry toEntry(String key, HVal val) { return new MapEntry(key, val); }
+
   static class MapEntry implements Entry
   {
     MapEntry(String key, Object val) { this.key = key; this.val = val; }
