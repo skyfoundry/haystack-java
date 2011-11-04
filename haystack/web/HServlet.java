@@ -152,12 +152,36 @@ public class HServlet extends HttpServlet
         return null;
       }
 
+      // check that entity has "his" tag
+      if (rec.missing("his"))
+      {
+        res.sendError(HttpServletResponse.SC_NOT_FOUND, "Entity not tagged as his: " + id);
+        return null;
+      }
+
+      // lookup "tz" on entity
+      HTimeZone tz = null;
+      if (rec.has("tz")) tz = HTimeZone.make(((HStr)rec.get("tz")).val, false);
+      if (tz == null)
+      {
+        res.sendError(HttpServletResponse.SC_NOT_FOUND, "Entity missing tz tag: " + id);
+        return null;
+      }
+
       // parse date range
-      // TODO: hard code to today for now
-      HDate today = HDate.today();
-      HDateTime start = HDateTime.make(today, HTime.make(0, 0), HTimeZone.UTC, 0);
-      HDateTime end   = HDateTime.make(today, HTime.make(23, 59), HTimeZone.UTC, 0);
-      return db.his(rec, start, end);
+      HDateTimeRange range = null;
+      try
+      {
+        range = HDateTimeRange.read(queryStr, tz);
+      }
+      catch (ParseException e)
+      {
+        res.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid date time range: " + queryStr);
+        return null;
+      }
+
+      // return results
+      return db.his(rec, range);
    }
 
 //////////////////////////////////////////////////////////////////////////

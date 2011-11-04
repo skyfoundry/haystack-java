@@ -517,7 +517,9 @@ public class HReader
     while (cur == ' ' || cur == '\t') consume();
   }
 
-  private void consume()
+  int cur() { return cur; }
+
+  void consume()
   {
     try
     {

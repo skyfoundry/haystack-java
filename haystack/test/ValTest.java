@@ -307,6 +307,44 @@ public class ValTest extends Test
     verifyEq(ts.millis(), ((HDateTime)HVal.read(str)).millis());
   }
 
+  public void testRange()
+  {
+    HTimeZone ny = HTimeZone.make("New_York");
+    HDate today = HDate.today();
+    HDate yesterday = today.minusDays(1);
+    HDate x = HDate.make(2011, 7, 4);
+    HDate y = HDate.make(2011, 11, 4);
+    HDateTime xa = HDateTime.make(x, HTime.make(2, 30), ny);
+    HDateTime xb = HDateTime.make(x, HTime.make(22, 5), ny);
+
+    verifyRange(HDateTimeRange.read("today", ny), today, today);
+    verifyRange(HDateTimeRange.read("yesterday", ny), yesterday, yesterday);
+    verifyRange(HDateTimeRange.read("2011-07-04", ny), x, x);
+    verifyRange(HDateTimeRange.read("2011-07-04,2011-11-04", ny), x, y);
+    verifyRange(HDateTimeRange.read(""+xa+","+xb, ny), xa, xb);
+
+    HDateTimeRange r = HDateTimeRange.read(xb.write(), ny);
+    verifyEq(r.start, xb);
+    verifyEq(r.end.date, today);
+    verifyEq(r.end.tz, ny);
+  }
+
+  private void verifyRange(HDateTimeRange r, HDate start, HDate end)
+  {
+    verifyEq(r.start.date,    start);
+    verifyEq(r.start.time,    HTime.MIDNIGHT);
+    verifyEq(r.start.tz.name, "New_York");
+    verifyEq(r.end.date,      end.plusDays(1));
+    verifyEq(r.end.time,      HTime.MIDNIGHT);
+    verifyEq(r.end.tz.name,   "New_York");
+  }
+
+  private void verifyRange(HDateTimeRange r, HDateTime start, HDateTime end)
+  {
+    verifyEq(r.start, start);
+    verifyEq(r.end, end);
+  }
+
   public void verifyIO(HVal val, String s)
   {
     // println("  :: " + s);
