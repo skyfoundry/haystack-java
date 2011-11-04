@@ -90,6 +90,6 @@ public abstract class HDatabase
    * samples for the given inclusive timerange.  If no samples are available
    * for the range return an empty array.
    */
-  public abstract HDict[] his(HDict entity, HDateTime start, HDateTime end);
+  public abstract HDict[] his(HDict entity, HDateTimeRange range);
 
 }

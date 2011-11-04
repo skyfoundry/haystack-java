@@ -18,8 +18,14 @@ import java.util.HashMap;
  */
 public final class HTimeZone
 {
-  /** Construct with Haystack timezone name, raise exception if unknown */
-  public static HTimeZone make(String name)
+  /** Convenience for make(name, true) */
+  public static HTimeZone make(String name) { return make(name, true); }
+
+  /**
+   * Construct with Haystack timezone name, raise exception or
+   * return null on error based on check flag.
+   */
+  public static HTimeZone make(String name, boolean checked)
   {
     synchronized (cache)
     {
@@ -39,12 +45,19 @@ public final class HTimeZone
     }
   }
 
-  /** Construct from Java timezone */
-  public static HTimeZone make(TimeZone tz)
+  /** Convenience for make(java, true) */
+  public static HTimeZone make(TimeZone java) { return make(java, true); }
+
+  /**
+   * Construct from Java timezone.  Throw exception or return
+   * null based on checked flag.
+   */
+  public static HTimeZone make(TimeZone java, boolean checked)
   {
-    String name = (String)fromJava.get(tz.getID());
-    if (name == null) throw new RuntimeException("Invalid Java timezone: " + tz.getID());
-    return make(name);
+    String name = (String)fromJava.get(java.getID());
+    if (name != null) return make(name);
+    if (checked) throw new RuntimeException("Invalid Java timezone: " + java.getID());
+    return null;
   }
 
   /** Private constructor */

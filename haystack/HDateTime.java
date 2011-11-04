@@ -80,6 +80,12 @@ public class HDateTime extends HVal
     return make(System.currentTimeMillis());
   }
 
+  /** Get HDateTime for given timezone */
+  public static HDateTime now(HTimeZone tz)
+  {
+    return make(System.currentTimeMillis(), tz);
+  }
+
   /** Private constructor */
   private HDateTime(HDate date, HTime time, HTimeZone tz, int tzOffset)
   {
