@@ -216,6 +216,7 @@ The 'HServlet' class provides a Java Servlet that can be used to expose
 Haystack tagged data over a simple HTTP API.  The following URIs
 are published:
 
+  GET  {haystack}/about
   GET  {haystack}/query?{query}
   POST {haystack}/query
   GET  {haystack}/his/{id}?{range}
@@ -224,8 +225,23 @@ For all URIs you can pass the query string as part of the URI query
 after the '?', but it must be correctly encoded.  Or you can use a POST
 request and pass the query as the request content.
 
+Rest About [#restAbout]
+=======================
+Return server meta which includes:
+
+  haystackVersion: "1.0"
+  serverName: Str
+  serverBootTime: DateTime
+  serverTime: DateTime
+  vendorName: Str
+  vendorUri: Uri
+  productName: Str
+  productVersion: Str
+  productUri: Uri
+  tz: Str
+
 Rest Query [#restQuery]
-======================
+=======================
 A query request takes a tag query in the query string or as the POST
 content which.  The query string must adhere to [HQuery grammar]`#query`.
 Any matching entities in the server are returned in plain text as

@@ -7,6 +7,7 @@
 //
 package haystack.test;
 
+import java.net.*;
 import java.util.*;
 import haystack.*;
 import haystack.db.*;
@@ -23,6 +24,22 @@ public class TestDatabase extends HDatabase
     addSite("B", "Richmond",   "VA", 2000);
     addSite("C", "Washington", "DC", 3000);
     addSite("D", "Boston",     "MA", 4000);
+  }
+
+  public HDict about() { return about; }
+  private final HDict about = new HDictBuilder()
+    .add("serverName",  hostName())
+    .add("vendorName", "Haystack Java Toolkit")
+    .add("vendorUri", HUri.make("http://project-haystack.org"))
+    .add("productName", "Haystack Java Toolkit")
+    .add("productVersion", "1.0.0")
+    .add("productUri", HUri.make("http://project-haystack.org"))
+    .toDict();
+
+  private static String hostName()
+  {
+    try { return InetAddress.getLocalHost().getHostName(); }
+    catch (Exception e) { return "Unknown"; }
   }
 
   private void addSite(String dis, String geoCity, String geoState, int area)
