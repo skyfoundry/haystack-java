@@ -7,7 +7,9 @@
 //
 package haystack;
 
+import java.util.Map.Entry;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * HDictBuilder is used to construct an immutable HDict instance.
@@ -55,6 +57,17 @@ public class HDictBuilder
   public final HDictBuilder add(String name, String val)
   {
     return add(name, HStr.make(val));
+  }
+
+  /** Add all the name/value pairs in given HDict.  Return this. */
+  public HDictBuilder add(HDict dict)
+  {
+    for (Iterator it = dict.iterator(); it.hasNext(); )
+    {
+      Entry entry = (Entry)it.next();
+      add((String)entry.getKey(), (HVal)entry.getValue());
+    }
+    return this;
   }
 
   /** Add tag name and value.  Return this. */
