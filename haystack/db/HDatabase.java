@@ -22,6 +22,22 @@ public abstract class HDatabase
 //////////////////////////////////////////////////////////////////////////
 
   /**
+   * Get the about metadata which should be a constant dict with
+   * the following tags:
+   *   - serverName: Str
+   *   - vendorName: Str
+   *   - vendorUri: Uri
+   *   - productName: Str
+   *   - productVersion: Str
+   *   - productUri: Uri
+   */
+  public abstract HDict about();
+
+//////////////////////////////////////////////////////////////////////////
+// Get
+//////////////////////////////////////////////////////////////////////////
+
+  /**
    * Convenience for get(id, true)
    */
   public HDict get(String id) { return get(id, true); }

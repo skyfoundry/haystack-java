@@ -66,6 +66,7 @@ public class HServlet extends HttpServlet
     if (path == null || path.length() == 0) path = "/";
     int slash = path.indexOf('/', 1);
     if (slash < 0) slash = path.length();
+
     String action = path.substring(1, slash);
     String id = slash+1 >= path.length() ? "" : path.substring(slash+1);
 
@@ -87,8 +88,9 @@ public class HServlet extends HttpServlet
 
     // process action
     HDict[] result = null;
-    if (action.equals("query"))    result = onQuery(req, res, db, arg);
-    else if (action.equals("his")) result = onHis(req, res, db, id, arg);
+    if (action.equals("query"))      result = onQuery(req, res, db, arg);
+    else if (action.equals("his"))   result = onHis(req, res, db, id, arg);
+    else if (action.equals("about")) result = onAbout(req, res, db, arg);
     else res.sendError(HttpServletResponse.SC_NOT_FOUND);
     if (result == null) return;
 
@@ -112,6 +114,24 @@ public class HServlet extends HttpServlet
     }
     out.flush();
   }
+
+//////////////////////////////////////////////////////////////////////////
+// About
+//////////////////////////////////////////////////////////////////////////
+
+   HDict[] onAbout(HttpServletRequest req, HttpServletResponse res,
+                   HDatabase db, String queryStr)
+      throws ServletException, IOException
+   {
+     HDict about = new HDictBuilder()
+                    .add(db.about())
+                    .add("haystackVersion", "1.0")
+                    .add("serverTime", HDateTime.now())
+                    .add("serverBootTime", bootTime)
+                    .add("tz", HTimeZone.DEFAULT.name)
+                    .toDict();
+     return new HDict[] { about };
+   }
 
 //////////////////////////////////////////////////////////////////////////
 // Query
@@ -206,4 +226,10 @@ public class HServlet extends HttpServlet
     }
     out.flush();
   }
+
+//////////////////////////////////////////////////////////////////////////
+// Fields
+//////////////////////////////////////////////////////////////////////////
+
+  private final HDateTime bootTime = HDateTime.now();
 }

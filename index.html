@@ -281,11 +281,27 @@ equip and not ahu         // has equip tag, but not the ahu tag</pre>
 
 <p>The <code>HServlet</code> class provides a Java Servlet that can be used to expose Haystack tagged data over a simple HTTP API.  The following URIs are published:</p>
 
-<pre>GET  {haystack}/query?{query}
+<pre>GET  {haystack}/about
+GET  {haystack}/query?{query}
 POST {haystack}/query
 GET  {haystack}/his/{id}?{range}</pre>
 
 <p>For all URIs you can pass the query string as part of the URI query after the <code>?</code>, but it must be correctly encoded.  Or you can use a POST request and pass the query as the request content.</p>
+
+<h3 id='restAbout'>Rest About </h3>
+
+<p>Return server meta which includes:</p>
+
+<pre>haystackVersion: "1.0"
+serverName: Str
+serverBootTime: DateTime
+serverTime: DateTime
+vendorName: Str
+vendorUri: Uri
+productName: Str
+productVersion: Str
+productUri: Uri
+tz: Str</pre>
 
 <h3 id='restQuery'>Rest Query </h3>
 
