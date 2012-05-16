@@ -24,6 +24,6 @@ public class HMarker extends HVal
   public boolean equals(Object that) { return this == that; }
 
   /** Encode value to string format */
-  public void write(StringBuilder s) { s.append("marker"); }
+  public void write(StringBuffer s) { s.append("marker"); }
 
 }

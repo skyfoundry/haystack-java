@@ -233,11 +233,12 @@ Return server meta which includes:
   serverName: Str
   serverBootTime: DateTime
   serverTime: DateTime
-  vendorName: Str
-  vendorUri: Uri
   productName: Str
   productVersion: Str
   productUri: Uri
+  moduleName: Str
+  moduleVersion: Str
+  moduleUri: Str
   tz: Str
 
 Rest Query [#restQuery]

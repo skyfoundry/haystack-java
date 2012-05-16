@@ -101,7 +101,7 @@ public class HReader
   private String readId()
   {
     if (!isIdStart(cur)) throw errChar("Invalid name start char");
-    StringBuilder s = new StringBuilder();
+    StringBuffer s = new StringBuffer();
     while (isId(cur)) { s.append((char)cur); consume(); }
     return s.toString();
   }
@@ -138,7 +138,7 @@ public class HReader
   private HVal readWordVal()
   {
     // read into string
-    StringBuilder s = new StringBuilder();
+    StringBuffer s = new StringBuffer();
     do { s.append((char)cur); consume(); } while (isAlpha(cur));
     String word = s.toString();
 
@@ -154,7 +154,7 @@ public class HReader
   private HVal readNumVal()
   {
     // parse numeric part
-    StringBuilder s = new StringBuilder();
+    StringBuffer s = new StringBuffer();
     s.append((char)cur);
     consume();
     while (isDigit(cur) || cur == '.')
@@ -256,7 +256,7 @@ public class HReader
       // timezone name
       if (cur != ' ') throw errChar("Expected space between timezone offset and name");
       consume();
-      StringBuilder tz = new StringBuilder();
+      StringBuffer tz = new StringBuffer();
       if (!isTz(cur)) throw errChar("Expected timezone name");
       while (isTz(cur)) { tz.append((char)cur); consume(); }
 
@@ -267,7 +267,7 @@ public class HReader
     String unit = null;
     if (isUnit(cur))
     {
-      s = new StringBuilder();
+      s = new StringBuffer();
       while (isUnit(cur)) { s.append((char)cur); consume(); }
       unit = s.toString();
     }
@@ -295,7 +295,7 @@ public class HReader
   private HVal readRefVal()
   {
     consume(); // opening <
-    StringBuilder s = new StringBuilder();
+    StringBuffer s = new StringBuffer();
     while (cur != '>')
     {
       if (cur < 0) throw err("Unexpected end of ref literal");
@@ -320,7 +320,7 @@ public class HReader
   private String readStrLiteral()
   {
     consume(); // opening quote
-    StringBuilder s = new StringBuilder();
+    StringBuffer s = new StringBuffer();
     while (cur != '"')
     {
       if (cur < 0) throw err("Unexpected end of str literal");
@@ -383,7 +383,7 @@ public class HReader
   private HVal readUriVal()
   {
     consume(); // opening backtick
-    StringBuilder s = new StringBuilder();
+    StringBuffer s = new StringBuffer();
     while (cur != '`')
     {
       if (cur < 0) throw err("Unexpected end of uri literal");
@@ -475,7 +475,7 @@ public class HReader
     if (cur != '-' || peek != '>') return new HQuery.Path1(id);
 
     // parse path
-    StringBuilder s = new StringBuilder().append(id);
+    StringBuffer s = new StringBuffer().append(id);
     ArrayList acc = new ArrayList();
     acc.add(id);
     while (cur == '-' || peek == '>')

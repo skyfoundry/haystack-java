@@ -22,7 +22,7 @@ public abstract class HVal implements Comparable
   /** Encode value to string format */
   public final String write()
   {
-    StringBuilder s = new StringBuilder();
+    StringBuffer s = new StringBuffer();
     write(s);
     return s.toString();
   }
@@ -47,6 +47,6 @@ public abstract class HVal implements Comparable
   }
 
   /** Encode value to string format */
-  public abstract void write(StringBuilder s);
+  public abstract void write(StringBuffer s);
 
 }

@@ -105,7 +105,7 @@ public class HNum extends HVal
   }
 
   /** Encode value to string format */
-  public void write(StringBuilder s)
+  public void write(StringBuffer s)
   {
     if (val == Double.POSITIVE_INFINITY) s.append("INF");
     else if (val == Double.NEGATIVE_INFINITY) s.append("-INF");

@@ -270,7 +270,7 @@ public abstract class HQuery
     CmpQuery(Path p, HVal val) { super(p); this.val = val; }
     final String toStr()
     {
-      StringBuilder s = new StringBuilder();
+      StringBuffer s = new StringBuffer();
       s.append(path).append(cmpStr());
       val.write(s);
       return s.toString();
@@ -357,7 +357,7 @@ public abstract class HQuery
     final String toStr()
     {
       boolean deep = a instanceof CompoundQuery || b instanceof CompoundQuery;
-      StringBuilder s = new StringBuilder();
+      StringBuffer s = new StringBuffer();
       if (a instanceof CompoundQuery) s.append('(').append(a).append(')');
       else s.append(a);
       s.append(' ').append(keyword()).append(' ');

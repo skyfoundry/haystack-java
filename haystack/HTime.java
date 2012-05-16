@@ -96,7 +96,7 @@ public class HTime extends HVal
   }
 
   /** Encode value to string format */
-  public void write(StringBuilder s)
+  public void write(StringBuffer s)
   {
     if (hour < 10) s.append('0'); s.append(hour).append(':');
     if (min  < 10) s.append('0'); s.append(min).append(':');
