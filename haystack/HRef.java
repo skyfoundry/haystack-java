@@ -44,7 +44,7 @@ public class HRef extends HVal
   }
 
   /** Encode value to string format */
-  public void write(StringBuilder s)
+  public void write(StringBuffer s)
   {
     s.append('<');
     for (int i=0; i<val.length(); ++i)

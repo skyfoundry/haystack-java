@@ -79,7 +79,7 @@ public class HDate extends HVal
   public final int day;
 
   /** Encode value to string format */
-  public void write(StringBuilder s)
+  public void write(StringBuffer s)
   {
     s.append(year).append('-');
     if (month < 10) s.append('0'); s.append(month).append('-');

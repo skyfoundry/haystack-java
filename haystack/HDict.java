@@ -107,13 +107,13 @@ public abstract class HDict
   /** Encode value to string format */
   public final String write()
   {
-    StringBuilder s = new StringBuilder();
+    StringBuffer s = new StringBuffer();
     write(s);
     return s.toString();
   }
 
   /** Encode value to string format */
-  public final void write(StringBuilder s)
+  public final void write(StringBuffer s)
   {
     boolean first = true;
     for (Iterator it = iterator(); it.hasNext(); )

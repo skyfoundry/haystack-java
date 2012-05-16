@@ -34,6 +34,6 @@ public class HBool extends HVal
   public boolean equals(Object that) { return this == that; }
 
   /** Encode value to string format */
-  public void write(StringBuilder s) { s.append(val ? "true" : "false"); }
+  public void write(StringBuffer s) { s.append(val ? "true" : "false"); }
 
 }

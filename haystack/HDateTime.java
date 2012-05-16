@@ -148,7 +148,7 @@ public class HDateTime extends HVal
   }
 
   /** Encode value to string format */
-  public void write(StringBuilder s)
+  public void write(StringBuffer s)
   {
     date.write(s);
     s.append('T');

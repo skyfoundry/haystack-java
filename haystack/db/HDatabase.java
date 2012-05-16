@@ -25,11 +25,12 @@ public abstract class HDatabase
    * Get the about metadata which should be a constant dict with
    * the following tags:
    *   - serverName: Str
-   *   - vendorName: Str
-   *   - vendorUri: Uri
    *   - productName: Str
    *   - productVersion: Str
    *   - productUri: Uri
+   *   - moduleName: Str
+   *   - moduleVersion: Str
+   *   - moduleUri: Uri
    */
   public abstract HDict about();
 

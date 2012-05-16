@@ -39,10 +39,10 @@ public class HStr extends HVal
   }
 
   /** Encode value to string format */
-  public void write(StringBuilder s) { write(s, val); }
+  public void write(StringBuffer s) { write(s, val); }
 
   /** Encode value to string format */
-  static void write(StringBuilder s, String val)
+  static void write(StringBuffer s, String val)
   {
     s.append('"');
     for (int i=0; i<val.length(); ++i)
