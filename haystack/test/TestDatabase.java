@@ -123,8 +123,8 @@ public class TestDatabase extends HDatabase
     while (ts.compareTo(range.end) <= 0)
     {
       HVal val = isBool ?
-        HBool.make(acc.size() % 2 == 0) :
-        HNum.make(acc.size());
+        (HVal)HBool.make(acc.size() % 2 == 0) :
+        (HVal)HNum.make(acc.size());
       HDict item = HHisItem.make(ts, val);
       acc.add(item);
       ts = HDateTime.make(ts.millis() + 15*60*1000);
