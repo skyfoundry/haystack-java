@@ -76,8 +76,8 @@ public class ValTest extends Test
     verifyEq(HNum.make(Double.NEGATIVE_INFINITY, "%").write(), "-INF");
 
     // verify bad unit names are caught on encoding
-    try { HNum.make(123.4, "foo bar").write(); fail(); } catch (IllegalArgumentException e) { verbose(e.toString()); verify(true); }
-    try { HNum.make(123.4, "foo,bar").write(); fail(); } catch (IllegalArgumentException e) { verbose(e.toString()); verify(true); }
+    try { HNum.make(123.4, "foo bar").write(); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
+    try { HNum.make(123.4, "foo,bar").write(); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
   }
 
   public void testStr()
@@ -99,10 +99,10 @@ public class ValTest extends Test
     // hex upper and lower case
     verifyEq(HVal.read("\"[\\uabcd \\u1234]\""), HStr.make("[\uabcd \u1234]"));
     verifyEq(HVal.read("\"[\\uABCD \\u1234]\""), HStr.make("[\uABCD \u1234]"));
-    try {HVal.read("\"end..."); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("\"end...\n\""); fail(); } catch (ParseException e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("\"\\u1x34\""); fail(); } catch (ParseException e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("\"hi\" "); fail(); } catch (ParseException e) { verbose(e.toString()); verify(true); }
+    try {HVal.read("\"end..."); fail(); } catch (Exception e) { verifyException(e); }
+    try {HVal.read("\"end...\n\""); fail(); } catch (ParseException e) { verifyException(e); }
+    try {HVal.read("\"\\u1x34\""); fail(); } catch (ParseException e) { verifyException(e); }
+    try {HVal.read("\"hi\" "); fail(); } catch (ParseException e) { verifyException(e); }
   }
 
   public void testUri()
@@ -120,9 +120,9 @@ public class ValTest extends Test
     verifyIO(HUri.make("http://foo.com/f?q"), "`http://foo.com/f?q`");
 
     // errors
-    try {HUri.make("`bad`").write(); fail(); } catch (IllegalArgumentException e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("`no end"); fail(); } catch (ParseException e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("`new\nline`"); fail(); } catch (ParseException e) { verbose(e.toString()); verify(true); }
+    try {HUri.make("`bad`").write(); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
+    try {HVal.read("`no end"); fail(); } catch (ParseException e) { verifyException(e); }
+    try {HVal.read("`new\nline`"); fail(); } catch (ParseException e) { verifyException(e); }
   }
 
   public void testRef()
@@ -171,9 +171,9 @@ public class ValTest extends Test
     verifyIO(HDate.make(2011, 6, 7), "2011-06-07");
     verifyIO(HDate.make(2011,10,10), "2011-10-10");
     verifyIO(HDate.make(2011,12,31), "2011-12-31");
-    try {HVal.read("2003-xx-02"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("2003-02"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("2003-02-xx"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
+    try {HVal.read("2003-xx-02"); fail(); } catch (Exception e) { verifyException(e); }
+    try {HVal.read("2003-02"); fail(); } catch (Exception e) { verifyException(e); }
+    try {HVal.read("2003-02-xx"); fail(); } catch (Exception e) { verifyException(e); }
   }
 
   public void testTime()
@@ -202,10 +202,10 @@ public class ValTest extends Test
     verifyIO(HTime.make(10, 59, 30), "10:59:30");
     verifyIO(HTime.make(23, 59, 59, 999), "23:59:59.999");
 
-    try {HVal.read("3:20:00"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("13:xx:00"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("13:45:0x"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("13:45:00.4561"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
+    try {HVal.read("3:20:00"); fail(); } catch (Exception e) { verifyException(e); }
+    try {HVal.read("13:xx:00"); fail(); } catch (Exception e) { verifyException(e); }
+    try {HVal.read("13:45:0x"); fail(); } catch (Exception e) { verifyException(e); }
+    try {HVal.read("13:45:00.4561"); fail(); } catch (Exception e) { verifyException(e); }
   }
 
   public void testTz()
@@ -279,11 +279,11 @@ public class ValTest extends Test
              "2011-06-08T04:07:33.771+07:00 GMT-7");
 
     // errors
-    try {HVal.read("2000-02-02T03:04:00-0x:00 New_York"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("2000-02-02T03:04:00-05 New_York"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("2000-02-02T03:04:00-05:!0 New_York"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("2000-02-02T03:04:00-05:00"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("2000-02-02T03:04:00-05:00 @"); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
+    try {HVal.read("2000-02-02T03:04:00-0x:00 New_York"); fail(); } catch (Exception e) { verifyException(e); }
+    try {HVal.read("2000-02-02T03:04:00-05 New_York"); fail(); } catch (Exception e) { verifyException(e); }
+    try {HVal.read("2000-02-02T03:04:00-05:!0 New_York"); fail(); } catch (Exception e) { verifyException(e); }
+    try {HVal.read("2000-02-02T03:04:00-05:00"); fail(); } catch (Exception e) { verifyException(e); }
+    try {HVal.read("2000-02-02T03:04:00-05:00 @"); fail(); } catch (Exception e) { verifyException(e); }
   }
 
   public void testMidnight()
