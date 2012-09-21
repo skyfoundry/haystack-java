@@ -106,8 +106,9 @@ public class QueryTest extends Test
     verifyParse("foo < 08:30:00", HQuery.lt("foo", HTime.read("08:30:00")));
     verifyParse("foo < 13:00:00", HQuery.lt("foo", HTime.read("13:00:00")));
 
-    // recId literals
-    verifyParse("author == <xyz>", HQuery.eq("author", HRef.make("xyz")));
+    // ref literals
+    verifyParse("author == @xyz", HQuery.eq("author", HRef.make("xyz")));
+    verifyParse("author==@xyz:foo.bar", HQuery.eq("author", HRef.make("xyz:foo.bar")));
 
     // and
     verifyParse("a and b", HQuery.has("a").and(HQuery.has("b")));

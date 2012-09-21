@@ -91,7 +91,7 @@ The basic format follows these rules:
   [unit name]`http://project-haystack.org/doc/Units`
 - Str value is encoded as string literal using Java-styled backslash escapes
 - Uri value is encoded with '`' backticks
-- Ref value is encoded inside "<xxxx>" followed by optional display name as string literal
+- Ref value is encoded inside "@xxxx" followed by optional display name as string literal
 - Date value is encoded in ISO 8601 as "YYYY-MM-DD"
 - Time value is encoded in ISO 8601 as "hh:mm:ss[.FFF]"
 - DateTime value is encoded in ISO 8601 as "YYYY-MM-DD'T'hh:mm:ss[.FFF]zz tz"
@@ -100,8 +100,8 @@ The basic format follows these rules:
 
 Here are some simple examples:
 
-  id:<site-a>, dis:"Site-A", site, built: 1970-06-03, occStart: 09:30:00
-  dis:"Site-A RTU-1", ahu, equip, siteRef:<site-a> "Site A"
+  id:@site-a, dis:"Site-A", site, built: 1970-06-03, occStart: 09:30:00
+  dis:"Site-A RTU-1", ahu, equip, siteRef:@site-a "Site A"
   dis:"Damper", point, val:10%, lastRead:2011-06-08T17:07:34-04:00 New_York
 
 Formal BNF grammer of the string encoding:
@@ -143,8 +143,12 @@ Formal BNF grammer of the string encoding:
   <uriChar>     := any ASCII char between 0x20 and 0x7f except "`" 0x60
 
   // ref value
-  <ref>         := "<" refChar ">" [<str>]
-  <refChar>     := any ASCII char between 0x20 and 0x7f except ">" 0x3e
+  <ref>         := "@" <refChar>* [ " " <str> ]
+  <refChar>     := <alpha> | <digit> | "_" | ":" | "-" | "."
+
+  // binary
+  <bin>         := "Bin(" <binChar>* ")"
+  <binChar>     := any char between 0x20 and 0x7F except ")"
 
   // date/time values
   <date>        := YYYY-MM-DD

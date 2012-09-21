@@ -133,16 +133,15 @@ public class ValTest extends Test
     verifyNotEq(HRef.make("foo"), HRef.make("Foo"));
 
     // encoding
-    verifyIO(HRef.make("1234-5678"), "<1234-5678>");
-    verifyIO(HRef.make("1234-5678", "Foo Bar"), "<1234-5678> \"Foo Bar\"");
-    verifyIO(HRef.make("1234-5678", "Foo \"Bar\""), "<1234-5678> \"Foo \\\"Bar\\\"\"");
+    verifyIO(HRef.make("1234-5678.foo:bar"), "@1234-5678.foo:bar");
+    verifyIO(HRef.make("1234-5678", "Foo Bar"), "@1234-5678 \"Foo Bar\"");
+    verifyIO(HRef.make("1234-5678", "Foo \"Bar\""), "@1234-5678 \"Foo \\\"Bar\\\"\"");
 
     // verify bad refs are caught on encoding
-    try { HRef.make("<a>").write(); fail(); } catch (Exception e) { verify(true); }
+    try { HRef.make("@a").write(); fail(); } catch (Exception e) { verify(true); }
+    try { HRef.make("a b").write(); fail(); } catch (Exception e) { verify(true); }
     try { HRef.make("a\n").write(); fail(); } catch (Exception e) { verify(true); }
-    try {HVal.read("<end..."); fail(); } catch (Exception e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("<end...\n>"); fail(); } catch (ParseException e) { verbose(e.toString()); verify(true); }
-    try {HVal.read("<end> <>"); fail(); } catch (ParseException e) { verbose(e.toString()); verify(true); }
+    try {HVal.read("@"); fail(); } catch (Exception e) { verifyException(e); }
   }
 
   public void testDate()

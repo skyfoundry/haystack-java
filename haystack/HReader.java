@@ -125,7 +125,7 @@ public class HReader
     if (isAlpha(cur)) return readWordVal();
     switch (cur)
     {
-      case '<': return readRefVal();
+      case '@': return readRefVal();
       case '"': return readStrVal();
       case '`': return readUriVal();
       case '-':
@@ -294,16 +294,15 @@ public class HReader
 
   private HVal readRefVal()
   {
-    consume(); // opening <
+    consume(); // opening @
     StringBuffer s = new StringBuffer();
-    while (cur != '>')
+    while (HRef.isIdChar(cur))
     {
       if (cur < 0) throw err("Unexpected end of ref literal");
       if (cur == '\n' || cur == '\r') throw err("Unexpected newline in ref literal");
       s.append((char)cur);
       consume();
     }
-    consume(); // closing >
     skipSpace();
 
     String dis = null;

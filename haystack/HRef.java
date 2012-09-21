@@ -15,6 +15,7 @@ public class HRef extends HVal
   /** Construct for string identifier and optional display */
   public static HRef make(String val, String dis)
   {
+    if (val == null || val.length() == 0) throw new IllegalArgumentException("Invalid id val: \"" + val + "\"");
     return new HRef(val, dis);
   }
 
@@ -46,19 +47,36 @@ public class HRef extends HVal
   /** Encode value to string format */
   public void write(StringBuffer s)
   {
-    s.append('<');
+    s.append('@');
     for (int i=0; i<val.length(); ++i)
     {
       int c = val.charAt(i);
-      if (c < ' ' || c == '>') throw new IllegalArgumentException("Invalid ref val'" + val + "', char='" + (char)c + "'");
+      if (!isIdChar(c)) throw new IllegalArgumentException("Invalid ref val'" + val + "', char='" + (char)c + "'");
       s.append((char)c);
     }
-    s.append('>');
     if (dis != null)
     {
       s.append(' ');
       HStr.write(s, dis);
     }
+  }
+
+  /** Is the given character valid in the identifier part */
+  public static boolean isIdChar(int ch)
+  {
+    return ch >= 0 && ch < idChars.length && idChars[ch];
+  }
+
+  private static boolean[] idChars = new boolean[127];
+  static
+  {
+    for (int i='a'; i<='z'; ++i) idChars[i] = true;
+    for (int i='A'; i<='Z'; ++i) idChars[i] = true;
+    for (int i='0'; i<='9'; ++i) idChars[i] = true;
+    idChars['_'] = true;
+    idChars[':'] = true;
+    idChars['-'] = true;
+    idChars['.'] = true;
   }
 
 }
