@@ -144,6 +144,23 @@ public class ValTest extends Test
     try {HVal.read("@"); fail(); } catch (Exception e) { verifyException(e); }
   }
 
+
+  public void testBin()
+  {
+    // equality
+    verifyEq(HBin.make("text/plain"), HBin.make("text/plain"));
+    verifyNotEq(HBin.make("text/plain"), HBin.make("text/xml"));
+
+    // encoding
+    verifyIO(HBin.make("text/plain"), "Bin(text/plain)");
+    verifyIO(HBin.make("text/plain; charset=utf-8"), "Bin(text/plain; charset=utf-8)");
+
+    // verify bad bins are caught on encoding
+    try { HBin.make("text/plain; f()").write(); fail(); } catch (Exception e) { verify(true); }
+    try { HVal.read("Bin()"); fail(); } catch (Exception e) { verifyException(e); }
+    try { HVal.read("Bin(text)"); fail(); } catch (Exception e) { verifyException(e); }
+  }
+
   public void testDate()
   {
     // equality

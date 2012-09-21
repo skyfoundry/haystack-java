@@ -148,7 +148,24 @@ public class HReader
     if (word.equals("NaN")) return HNum.NaN;
     if (word.equals("INF")) return HNum.POS_INF;
     if (word.equals("-INF")) return HNum.NEG_INF;
+    if (word.equals("Bin")) return readBinVal();
     throw err("Unknown value identifier: " + word);
+  }
+
+  private HVal readBinVal()
+  {
+    if (cur < 0) throw err("Expected '(' after Bin");
+    consume();
+    StringBuffer s = new StringBuffer();
+    while (cur != ')')
+    {
+      if (cur < 0) throw err("Unexpected end of bin literal");
+      if (cur == '\n' || cur == '\r') throw err("Unexpected newline in bin literal");
+      s.append((char)cur);
+      consume();
+    }
+    consume();
+    return HBin.make(s.toString());
   }
 
   private HVal readNumVal()
