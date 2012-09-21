@@ -225,6 +225,15 @@ public abstract class Test
     verify(false);
   }
 
+  /**
+   * Check that exception wasn't test failure itself
+   */
+  public void verifyException(Exception e)
+  {
+    verbose(e.toString());
+    if (e.toString().contains("Test failed")) fail();
+  }
+
 //////////////////////////////////////////////////////////////////////////
 // Misc Utils
 //////////////////////////////////////////////////////////////////////////

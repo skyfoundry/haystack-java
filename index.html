@@ -154,7 +154,7 @@ for (Iterator it = tags.iterator(); it.hasNext(); )
 
 <li>Uri value is encoded with <code>`</code> backticks</li>
 
-<li>Ref value is encoded inside "&lt;xxxx>" followed by optional display name as string literal</li>
+<li>Ref value is encoded inside "@xxxx" followed by optional display name as string literal</li>
 
 <li>Date value is encoded in ISO 8601 as "YYYY-MM-DD"</li>
 
@@ -167,8 +167,8 @@ for (Iterator it = tags.iterator(); it.hasNext(); )
 
 <p>Here are some simple examples:</p>
 
-<pre>id:&lt;site-a>, dis:"Site-A", site, built: 1970-06-03, occStart: 09:30:00
-dis:"Site-A RTU-1", ahu, equip, siteRef:&lt;site-a> "Site A"
+<pre>id:@site-a, dis:"Site-A", site, built: 1970-06-03, occStart: 09:30:00
+dis:"Site-A RTU-1", ahu, equip, siteRef:@site-a "Site A"
 dis:"Damper", point, val:10%, lastRead:2011-06-08T17:07:34-04:00 New_York</pre>
 
 <p>Formal BNF grammer of the string encoding:</p>
@@ -210,8 +210,12 @@ dis:"Damper", point, val:10%, lastRead:2011-06-08T17:07:34-04:00 New_York</pre>
 &lt;uriChar>     := any ASCII char between 0x20 and 0x7f except "`" 0x60
 
 // ref value
-&lt;ref>         := "&lt;" refChar ">" [&lt;str>]
-&lt;refChar>     := any ASCII char between 0x20 and 0x7f except ">" 0x3e
+&lt;ref>         := "@" &lt;refChar>* [ " " &lt;str> ]
+&lt;refChar>     := &lt;alpha> | &lt;digit> | "_" | ":" | "-" | "."
+
+// binary
+&lt;bin>         := "Bin(" &lt;binChar>* ")"
+&lt;binChar>     := any char between 0x20 and 0x7F except ")"
 
 // date/time values
 &lt;date>        := YYYY-MM-DD
@@ -296,11 +300,12 @@ GET  {haystack}/his/{id}?{range}</pre>
 serverName: Str
 serverBootTime: DateTime
 serverTime: DateTime
-vendorName: Str
-vendorUri: Uri
 productName: Str
 productVersion: Str
 productUri: Uri
+moduleName: Str
+moduleVersion: Str
+moduleUri: Str
 tz: Str</pre>
 
 <h3 id='restQuery'>Rest Query </h3>
