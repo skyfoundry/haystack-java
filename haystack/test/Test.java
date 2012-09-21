@@ -231,7 +231,7 @@ public abstract class Test
   public void verifyException(Exception e)
   {
     verbose(e.toString());
-    if (e.toString().contains("Test failed")) fail();
+    verify(!e.toString().contains("Test failed"));
   }
 
 //////////////////////////////////////////////////////////////////////////
