@@ -105,4 +105,10 @@ class Build : BuildJava
     w.out.close
   }
 
+  @Target { help = "generate javadoc" }
+  Void javadoc()
+  {
+    Exec(this, ["javadoc", "-d", "doc", "haystack", "haystack.db", "haystack.web"], scriptDir).run
+  }
+
 }
