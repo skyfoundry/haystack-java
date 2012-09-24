@@ -10,7 +10,7 @@ package haystack;
 import java.text.*;
 
 /**
- * HStr wraps a 64-bit floating point number and optional unit name.
+ * HNum wraps a 64-bit floating point number and optional unit name.
  */
 public class HNum extends HVal
 {
@@ -54,16 +54,16 @@ public class HNum extends HVal
   }
 
   /** Singleton value for zero */
-  static final HNum ZERO = new HNum(0.0, null);
+  public static final HNum ZERO = new HNum(0.0, null);
 
   /** Singleton value for positive infinity "Inf" */
-  static final HNum POS_INF = new HNum(Double.POSITIVE_INFINITY, null);
+  public static final HNum POS_INF = new HNum(Double.POSITIVE_INFINITY, null);
 
   /** Singleton value for negative infinity "-Inf" */
-  static final HNum NEG_INF = new HNum(Double.NEGATIVE_INFINITY, null);
+  public static final HNum NEG_INF = new HNum(Double.NEGATIVE_INFINITY, null);
 
   /** Singleton value for not-a-number "NaN" */
-  static final HNum NaN = new HNum(Double.NaN, null);
+  public static final HNum NaN = new HNum(Double.NaN, null);
 
   /** Private constructor */
   private HNum(double val, String unit) { this.val = val; this.unit = unit; }

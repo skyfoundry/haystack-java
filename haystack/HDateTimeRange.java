@@ -8,7 +8,7 @@
 package haystack;
 
 /**
- * HDateTime models a timestamp with a specific timezone.
+ * HDateTimeRange models a starting and ending timestamp
  */
 public class HDateTimeRange
 {
