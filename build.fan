@@ -16,6 +16,7 @@ class Build : BuildJava
     cp  = [scriptDir.uri + `lib/servlet.jar`]
     mainClass = "haystack.test.Test"
     packages = ["haystack",
+                "haystack.io",
                 "haystack.db",
                 "haystack.web",
                 "haystack.test"]
@@ -108,7 +109,10 @@ class Build : BuildJava
   @Target { help = "generate javadoc" }
   Void javadoc()
   {
-    Exec(this, ["javadoc", "-d", "doc", "haystack", "haystack.db", "haystack.web"], scriptDir).run
+    cmd := ["javadoc", "-d", "doc"]
+    docPackages := packages.dup { remove("haystack.test") }
+    cmd.addAll(docPackages)
+    Exec(this, cmd, scriptDir).run
   }
 
 }

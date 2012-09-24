@@ -26,6 +26,7 @@ public abstract class Test
     "DictTest",
     "QueryTest",
     "GridTest",
+    "ZincTest",
   };
 
 //////////////////////////////////////////////////////////////////////////
@@ -191,8 +192,6 @@ public abstract class Test
       String bStr = String.valueOf(b);
       if (a != null) aStr = aStr + " [" + a.getClass().getName() + "]";
       if (b != null) bStr = bStr + " [" + b.getClass().getName() + "]";
-System.out.println("====> '" + a + "'");
-System.out.println("    > '" + b + "'");
       if (!e.getMessage().equals("Test failed")) throw e;
       throw new RuntimeException("Test failed " + aStr  + " != " + bStr);
     }
@@ -221,8 +220,29 @@ System.out.println("    > '" + b + "'");
   {
     if (a == null) return b == null;
     else if (b == null) return false;
-    else return a.equals(b);
+    boolean eq = a.equals(b);
+    if (eq) return true;
+    /*
+    if (a instanceof HNum && b instanceof HNum)
+    {
+      HNum ax = (HNum)a;
+      HNum bx = (HNum)b;
+      if (!equals(ax.unit, bx.unit)) return false;
+      return approx(ax.val, bx.val);
+    }
+    */
+    return false;
   }
+
+  /*
+  public static boolean approx(double a, double b)
+  {
+    // need this to check +inf, -inf, and nan
+    // if (compare(self, that) == 0) return true;
+    double tolerance = Math.min( Math.abs(a/1e6), Math.abs(b/1e6) );
+    return Math.abs(a - b) <= tolerance;
+  }
+  */
 
   /**
    * Force test failure
