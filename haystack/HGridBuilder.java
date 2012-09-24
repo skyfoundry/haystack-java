@@ -36,16 +36,10 @@ public class HGridBuilder
       order.  Return this. */
   public final HGridBuilder addRow(HVal[] cells)
   {
-    addRowRaw((HVal[])cells.clone());
-    return this;
-  }
-
-  /** Add new row with array of cells which correspond to. */
-  final void addRowRaw(HVal[] cells)
-  {
     if (cols.size() != cells.length)
       throw new IllegalStateException("Row cells size != cols size");
-    rows.add(cells);
+    rows.add((HVal[])cells.clone());
+    return this;
   }
 
   /** Convert current state to an immutable HGrid instance */
