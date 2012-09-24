@@ -8,14 +8,14 @@
 package haystack;
 
 /**
- * MissingTagException is thrown when attempting to perform
- * a checked get on HDict for a tag not present.
+ * UnknownNameException is thrown when attempting to perform
+ * a checked lookup by name for a tag/col not present.
  */
-public class MissingTagException extends RuntimeException
+public class UnknownNameException extends RuntimeException
 {
 
   /** Constructor with message */
-  public MissingTagException(String msg)
+  public UnknownNameException(String msg)
   {
     super(msg);
   }
