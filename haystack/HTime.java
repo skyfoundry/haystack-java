@@ -10,7 +10,7 @@ package haystack;
 import java.util.Calendar;
 
 /**
- * HDate models a time of day tag value.
+ * HTime models a time of day tag value.
  */
 public class HTime extends HVal
 {

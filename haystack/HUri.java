@@ -8,7 +8,7 @@
 package haystack;
 
 /**
- * HStr models a URI as a string.
+ * HUri models a URI as a string.
  */
 public class HUri extends HVal
 {
