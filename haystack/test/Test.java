@@ -25,6 +25,7 @@ public abstract class Test
     "ValTest",
     "DictTest",
     "QueryTest",
+    "GridTest",
   };
 
 //////////////////////////////////////////////////////////////////////////
@@ -186,8 +187,14 @@ public abstract class Test
     }
     catch (RuntimeException e)
     {
+      String aStr = String.valueOf(a);
+      String bStr = String.valueOf(b);
+      if (a != null) aStr = aStr + " [" + a.getClass().getName() + "]";
+      if (b != null) bStr = bStr + " [" + b.getClass().getName() + "]";
+System.out.println("====> '" + a + "'");
+System.out.println("    > '" + b + "'");
       if (!e.getMessage().equals("Test failed")) throw e;
-      throw new RuntimeException("Test failed " + a  + " != " + b);
+      throw new RuntimeException("Test failed " + aStr  + " != " + bStr);
     }
   }
 
