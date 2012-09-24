@@ -29,8 +29,8 @@ public class DictTest extends Test
     verifyEq(tags.has("foo"), false);
     verifyEq(tags.missing("foo"), true);
     verifyEq(tags.get("foo", false), null);
-    try { tags.get("foo"); fail(); } catch (MissingTagException e) { verify(true); }
-    try { tags.get("foo", true); fail(); } catch (MissingTagException e) { verify(true); }
+    try { tags.get("foo"); fail(); } catch (UnknownNameException e) { verify(true); }
+    try { tags.get("foo", true); fail(); } catch (UnknownNameException e) { verify(true); }
   }
 
   public void testBasics()
@@ -58,8 +58,8 @@ public class DictTest extends Test
     verifyEq(tags.has("foo"), false);
     verifyEq(tags.missing("foo"), true);
     verifyEq(tags.get("foo", false), null);
-    try { tags.get("foo"); fail(); } catch (MissingTagException e) { verify(true); }
-    try { tags.get("foo", true); fail(); } catch (MissingTagException e) { verify(true); }
+    try { tags.get("foo"); fail(); } catch (UnknownNameException e) { verify(true); }
+    try { tags.get("foo", true); fail(); } catch (UnknownNameException e) { verify(true); }
   }
 
   public void testEquality()

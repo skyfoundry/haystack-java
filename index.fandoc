@@ -109,7 +109,7 @@ Formal BNF grammer of the string encoding:
   // tags
   <tags>        := <tag> (<sp> "," <sp> <tag>)*
   <tag>         := <name> [":" <val>]
-  <val>         := <bool> | <num> | <str> | <uri> | <ref> | <date> | <time> | <dateTime>
+  <val>         := <bool> | <num> | <str> | <uri> | <ref> | <bin> | <date> | <time> | <dateTime>
   <sp>          := 0x20 space
 
   // name identifiers

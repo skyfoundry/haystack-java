@@ -45,7 +45,7 @@ public abstract class HDict
   public final HVal get(String name) { return get(name, true); }
 
   /** Get a tag by name.  If not found and checked if false then
-      return null, otherwise throw MissingTagException */
+      return null, otherwise throw UnknownNameException */
   public abstract HVal get(String name, boolean checked);
 
   /** Create Map.Entry iteratator to walk each name/tag pair */
@@ -142,7 +142,7 @@ public abstract class HDict
       HVal val = (HVal)map.get(name);
       if (val != null) return val;
       if (!checked) return null;
-      throw new MissingTagException(name);
+      throw new UnknownNameException(name);
     }
 
     public Iterator iterator() { return map.entrySet().iterator(); }
