@@ -23,6 +23,12 @@ public class HGrid
 // Package private constructor
 //////////////////////////////////////////////////////////////////////////
 
+  /** Empty grid with one column called "empty" and zero rows */
+  public static final HGrid EMPTY = new HGrid(
+    HDict.EMPTY,
+    new HCol[] { new HCol(0, "empty", HDict.EMPTY) },
+    new ArrayList());
+
   /** Package private constructor */
   HGrid(HDict meta, HCol[] cols, ArrayList rowList)
   {

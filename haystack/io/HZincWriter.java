@@ -72,6 +72,12 @@ public class HZincWriter extends HGridWriter
     }
   }
 
+  /** Flush underlying output stream */
+  public void flush()
+  {
+    out.flush();
+  }
+
   /** Close underlying output stream */
   public void close()
   {
