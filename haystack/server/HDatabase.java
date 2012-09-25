@@ -11,11 +11,49 @@ import java.util.*;
 import haystack.*;
 
 /**
- * HDatabase is the interface between HServlet and a database
- * of tag based entities.
+ * HDatabase is the interface between HServlet and a database of
+ * tag based entities.  All methods on HDatabase must be thread safe.
  */
 public abstract class HDatabase
 {
+
+//////////////////////////////////////////////////////////////////////////
+// Operations
+//////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Return the operations supported by this database.
+   */
+  public abstract HOp[] ops();
+
+  /**
+   * Lookup an operation by name.  If no operation is registered
+   * for the given name, then return null or raise UnknownNameException
+   * base on check flag.
+   */
+  public HOp op(String name, boolean checked)
+  {
+    // lazily build lookup map
+    if (this.opsByName == null)
+    {
+      HashMap map = new HashMap();
+      HOp[] ops = ops();
+      for (int i=0; i<ops.length; ++i)
+      {
+        HOp op = ops[i];
+        if (map.get(op.name()) != null)
+          System.out.println("WARN: duplicate HOp name: " + op.name());
+        map.put(op.name(), op);
+      }
+      this.opsByName = map;
+    }
+
+    // lookup
+    HOp op = (HOp)opsByName.get(name);
+    if (op != null) return op;
+    if (checked) throw new UnknownNameException(name);
+    return null;
+  }
 
 //////////////////////////////////////////////////////////////////////////
 // Get
@@ -41,17 +79,17 @@ public abstract class HDatabase
   /**
    * Convenience for get(id, true)
    */
-  public HDict get(String id) { return get(id, true); }
+  public HDict get(HRef id) { return get(id, true); }
 
   /**
    * Lookup an entity by it's unique identifier.  If not found then
    * return null or throw an UnknownEntityException based on checked.
    */
-  public HDict get(String id, boolean checked)
+  public HDict get(HRef id, boolean checked)
   {
     HDict rec = find(id);
     if (rec != null) return rec;
-    if (checked) throw new UnknownEntityException(id);
+    if (checked) throw new UnknownEntityException(id.toString());
     return null;
   }
 
@@ -59,7 +97,7 @@ public abstract class HDatabase
    * Implementation hook to resolve an identifier into an entity.
    * Return null if id does not resolve an entity
    */
-  protected abstract HDict find(String id);
+  protected abstract HDict find(HRef id);
 
 //////////////////////////////////////////////////////////////////////////
 // Query
@@ -108,5 +146,12 @@ public abstract class HDatabase
    * for the range return an empty array.
    */
   public abstract HHisItem[] his(HDict entity, HDateTimeRange range);
+
+//////////////////////////////////////////////////////////////////////////
+// Fields
+//////////////////////////////////////////////////////////////////////////
+
+ final HDateTime bootTime = HDateTime.now();
+ private HashMap opsByName;
 
 }

@@ -51,6 +51,19 @@ public abstract class HDict
   /** Create Map.Entry iteratator to walk each name/tag pair */
   public abstract Iterator iterator();
 
+  /**
+   * Get display string for this entity:
+   *    - dis tag
+   *    - id tag
+   */
+  public String dis()
+  {
+    HVal v;
+    v = get("dis", false); if (v instanceof HStr) return ((HStr)v).val;
+    v = get("id", false); if (v != null) return v.toString();
+    return "????";
+  }
+
 //////////////////////////////////////////////////////////////////////////
 // Identity
 //////////////////////////////////////////////////////////////////////////

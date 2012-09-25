@@ -7,13 +7,116 @@
 //
 package haystack;
 
-import java.util.ArrayList;
+import java.io.*;
+import java.util.*;
 
 /**
  * HGridBuilder is used to construct an immutable HGrid instance.
  */
 public class HGridBuilder
 {
+
+//////////////////////////////////////////////////////////////////////////
+// Utils
+//////////////////////////////////////////////////////////////////////////
+
+  /** Convenience to build one row grid from HDict */
+  public static HGrid dictToGrid(HDict dict)
+  {
+    HGridBuilder b = new HGridBuilder();
+    Iterator it = dict.iterator();
+    ArrayList cells = new ArrayList();
+    while (it.hasNext())
+    {
+      Map.Entry entry = (Map.Entry)it.next();
+      String name = (String)entry.getKey();
+      HVal val = (HVal)entry.getValue();
+      b.addCol(name);
+      cells.add(val);
+    }
+    b.rows.add(cells.toArray(new HVal[cells.size()]));
+    return b.toGrid();
+  }
+
+  /** Convenience to build grid from array of HDict */
+  public static HGrid dictsToGrid(HDict[] dicts)
+  {
+    HGridBuilder b = new HGridBuilder();
+
+    // collect column names
+    HashMap colsByName = new HashMap();
+    for (int i=0; i<dicts.length; ++i)
+    {
+      HDict dict = dicts[i];
+      Iterator it = dict.iterator();
+      while (it.hasNext())
+      {
+        Map.Entry entry = (Map.Entry)it.next();
+        String name = (String)entry.getKey();
+        if (colsByName.get(name) == null)
+        {
+          colsByName.put(name, name);
+          b.addCol(name);
+        }
+      }
+    }
+
+    // now map rows
+    int numCols = b.cols.size();
+    for (int ri=0; ri<dicts.length; ++ri)
+    {
+      HDict dict = dicts[ri];
+      HVal[] cells = new HVal[numCols];
+      for (int ci=0; ci<numCols; ++ci)
+        cells[ci] = dict.get(((BCol)b.cols.get(ci)).name, false);
+      b.rows.add(cells);
+    }
+
+    return b.toGrid();
+  }
+
+  /** Convenience to build an error grid from exception */
+  public static HGrid errToGrid(Throwable e)
+  {
+    // Java sucks
+    StringWriter sout = new StringWriter();
+    PrintWriter pout = new PrintWriter(sout);
+    e.printStackTrace(pout);
+    pout.flush();
+    String trace = sout.toString();
+    StringBuffer temp = new StringBuffer(trace.length());
+    for (int i=0; i<trace.length(); ++i)
+    {
+      int ch = trace.charAt(i);
+      if (ch == '\t') temp.append("  ");
+      else if (ch != '\r') temp.append((char)ch);
+    }
+    trace = temp.toString();
+
+    HGridBuilder b = new HGridBuilder();
+    b.meta().add("err")
+            .add("dis", e.toString())
+            .add("errTrace", trace);
+    b.addCol("empty");
+    return b.toGrid();
+  }
+
+  /** Convenience to build grid from array of HHisItem */
+  public static HGrid hisItemsToGrid(HDict rec, HHisItem [] items)
+  {
+    HGridBuilder b = new HGridBuilder();
+    b.addCol("ts");
+    b.addCol("val");
+    for (int i=0; i<items.length; ++i)
+    {
+      b.rows.add(new HVal[] { items[i].ts, items[i].val });
+    }
+    return b.toGrid();
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// Building
+//////////////////////////////////////////////////////////////////////////
 
   /** Get the builder for the grid meta map */
   public final HDictBuilder meta()
@@ -60,12 +163,20 @@ public class HGridBuilder
     return new HGrid(meta, hcols, rows);
   }
 
+//////////////////////////////////////////////////////////////////////////
+// BCol
+//////////////////////////////////////////////////////////////////////////
+
   static class BCol
   {
     BCol(String name) { this.name = name; }
     final String name;
     final HDictBuilder meta = new HDictBuilder();
   }
+
+//////////////////////////////////////////////////////////////////////////
+// Fields
+//////////////////////////////////////////////////////////////////////////
 
   private final HDictBuilder meta = new HDictBuilder();
   private final ArrayList cols = new ArrayList();

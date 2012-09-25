@@ -26,14 +26,24 @@ public class TestDatabase extends HDatabase
     addSite("D", "Boston",     "MA", 4000);
   }
 
+  public HOp[] ops()
+  {
+    return new HOp[] {
+      HStdOps.about,
+      HStdOps.ops,
+      HStdOps.query,
+      HStdOps.hisRead,
+    };
+  }
+
   public HDict about() { return about; }
   private final HDict about = new HDictBuilder()
     .add("serverName",  hostName())
     .add("vendorName", "Haystack Java Toolkit")
-    .add("vendorUri", HUri.make("http://project-haystack.org"))
+    .add("vendorUri", HUri.make("http://project-haystack.org/"))
     .add("productName", "Haystack Java Toolkit")
-    .add("productVersion", "1.0.0")
-    .add("productUri", HUri.make("http://project-haystack.org"))
+    .add("productVersion", "2.0.0")
+    .add("productUri", HUri.make("http://project-haystack.org/"))
     .toDict();
 
   private static String hostName()
@@ -110,7 +120,7 @@ public class TestDatabase extends HDatabase
     recs.put(dis, b.toDict());
   }
 
-  protected HDict find(String id) { return (HDict)recs.get(id); }
+  protected HDict find(HRef id) { return (HDict)recs.get(id.val); }
 
   protected Iterator iterator() { return recs.values().iterator(); }
 

@@ -54,154 +54,44 @@ public class HServlet extends HttpServlet
 // Service
 //////////////////////////////////////////////////////////////////////////
 
-  void onService(String method, HttpServletRequest req, HttpServletResponse res)
+  private void onService(String method, HttpServletRequest req, HttpServletResponse res)
     throws ServletException, IOException
   {
     // get the database
     HDatabase db = db();
 
-    // parse URI path into "/{action}/{id}
+    // if root, then redirect to {haystack}/about
     String path = req.getPathInfo();
-    if (path == null || path.length() == 0) path = "/";
+    if (path == null || path.length() == 0 || path.equals("/"))
+    {
+      res.sendRedirect(req.getServletPath() + "/about");
+      return;
+    }
+
+    // parse URI path into "/{opName}/...."
     int slash = path.indexOf('/', 1);
     if (slash < 0) slash = path.length();
+    String opName = path.substring(1, slash);
 
-    String action = path.substring(1, slash);
-    String id = slash+1 >= path.length() ? "" : path.substring(slash+1);
-
-    // argument is query string on GET or content on POST
-    String arg;
-    if (method == "GET")
+    // resolve the op
+    HOp op = db.op(opName, false);
+    if (op == null)
     {
-      arg = req.getQueryString();
-      if (arg == null) arg = "";
-      else arg = URLDecoder.decode(arg);
-    }
-    else
-    {
-      StringBuffer buf = new StringBuffer();
-      Reader r = req.getReader();
-      for (int c; (c = r.read()) >= 0;) buf.append((char)c);
-      arg = buf.toString();
+      res.sendError(HttpServletResponse.SC_NOT_FOUND);
+      return;
     }
 
-    // process action
-    HDict[] result = null;
-    if (action.equals("query"))      result = onQuery(req, res, db, arg);
-    else if (action.equals("his"))   result = onHis(req, res, db, id, arg);
-    else if (action.equals("about")) result = onAbout(req, res, db, arg);
-    else res.sendError(HttpServletResponse.SC_NOT_FOUND);
-    if (result == null) return;
-
-    // debug
-    dumpReq(req);
-    System.out.println("action = '" + action + "'");
-    System.out.println("id     = '" + id + "'");
-    System.out.println("arg    = '" + arg + "'");
-
-    // setup response
-    res.setStatus(HttpServletResponse.SC_OK);
-    res.setCharacterEncoding("UTF-8");
-    res.setContentType("text/plain; charset=utf-8");
-    Writer out = new OutputStreamWriter(res.getOutputStream(), "UTF-8");
-
-    // write result
-    for (int i=0; i<result.length; ++i)
+    // route to the op
+    try
     {
-      out.write(result[i].write());
-      out.write('\n');
+      op.onService(db, req, res);
     }
-    out.flush();
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw new ServletException(e);
+    }
   }
-
-//////////////////////////////////////////////////////////////////////////
-// About
-//////////////////////////////////////////////////////////////////////////
-
-   HDict[] onAbout(HttpServletRequest req, HttpServletResponse res,
-                   HDatabase db, String queryStr)
-      throws ServletException, IOException
-   {
-     HDict about = new HDictBuilder()
-                    .add(db.about())
-                    .add("haystackVersion", "1.0")
-                    .add("serverTime", HDateTime.now())
-                    .add("serverBootTime", bootTime)
-                    .add("tz", HTimeZone.DEFAULT.name)
-                    .toDict();
-     return new HDict[] { about };
-   }
-
-//////////////////////////////////////////////////////////////////////////
-// Query
-//////////////////////////////////////////////////////////////////////////
-
-   HDict[] onQuery(HttpServletRequest req, HttpServletResponse res,
-                  HDatabase db, String queryStr)
-      throws ServletException, IOException
-   {
-     // parse query
-     HQuery query;
-     try
-     {
-       query = HQuery.read(queryStr);
-     }
-     catch (ParseException e)
-     {
-       res.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid query: " + queryStr);
-       return null;
-     }
-
-     return db.query(query);
-   }
-
-//////////////////////////////////////////////////////////////////////////
-// History
-//////////////////////////////////////////////////////////////////////////
-
-   HDict[] onHis(HttpServletRequest req, HttpServletResponse res,
-                 HDatabase db, String id, String queryStr)
-      throws ServletException, IOException
-   {
-      // lookup entity
-      HDict rec = db.get(id, false);
-      if (rec == null)
-      {
-        res.sendError(HttpServletResponse.SC_NOT_FOUND, "Unknown entity: " + id);
-        return null;
-      }
-
-      // check that entity has "his" tag
-      if (rec.missing("his"))
-      {
-        res.sendError(HttpServletResponse.SC_NOT_FOUND, "Entity not tagged as his: " + id);
-        return null;
-      }
-
-      // lookup "tz" on entity
-      HTimeZone tz = null;
-      if (rec.has("tz")) tz = HTimeZone.make(((HStr)rec.get("tz")).val, false);
-      if (tz == null)
-      {
-        res.sendError(HttpServletResponse.SC_NOT_FOUND, "Entity missing tz tag: " + id);
-        return null;
-      }
-
-      // parse date range
-      HDateTimeRange range = null;
-      try
-      {
-        range = HDateTimeRange.read(queryStr, tz);
-      }
-      catch (ParseException e)
-      {
-        res.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid date time range: " + queryStr);
-        return null;
-      }
-
-      // return results
-      return db.his(rec, range);
-   }
 
 //////////////////////////////////////////////////////////////////////////
 // Debug
@@ -212,9 +102,11 @@ public class HServlet extends HttpServlet
   {
     if (out == null) out = new PrintWriter(System.out);
     out.println("==========================================");
-    out.println("method    = " + req.getMethod());
-    out.println("pathInfo  = " + req.getPathInfo());
-    out.println("query     = " + (req.getQueryString() == null ? "null" : URLDecoder.decode(req.getQueryString())));
+    out.println("method      = " + req.getMethod());
+    out.println("pathInfo    = " + req.getPathInfo());
+    out.println("contextPath = " + req.getContextPath());
+    out.println("servletPath = " + req.getServletPath());
+    out.println("query       = " + (req.getQueryString() == null ? "null" : URLDecoder.decode(req.getQueryString())));
     out.println("headers:");
     Enumeration e = req.getHeaderNames();
     while (e.hasMoreElements())
@@ -226,9 +118,4 @@ public class HServlet extends HttpServlet
     out.flush();
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Fields
-//////////////////////////////////////////////////////////////////////////
-
-  private final HDateTime bootTime = HDateTime.now();
 }
