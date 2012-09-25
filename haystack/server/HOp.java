@@ -35,31 +35,10 @@ public abstract class HOp
   {
     // parse GET query parameters or POST body into grid
     HGrid reqGrid = HGrid.EMPTY;
-    if (req.getMethod().equals("GET"))
-    {
-      HDictBuilder b = new HDictBuilder();
-      Iterator it = req.getParameterMap().entrySet().iterator();
-      while (it.hasNext())
-      {
-        Map.Entry entry = (Map.Entry)it.next();
-        String name = (String)entry.getKey();
-        String val = ((String[])entry.getValue())[0];
-        if (val.startsWith("@"))
-          b.add(name, HRef.make(val.substring(1)));
-        else
-          b.add(name, val);
-      }
-      reqGrid = HGridBuilder.dictToGrid(b.toDict());
-    }
-    else if (req.getMethod().equals("POST"))
-    {
-      /* TODO
-      StringBuffer buf = new StringBuffer();
-      InputStream r = req.getInputStream();
-      for (int c; (c = r.read()) >= 0;) buf.append((char)c);
-      arg = buf.toString();
-      */
-    }
+    String method = req.getMethod();
+    if (method.equals("GET"))  reqGrid = getToGrid(req);
+    if (method.equals("POST")) reqGrid = postToGrid(req, res);
+    if (reqGrid == null) return;
 
     // route to onService(HDatabase, HGrid)
     HGrid resGrid;
@@ -72,11 +51,21 @@ public abstract class HOp
       resGrid = HGridBuilder.errToGrid(e);
     }
 
-    // send zinc response
+    // figure out best format to use for response
+    HGridFormat format = toFormat(req);
+
+    // send response
     res.setStatus(HttpServletResponse.SC_OK);
-    res.setCharacterEncoding("UTF-8");
-    res.setContentType("text/plain; charset=utf-8");
-    HZincWriter out = new HZincWriter (res.getOutputStream());
+    if (format.mime.startsWith("text/"))
+    {
+      res.setCharacterEncoding("UTF-8");
+      res.setContentType(format.mime + "; charset=utf-8");
+    }
+    else
+    {
+      res.setContentType(format.mime);
+    }
+    HGridWriter out = format.makeWriter(res.getOutputStream());
     out.writeGrid(resGrid);
     out.flush();
   }
@@ -88,5 +77,72 @@ public abstract class HOp
     throws Exception
   {
     throw new UnsupportedOperationException(getClass().getName()+".onService(HDatabase,HGrid)");
+  }
+
+  /**
+   * Map the GET query parameters to grid with one row
+   */
+  private HGrid getToGrid(HttpServletRequest req)
+  {
+    HDictBuilder b = new HDictBuilder();
+    Iterator it = req.getParameterMap().entrySet().iterator();
+    while (it.hasNext())
+    {
+      Map.Entry entry = (Map.Entry)it.next();
+      String name = (String)entry.getKey();
+      String val = ((String[])entry.getValue())[0];
+      if (val.startsWith("@"))
+        b.add(name, HRef.make(val.substring(1)));
+      else
+        b.add(name, val);
+    }
+    return HGridBuilder.dictToGrid(b.toDict());
+  }
+
+  /**
+   * Map the POST body to grid
+   */
+  private HGrid postToGrid(HttpServletRequest req, HttpServletResponse res)
+    throws IOException
+  {
+    // get content type
+    String mime = req.getHeader("Content-Type");
+    if (mime == null)
+    {
+      res.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing 'Content-Type' header");
+      return null;
+    }
+
+    // check if we have a format that supports reading the content type
+    HGridFormat format = HGridFormat.find(mime, false);
+    if (format == null || format.reader == null)
+    {
+      res.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE, "No format reader available for MIME type: " + mime);
+      return null;
+    }
+
+    // read the grid
+    return format.makeReader(req.getInputStream()).readGrid();
+  }
+
+  /**
+   * Find the best format to use for encoding response using
+   * HTTP content negotiation.
+   */
+  private HGridFormat toFormat(HttpServletRequest req)
+  {
+    HGridFormat format = null;
+    String accept = req.getHeader("Accept");
+    if (accept != null)
+    {
+      String[] mimes = HStr.split(accept, ',', true);
+      for (int i=0; i<mimes.length; ++i)
+      {
+        format = HGridFormat.find(mimes[i], false);
+        if (format != null && format.writer != null) break;
+      }
+    }
+    if (format == null) format = HGridFormat.find("text/plain", true);
+    return format;
   }
 }
