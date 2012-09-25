@@ -93,7 +93,7 @@ public class QueryTest extends Test
     verifyParse("num <= -9.6", HQuery.le("num", n(-9.6f)));
     verifyParse("num > 400000", HQuery.gt("num", n(4e5f)));
     verifyParse("num >= 16000", HQuery.ge("num", n(1.6e+4f)));
-    verifyParse("num >= 0.000000016", HQuery.ge("num", n(1.6e-8f)));
+    verifyParse("num >= 2.16", HQuery.ge("num", n(2.16)));
 
     // unit literals
     verifyParse("dur < 5ns", HQuery.lt("dur", n(5,"ns")));

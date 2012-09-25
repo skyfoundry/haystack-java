@@ -30,6 +30,9 @@ public class HRow extends HDict
   /** Number of columns in grid (which may map to null cells) */
   public int size() { return grid.cols.length; }
 
+  /** Get a cell by column name.  If the column is undefined or
+      the cell is null then raise UnknownNameException or return
+      null based on checked flag. */
   public HVal get(String name, boolean checked)
   {
     HCol col = grid.col(name, false);
@@ -39,6 +42,16 @@ public class HRow extends HDict
       if (val != null) return val;
     }
     if (checked) throw new UnknownNameException(name);
+    return null;
+  }
+
+  /** Get a cell by column.  If cell is null then raise
+      UnknownNameException or return  null based on checked flag. */
+  public HVal get(HCol col, boolean checked)
+  {
+    HVal val = cells[col.index];
+    if (val != null) return val;
+    if (checked) throw new UnknownNameException(col.name());
     return null;
   }
 

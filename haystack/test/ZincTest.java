@@ -250,7 +250,16 @@ public class ZincTest extends Test
 
     // read from zinc
     HGrid grid = new HZincReader(str).readGrid();
+    verifyGridEq(grid, meta, cols, rows);
 
+    // write grid and verify we can parse that too
+    String writeStr = HZincWriter.gridToString(grid);
+    HGrid writeGrid = new HZincReader(writeStr).readGrid();
+    verifyGridEq(writeGrid, meta, cols, rows);
+  }
+
+  void verifyGridEq(HGrid grid, HDict meta, Object[] cols, HVal[][] rows)
+  {
     // meta
     verifyEq(grid.meta(), meta);
 
