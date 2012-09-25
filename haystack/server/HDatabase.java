@@ -5,7 +5,7 @@
 // History:
 //   03 Nov 2011  Brian Frank  Creation
 //
-package haystack.db;
+package haystack.server;
 
 import java.util.*;
 import haystack.*;

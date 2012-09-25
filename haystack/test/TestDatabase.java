@@ -10,7 +10,7 @@ package haystack.test;
 import java.net.*;
 import java.util.*;
 import haystack.*;
-import haystack.db.*;
+import haystack.server.*;
 
 /**
  * TestDatabase provides a simple implementation of

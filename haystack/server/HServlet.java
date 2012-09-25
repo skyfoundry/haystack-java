@@ -5,7 +5,7 @@
 // History:
 //   03 Nov 2011  Brian Frank  Creation
 //
-package haystack.web;
+package haystack.server;
 
 import java.io.*;
 import java.net.*;
@@ -13,7 +13,6 @@ import java.util.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import haystack.*;
-import haystack.db.*;
 
 /**
  * HServlet implements the haystack HTTP REST API for

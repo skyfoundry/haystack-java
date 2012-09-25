@@ -5,7 +5,7 @@
 // History:
 //   03 Nov 2011  Brian Frank  My birthday!
 //
-package haystack.db;
+package haystack.server;
 
 /**
  * UnresolvedEntityException is thrown when attempting to
