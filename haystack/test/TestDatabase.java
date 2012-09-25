@@ -31,6 +31,7 @@ public class TestDatabase extends HDatabase
     return new HOp[] {
       HStdOps.about,
       HStdOps.ops,
+      HStdOps.formats,
       HStdOps.query,
       HStdOps.hisRead,
     };

@@ -18,4 +18,10 @@ public abstract class HGridWriter
   /** Write a grid */
   public abstract void writeGrid(HGrid grid);
 
+  /** Flush output stream */
+  public abstract void flush();
+
+  /** Close output stream */
+  public abstract void close();
+
 }

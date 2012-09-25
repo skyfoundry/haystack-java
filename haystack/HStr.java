@@ -7,6 +7,8 @@
 //
 package haystack;
 
+import java.util.ArrayList;
+
 /**
  * HStr wraps a java.lang.String as a tag value.
  */
@@ -70,6 +72,34 @@ public class HStr extends HVal
       }
     }
     s.append('"');
+  }
+
+  /**
+   * Custom split routine so we don't have depend on Java 1.5 regex
+   */
+  public static String[] split(String str, int separator, boolean trim)
+  {
+    ArrayList toks = new ArrayList(16);
+    int len = str.length();
+    int x = 0;
+    for (int i=0; i<len; ++i)
+    {
+      if (str.charAt(i) != separator) continue;
+      if (x <= i) toks.add(splitStr(str, x, i, trim));
+      x = i+1;
+    }
+    if (x <= len) toks.add(splitStr(str, x, len, trim));
+    return (String[])toks.toArray(new String[toks.size()]);
+  }
+
+  private static String splitStr(String val, int s, int e, boolean trim)
+  {
+    if (trim)
+    {
+      while (s < e && val.charAt(s) <= ' ') ++s;
+      while (e > s && val.charAt(e-1) <= ' ') --e;
+    }
+    return val.substring(s, e);
   }
 
 }

@@ -11,22 +11,26 @@ import java.util.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import haystack.*;
+import haystack.io.*;
 
 /**
  * HStdOps defines the standard operations available.
  */
 public class HStdOps
 {
-  /** Operation to list the registered operations. */
+  /** List the registered operations. */
   public static final HOp about = new AboutOp();
 
-  /** Operation to list the registered operations. */
+  /** List the registered operations. */
   public static final HOp ops = new OpsOp();
 
-  /** Operation to query entities in database. */
+  /** List the registered grid formats. */
+  public static final HOp formats = new FormatsOp();
+
+  /** Query entities in database. */
   public static final HOp query = new QueryOp();
 
-  /** Operation to read time series history data. */
+  /** Read time series history data. */
   public static final HOp hisRead = new HisReadOp();
 }
 
@@ -71,6 +75,34 @@ class OpsOp extends HOp
       b.addRow(new HVal[] {
         HStr.make(op.name()),
         HStr.make(op.summary()),
+      });
+    }
+    return b.toGrid();
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// FormatsOp
+//////////////////////////////////////////////////////////////////////////
+
+class FormatsOp extends HOp
+{
+  public String name() { return "formats"; }
+  public String summary() { return "Grid data formats supported by this server"; }
+  public HGrid onService(HDatabase db, HGrid req)
+  {
+    HGridBuilder b = new HGridBuilder();
+    b.addCol("mime");
+    b.addCol("read");
+    b.addCol("write");
+    HGridFormat[] formats = HGridFormat.list();
+    for (int i=0; i<formats.length; ++i)
+    {
+      HGridFormat format = formats[i];
+      b.addRow(new HVal[] {
+        HStr.make(format.mime),
+        format.reader != null ? HMarker.VAL : null,
+        format.writer != null ? HMarker.VAL : null,
       });
     }
     return b.toGrid();
