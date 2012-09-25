@@ -36,4 +36,7 @@ public class HBool extends HVal
   /** Encode value to string format */
   public void write(StringBuffer s) { s.append(val ? "true" : "false"); }
 
+  /** Zinc encoding is "T" or "F" */
+  public String toZinc() { return val ? "T" : "F"; }
+
 }

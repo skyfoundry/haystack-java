@@ -49,4 +49,7 @@ public abstract class HVal implements Comparable
   /** Encode value to string format */
   public abstract void write(StringBuffer s);
 
+  /** Encode value to zinc format */
+  public String toZinc() { return write(); }
+
 }

@@ -50,10 +50,10 @@ public class HZincReader extends HGridReader
   }
 
 //////////////////////////////////////////////////////////////////////////
-// GridReader
+// HGridReader
 //////////////////////////////////////////////////////////////////////////
 
-  /** Read single scalar value and check that we read whole stream. */
+  /** Read grid from the stream. */
   public HGrid readGrid()
   {
     HGridBuilder b = new HGridBuilder();

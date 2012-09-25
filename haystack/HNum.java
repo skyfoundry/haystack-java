@@ -113,11 +113,11 @@ public class HNum extends HVal
     else
     {
       // don't let fractions
-      String format = "#0.###";
       double abs = val; if (abs < 0) abs = -abs;
-      if (abs < 0.00001) format = "#0.#########";
-      else if (abs < 0.01) format = "#0.######";
-      s.append(new DecimalFormat(format).format(val));
+      if (abs > 1.0)
+        s.append(new DecimalFormat("#0.####").format(val));
+      else
+        s.append(val);
 
       if (unit != null)
       {
