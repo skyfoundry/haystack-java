@@ -20,12 +20,12 @@ public abstract class HFilter
 // Encoding
 //////////////////////////////////////////////////////////////////////////
 
-  /** Convenience for "read(s, true)" */
-  public static HFilter read(String s) { return read(s, true); }
+  /** Convenience for "make(s, true)" */
+  public static HFilter make(String s) { return make(s, true); }
 
   /** Decode a string into a HFilter; return null or throw
       ParseException if not formatted correctly */
-  public static HFilter read(String s, boolean checked)
+  public static HFilter make(String s, boolean checked)
   {
     try
     {
@@ -284,8 +284,7 @@ public abstract class HFilter
     final String toStr()
     {
       StringBuffer s = new StringBuffer();
-      s.append(path).append(cmpStr());
-      val.write(s);
+      s.append(path).append(cmpStr()).append(val.toZinc());
       return s.toString();
     }
     final boolean sameType(HVal v) { return v != null && v.getClass() == val.getClass(); }

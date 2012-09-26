@@ -33,10 +33,10 @@ public class HBool extends HVal
   /** Equals is based on reference */
   public boolean equals(Object that) { return this == that; }
 
-  /** Encode value to string format */
-  public void write(StringBuffer s) { s.append(val ? "true" : "false"); }
+  /** Encode as "true" or "false" */
+  public String toString() { return val ? "true" : "false"; }
 
-  /** Zinc encoding is "T" or "F" */
+  /** Encode as "T" or "F" */
   public String toZinc() { return val ? "T" : "F"; }
 
 }

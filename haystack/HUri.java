@@ -38,12 +38,16 @@ public class HUri extends HVal
     return this.val.equals(((HUri)that).val);
   }
 
-  /** Encode value to string format */
-  public void write(StringBuffer s) { write(s, val); }
-
-  /** Encode value to string format */
-  static void write(StringBuffer s, String val)
+  /** Return value string. */
+  public String toString()
   {
+    return val;
+  }
+
+  /** Encode using "`" back ticks */
+  public String toZinc()
+  {
+    StringBuffer s = new StringBuffer();
     s.append('`');
     for (int i=0; i<val.length(); ++i)
     {
@@ -52,6 +56,7 @@ public class HUri extends HVal
       s.append((char)c);
     }
     s.append('`');
+    return s.toString();
   }
 
 }

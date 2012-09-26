@@ -105,6 +105,15 @@ public class HZincReader extends HGridReader
     try { in.close(); } catch (IOException e) { e.printStackTrace(); }
   }
 
+  /** Read set of name/value tags as dictionary */
+  public HDict readDict()
+  {
+    HDictBuilder b = new HDictBuilder();
+    readMeta(b);
+    if (cur >= 0) throw errChar("Expected end of stream");
+    return b.toDict();
+  }
+
 //////////////////////////////////////////////////////////////////////////
 // Implementation
 //////////////////////////////////////////////////////////////////////////
@@ -155,6 +164,14 @@ public class HZincReader extends HGridReader
 //////////////////////////////////////////////////////////////////////////
 // HVals
 //////////////////////////////////////////////////////////////////////////
+
+  /** Read scalar value. */
+  public HVal readScalar()
+  {
+    HVal val = readVal();
+    if (cur >= 0) throw errChar("Expected end of stream");
+    return val;
+  }
 
   /** Read a single scalar value from the stream. */
   private HVal readVal()
@@ -474,7 +491,7 @@ public class HZincReader extends HGridReader
 // HFilter
 //////////////////////////////////////////////////////////////////////////
 
-  /** This method is only to support HFilter; never use directly. */
+  /** Never use directly.  Use "HFilter.make" */
   public HFilter readFilter()
   {
     isFilter = true;

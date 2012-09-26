@@ -104,12 +104,12 @@ public abstract class HDatabase
 //////////////////////////////////////////////////////////////////////////
 
   /**
-   * Convenience for query(HFilter.read(queryStr)).
+   * Convenience for query(HFilter.make(queryStr)).
    * Throw ParseException if query is invalid.
    */
   public HDict[] query(String queryStr)
   {
-    return query(HFilter.read(queryStr));
+    return query(HFilter.make(queryStr));
   }
 
   /**

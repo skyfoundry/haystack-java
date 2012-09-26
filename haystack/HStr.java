@@ -40,11 +40,22 @@ public class HStr extends HVal
     return this.val.equals(((HStr)that).val);
   }
 
-  /** Encode value to string format */
-  public void write(StringBuffer s) { write(s, val); }
+  /** Return value string. */
+  public String toString()
+  {
+    return val;
+  }
 
-  /** Encode value to string format */
-  static void write(StringBuffer s, String val)
+  /** Encode using double quotes and back slash escapes */
+  public String toZinc()
+  {
+    StringBuffer s = new StringBuffer();
+    toZinc(s, val);
+    return s.toString();
+  }
+
+  /** Encode using double quotes and back slash escapes */
+  static void toZinc(StringBuffer s, String val)
   {
     s.append('"');
     for (int i=0; i<val.length(); ++i)

@@ -36,9 +36,10 @@ public class HBin extends HVal
     return this.mime.equals(((HBin)that).mime);
   }
 
-  /** Encode value to string format */
-  public void write(StringBuffer s)
+  /** Encode as "Bin(<mime>)" */
+  public String toZinc()
   {
+    StringBuffer s = new StringBuffer();
     s.append("Bin(");
     for (int i=0; i<mime.length(); ++i)
     {
@@ -47,6 +48,7 @@ public class HBin extends HVal
       s.append((char)c);
     }
     s.append(')');
+    return s.toString();
   }
 
 }

@@ -104,9 +104,10 @@ public class HNum extends HVal
     return 1;
   }
 
-  /** Encode value to string format */
-  public void write(StringBuffer s)
+  /** Encode as floating value followed by optional unit string */
+  public String toZinc()
   {
+    StringBuffer s = new StringBuffer();
     if (val == Double.POSITIVE_INFINITY) s.append("INF");
     else if (val == Double.NEGATIVE_INFINITY) s.append("-INF");
     else if (Double.isNaN(val)) s.append("NaN");
@@ -129,6 +130,7 @@ public class HNum extends HVal
         }
       }
     }
+    return s.toString();
   }
 
   private static boolean[] unitChars = new boolean[128];

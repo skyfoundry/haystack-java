@@ -68,8 +68,8 @@ public abstract class HDict
 // Identity
 //////////////////////////////////////////////////////////////////////////
 
-  /** String format is always "write" */
-  public final String toString() { return write(); }
+  /** String format is always "toZinc" */
+  public final String toString() { return toZinc(); }
 
   /** Hash code is based on tags */
   public final int hashCode()
@@ -110,34 +110,21 @@ public abstract class HDict
 // Encoding
 //////////////////////////////////////////////////////////////////////////
 
-  /** Decode a string into a HDict, throw ParseException if
-      not formatted correctly */
-  public static HDict read(String s)
-  {
-    return new HReader(s).readDictEos();
-  }
-
-  /** Encode value to string format */
-  public final String write()
+  /** Encode value to zinc format */
+  public final String toZinc()
   {
     StringBuffer s = new StringBuffer();
-    write(s);
-    return s.toString();
-  }
-
-  /** Encode value to string format */
-  public final void write(StringBuffer s)
-  {
     boolean first = true;
     for (Iterator it = iterator(); it.hasNext(); )
     {
       Entry e = (Entry)it.next();
       String name = (String)e.getKey();
       HVal val    = (HVal)e.getValue();
-      if (first) first = false; else s.append(',');
+      if (first) first = false; else s.append(' ');
       s.append(name);
-      if (val != HMarker.VAL) { s.append(':'); val.write(s); }
+      if (val != HMarker.VAL) { s.append(':').append(val.toZinc()); }
     }
+    return s.toString();
   }
 
 //////////////////////////////////////////////////////////////////////////
