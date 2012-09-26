@@ -7,8 +7,9 @@
 //
 package haystack.test;
 
-import haystack.*;
 import java.util.*;
+import haystack.*;
+import haystack.io.*;
 
 /**
  * DictTest tests the HDict class
@@ -80,24 +81,25 @@ public class DictTest extends Test
     verifyNotEq(a, new HDictBuilder().add("x").add("yy", "str").toDict());
   }
 
-  public void testIO()
+  public void testZinc()
   {
-    verifyIO("",
+    verifyZinc("",
       HDict.EMPTY);
-    verifyIO("foo_12",
+    verifyZinc("foo_12",
       new HDictBuilder().add("foo_12").toDict());
-    verifyIO("fooBar:123ft",
+    verifyZinc("fooBar:123ft",
       new HDictBuilder().add("fooBar", 123, "ft").toDict());
-    verifyIO("dis:\"Bob\",bday:1970-06-03,marker",
+    verifyZinc("dis:\"Bob\" bday:1970-06-03 marker",
       new HDictBuilder().add("dis", "Bob").add("bday", HDate.make(1970,6,3)).add("marker").toDict());
-    verifyIO("dis  :  \"Bob\" , bday : 1970-06-03 , marker",
+    verifyZinc("dis  :  \"Bob\"  bday : 1970-06-03  marker",
       new HDictBuilder().add("dis", "Bob").add("bday", HDate.make(1970,6,3)).add("marker").toDict());
   }
 
-  void verifyIO(String s, HDict tags)
+  void verifyZinc(String s, HDict tags)
   {
-    // println("  :: " +  HDict.read(s));
-    if (tags.size() <= 1) verifyEq(tags.write(), s);
-    verifyEq(HDict.read(s), tags);
+    HDict x = new HZincReader(s).readDict();
+    if (tags.size() <= 1) verifyEq(tags.toZinc(), s);
+    verifyEq(x, tags);
   }
+
 }

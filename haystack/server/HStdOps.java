@@ -158,7 +158,7 @@ class HisReadOp extends HOp
     HDateTimeRange range = null;
     try
     {
-      range = HDateTimeRange.read(rangeStr, tz);
+      range = HDateTimeRange.make(rangeStr, tz);
     }
     catch (ParseException e)
     {

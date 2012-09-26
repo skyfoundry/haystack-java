@@ -8,6 +8,7 @@
 package haystack;
 
 import java.util.Calendar;
+import haystack.io.HZincReader;
 
 /**
  * HTime models a time of day tag value.
@@ -43,6 +44,14 @@ public class HTime extends HVal
                      c.get(Calendar.MINUTE),
                      c.get(Calendar.SECOND),
                      c.get(Calendar.MILLISECOND));
+  }
+
+  /** Parse from string fomat "hh:mm:ss.FF" or raise ParseException */
+  public static HTime make(String s)
+  {
+    HVal val = new HZincReader(s).readScalar();
+    if (val instanceof HTime) return (HTime)val;
+    throw new ParseException(s);
   }
 
   /** Singleton for midnight 00:00 */
@@ -95,8 +104,16 @@ public class HTime extends HVal
     return 0;
   }
 
-  /** Encode value to string format */
-  public void write(StringBuffer s)
+  /** Encode as "hh:mm:ss.FFF" */
+  public String toZinc()
+  {
+    StringBuffer s = new StringBuffer();
+    toZinc(s);
+    return s.toString();
+  }
+
+  /** Package private implementation shared with HDateTime */
+  void toZinc(StringBuffer s)
   {
     if (hour < 10) s.append('0'); s.append(hour).append(':');
     if (min  < 10) s.append('0'); s.append(min).append(':');

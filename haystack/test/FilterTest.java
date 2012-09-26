@@ -75,9 +75,9 @@ public class FilterTest extends Test
     verifyParse("not foo", HFilter.missing("foo"));
 
     // verify Zinc only literals do not work
-    verifyEq(HFilter.read("x==T", false), null);
-    verifyEq(HFilter.read("x==F", false), null);
-    verifyEq(HFilter.read("x==F", false), null);
+    verifyEq(HFilter.make("x==T", false), null);
+    verifyEq(HFilter.make("x==F", false), null);
+    verifyEq(HFilter.make("x==F", false), null);
 
     // bool literals
     verifyParse("x->y==true", HFilter.eq("x->y", HBool.TRUE));
@@ -111,9 +111,9 @@ public class FilterTest extends Test
     verifyParse("dur < 2.5hr", HFilter.lt("dur", n(2.5, "hr")));
 
     // date, time, datetime
-    verifyParse("foo < 2009-10-30", HFilter.lt("foo", HDate.read("2009-10-30")));
-    verifyParse("foo < 08:30:00", HFilter.lt("foo", HTime.read("08:30:00")));
-    verifyParse("foo < 13:00:00", HFilter.lt("foo", HTime.read("13:00:00")));
+    verifyParse("foo < 2009-10-30", HFilter.lt("foo", HDate.make("2009-10-30")));
+    verifyParse("foo < 08:30:00", HFilter.lt("foo", HTime.make("08:30:00")));
+    verifyParse("foo < 13:00:00", HFilter.lt("foo", HTime.make("13:00:00")));
 
     // ref literals
     verifyParse("author == @xyz", HFilter.eq("author", HRef.make("xyz")));
@@ -147,7 +147,7 @@ public class FilterTest extends Test
 
   void verifyParse(String s, HFilter expected)
   {
-    HFilter actual = HFilter.read(s);
+    HFilter actual = HFilter.make(s);
     verifyEq(actual, expected);
   }
 
@@ -220,7 +220,7 @@ public class FilterTest extends Test
       public HDict find(String id) { return (HDict)map.get(id); }
     };
 
-    HFilter q = HFilter.read(query);
+    HFilter q = HFilter.make(query);
 
     String actual = "";
     for (int c='a'; c<='c'; ++c)

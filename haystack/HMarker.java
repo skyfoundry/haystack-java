@@ -23,10 +23,10 @@ public class HMarker extends HVal
   /** Equals is based on reference */
   public boolean equals(Object that) { return this == that; }
 
-  /** Encode value to string format */
-  public void write(StringBuffer s) { s.append("marker"); }
+  /** Encode as "marker" */
+  public String toString() { return "marker"; }
 
-  /** Zinc encoding is "M" */
+  /** Encode as "M" */
   public String toZinc() { return "M"; }
 
 }

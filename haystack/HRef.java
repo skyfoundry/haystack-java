@@ -44,9 +44,13 @@ public class HRef extends HVal
     return this.val.equals(((HRef)that).val);
   }
 
-  /** Encode value to string format */
-  public void write(StringBuffer s)
+  /** Return the val string */
+  public String toString() { return val; }
+
+  /** Encode as "@id <dis>" */
+  public String toZinc()
   {
+    StringBuffer s = new StringBuffer();
     s.append('@');
     for (int i=0; i<val.length(); ++i)
     {
@@ -57,8 +61,9 @@ public class HRef extends HVal
     if (dis != null)
     {
       s.append(' ');
-      HStr.write(s, dis);
+      HStr.toZinc(s, dis);
     }
+    return s.toString();
   }
 
   /** Is the given character valid in the identifier part */

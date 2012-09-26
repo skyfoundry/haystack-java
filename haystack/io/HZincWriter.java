@@ -101,7 +101,7 @@ public class HZincWriter extends HGridWriter
       if (val != HMarker.VAL)
       {
         out.write(':');
-        out.write(val.toString());
+        out.write(val.toZinc());
       }
     }
   }

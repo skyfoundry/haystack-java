@@ -16,16 +16,11 @@ public abstract class HVal implements Comparable
   /** Package private constructor */
   HVal() {}
 
-  /** String format is always "write" */
-  public final String toString() { return write(); }
+  /** String format is for human consumption only */
+  public String toString() { return toZinc(); }
 
-  /** Encode value to string format */
-  public final String write()
-  {
-    StringBuffer s = new StringBuffer();
-    write(s);
-    return s.toString();
-  }
+  /** Encode value to zinc format */
+  public abstract String toZinc();
 
   /** Hash code is value based */
   public abstract int hashCode();
@@ -38,18 +33,5 @@ public abstract class HVal implements Comparable
   {
     return toString().compareTo(that.toString());
   }
-
-  /** Decode a string into a HVal, throw ParseException if
-      not formatted correctly */
-  public static HVal read(String s)
-  {
-    return new HReader(s).readValEos();
-  }
-
-  /** Encode value to string format */
-  public abstract void write(StringBuffer s);
-
-  /** Encode value to zinc format */
-  public String toZinc() { return write(); }
 
 }

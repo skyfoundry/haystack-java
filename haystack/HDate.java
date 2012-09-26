@@ -8,6 +8,7 @@
 package haystack;
 
 import java.util.Calendar;
+import haystack.io.HZincReader;
 
 /**
  * HDate models a date (day in year) tag value.
@@ -29,6 +30,14 @@ public class HDate extends HVal
     return new HDate(c.get(Calendar.YEAR),
                      c.get(Calendar.MONTH) + 1,
                      c.get(Calendar.DAY_OF_MONTH));
+  }
+
+  /** Parse from string fomat "YYYY-MM-DD" or raise ParseException */
+  public static HDate make(String s)
+  {
+    HVal val = new HZincReader(s).readScalar();
+    if (val instanceof HDate) return (HDate)val;
+    throw new ParseException(s);
   }
 
   /** Get HDate for current time in default timezone */
@@ -78,8 +87,16 @@ public class HDate extends HVal
   /** Day of month as 1-31 */
   public final int day;
 
-  /** Encode value to string format */
-  public void write(StringBuffer s)
+  /** Encode as "YYYY-MM-DD" */
+  public String toZinc()
+  {
+    StringBuffer s = new StringBuffer();
+    toZinc(s);
+    return s.toString();
+  }
+
+  /** Package private implementation shared with HDateTime */
+  void toZinc(StringBuffer s)
   {
     s.append(year).append('-');
     if (month < 10) s.append('0'); s.append(month).append('-');

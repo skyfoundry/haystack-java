@@ -147,12 +147,13 @@ public class HDateTime extends HVal
     return 0;
   }
 
-  /** Encode value to string format */
-  public void write(StringBuffer s)
+  /** Encode as "YYYY-MM-DD'T'hh:mm:ss.FFFz zzzz" */
+  public String toZinc()
   {
-    date.write(s);
+    StringBuffer s = new StringBuffer();
+    date.toZinc(s);
     s.append('T');
-    time.write(s);
+    time.toZinc(s);
     if (tzOffset == 0) s.append('Z');
     else
     {
@@ -165,6 +166,7 @@ public class HDateTime extends HVal
       if (zm < 10) s.append('0'); s.append(zm);
     }
     s.append(' ').append(tz);
+    return s.toString();
   }
 
   private static final TimeZone utc = TimeZone.getTimeZone("Etc/UTC");

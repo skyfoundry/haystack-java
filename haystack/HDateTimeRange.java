@@ -7,6 +7,8 @@
 //
 package haystack;
 
+import haystack.io.HZincReader;
+
 /**
  * HDateTimeRange models a starting and ending timestamp
  */
@@ -23,7 +25,7 @@ public class HDateTimeRange
    *  - "{dateTime}"  // anything after given timestamp
    * Throw ParseException is invalid string format.
    */
-  public static HDateTimeRange read(String str, HTimeZone tz)
+  public static HDateTimeRange make(String str, HTimeZone tz)
   {
     // handle keywords
     str = str.trim();
@@ -31,13 +33,17 @@ public class HDateTimeRange
     if (str.equals("yesterday")) return make(HDate.today().minusDays(1), tz);
 
     // parse scalars
-    HReader r = new HReader(str);
-    HVal start = r.readVal();
-    HVal end = null;
-    if (r.cur() == ',')
+    int comma = str.indexOf(',');
+    HVal start = null, end = null;
+    if (comma < 0)
     {
-      r.consume();
-      end = r.readVal();
+      start = new HZincReader(str).readScalar();
+    }
+    else
+    {
+      start = new HZincReader(str.substring(0, comma)).readScalar();
+      end   = new HZincReader(str.substring(comma+1)).readScalar();
+
     }
 
     // figure out what we parsed for start,end
@@ -51,6 +57,7 @@ public class HDateTimeRange
       if (end == null) return make((HDateTime)start, HDateTime.now(tz));
       if (end instanceof HDateTime) return make((HDateTime)start, (HDateTime)end);
     }
+
     throw new ParseException("Invalid HDateTimeRange: " + str);
   }
 

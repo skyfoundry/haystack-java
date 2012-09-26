@@ -7,8 +7,9 @@
 //
 package haystack.test;
 
-import haystack.*;
 import java.util.*;
+import haystack.*;
+import haystack.io.*;
 
 /**
  * ValTest tests the scalar value HVal types
@@ -20,8 +21,11 @@ public class ValTest extends Test
     // equality
     verifyEq(HMarker.VAL, HMarker.VAL);
 
-    // encoding
-    verifyEq(HMarker.VAL.write(), "marker");
+    // toString
+    verifyEq(HMarker.VAL.toString(), "marker");
+
+    // zinc
+    verifyZinc(HMarker.VAL, "M");
   }
 
   public void testBool()
@@ -36,9 +40,13 @@ public class ValTest extends Test
     verify(HBool.FALSE.compareTo(HBool.TRUE) < 0);
     verify(HBool.TRUE.compareTo(HBool.TRUE) == 0);
 
-    // encoding
-    verifyIO(HBool.TRUE, "true");
-    verifyIO(HBool.FALSE, "false");
+    // toString
+    verifyEq(HBool.TRUE.toString(), "true");
+    verifyEq(HBool.FALSE.toString(), "false");
+
+    // zinc
+    verifyZinc(HBool.TRUE, "T");
+    verifyZinc(HBool.FALSE, "F");
   }
 
   public void testNum()
@@ -54,30 +62,30 @@ public class ValTest extends Test
     verify(HNum.make(-3).compareTo(HNum.make(-4)) > 0);
     verify(HNum.make(-23).compareTo(HNum.make(-23)) == 0);
 
-    // encoding
-    verifyIO(HNum.make(123), "123");
-    verifyIO(HNum.make(123.4, "m/s"), "123.4m/s");
-    verifyIO(HNum.make(9.6, "m/s"), "9.6m/s");
-    verifyIO(HNum.make(-5.2, "\u00b0F"), "-5.2\u00b0F");
-    verifyIO(HNum.make(23, "%"), "23%");
-    verifyIO(HNum.make(2.4e-3, "fl_oz"), "0.0024fl_oz");
-    verifyIO(HNum.make(2.4e5, "$"), "240000$");
-    verifyEq(HVal.read("1234.56fl_oz"), HNum.make(1234.56, "fl_oz"));
-    verifyEq(HVal.read("0.000028fl_oz"), HNum.make(0.000028, "fl_oz"));
+    // zinc
+    verifyZinc(HNum.make(123), "123");
+    verifyZinc(HNum.make(123.4, "m/s"), "123.4m/s");
+    verifyZinc(HNum.make(9.6, "m/s"), "9.6m/s");
+    verifyZinc(HNum.make(-5.2, "\u00b0F"), "-5.2\u00b0F");
+    verifyZinc(HNum.make(23, "%"), "23%");
+    verifyZinc(HNum.make(2.4e-3, "fl_oz"), "0.0024fl_oz");
+    verifyZinc(HNum.make(2.4e5, "$"), "240000$");
+    verifyEq(read("1234.56fl_oz"), HNum.make(1234.56, "fl_oz"));
+    verifyEq(read("0.000028fl_oz"), HNum.make(0.000028, "fl_oz"));
 
     // specials
-    verifyIO(HNum.make(Double.NEGATIVE_INFINITY), "-INF");
-    verifyIO(HNum.make(Double.POSITIVE_INFINITY), "INF");
-    verifyIO(HNum.make(Double.NaN), "NaN");
+    verifyZinc(HNum.make(Double.NEGATIVE_INFINITY), "-INF");
+    verifyZinc(HNum.make(Double.POSITIVE_INFINITY), "INF");
+    verifyZinc(HNum.make(Double.NaN), "NaN");
 
     // verify units never serialized for special values
-    verifyEq(HNum.make(Double.NaN, "ignore").write(), "NaN");
-    verifyEq(HNum.make(Double.POSITIVE_INFINITY, "%").write(), "INF");
-    verifyEq(HNum.make(Double.NEGATIVE_INFINITY, "%").write(), "-INF");
+    verifyEq(HNum.make(Double.NaN, "ignore").toZinc(), "NaN");
+    verifyEq(HNum.make(Double.POSITIVE_INFINITY, "%").toZinc(), "INF");
+    verifyEq(HNum.make(Double.NEGATIVE_INFINITY, "%").toZinc(), "-INF");
 
     // verify bad unit names are caught on encoding
-    try { HNum.make(123.4, "foo bar").write(); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
-    try { HNum.make(123.4, "foo,bar").write(); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
+    try { HNum.make(123.4, "foo bar").toZinc(); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
+    try { HNum.make(123.4, "foo,bar").toZinc(); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
   }
 
   public void testStr()
@@ -92,17 +100,17 @@ public class ValTest extends Test
     verify(HStr.make("Foo").compareTo(HStr.make("Foo")) == 0);
 
     // encoding
-    verifyIO(HStr.make("hello"), "\"hello\"");
-    verifyIO(HStr.make("_ \\ \" \n \r \t \u0011 _"), "\"_ \\\\ \\\" \\n \\r \\t \\u0011 _\"");
-    verifyIO(HStr.make("\u0abc"), "\"\u0abc\"");
+    verifyZinc(HStr.make("hello"), "\"hello\"");
+    verifyZinc(HStr.make("_ \\ \" \n \r \t \u0011 _"), "\"_ \\\\ \\\" \\n \\r \\t \\u0011 _\"");
+    verifyZinc(HStr.make("\u0abc"), "\"\u0abc\"");
 
     // hex upper and lower case
-    verifyEq(HVal.read("\"[\\uabcd \\u1234]\""), HStr.make("[\uabcd \u1234]"));
-    verifyEq(HVal.read("\"[\\uABCD \\u1234]\""), HStr.make("[\uABCD \u1234]"));
-    try {HVal.read("\"end..."); fail(); } catch (Exception e) { verifyException(e); }
-    try {HVal.read("\"end...\n\""); fail(); } catch (ParseException e) { verifyException(e); }
-    try {HVal.read("\"\\u1x34\""); fail(); } catch (ParseException e) { verifyException(e); }
-    try {HVal.read("\"hi\" "); fail(); } catch (ParseException e) { verifyException(e); }
+    verifyEq(read("\"[\\uabcd \\u1234]\""), HStr.make("[\uabcd \u1234]"));
+    verifyEq(read("\"[\\uABCD \\u1234]\""), HStr.make("[\uABCD \u1234]"));
+    try { read("\"end..."); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("\"end...\n\""); fail(); } catch (ParseException e) { verifyException(e); }
+    try { read("\"\\u1x34\""); fail(); } catch (ParseException e) { verifyException(e); }
+    try { read("\"hi\" "); fail(); } catch (ParseException e) { verifyException(e); }
   }
 
   public void testUri()
@@ -117,12 +125,12 @@ public class ValTest extends Test
     verify(HUri.make("Foo").compareTo(HUri.make("Foo")) == 0);
 
     // encoding
-    verifyIO(HUri.make("http://foo.com/f?q"), "`http://foo.com/f?q`");
+    verifyZinc(HUri.make("http://foo.com/f?q"), "`http://foo.com/f?q`");
 
     // errors
-    try {HUri.make("`bad`").write(); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
-    try {HVal.read("`no end"); fail(); } catch (ParseException e) { verifyException(e); }
-    try {HVal.read("`new\nline`"); fail(); } catch (ParseException e) { verifyException(e); }
+    try { HUri.make("`bad`").toZinc(); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("`no end"); fail(); } catch (ParseException e) { verifyException(e); }
+    try { read("`new\nline`"); fail(); } catch (ParseException e) { verifyException(e); }
   }
 
   public void testRef()
@@ -133,15 +141,15 @@ public class ValTest extends Test
     verifyNotEq(HRef.make("foo"), HRef.make("Foo"));
 
     // encoding
-    verifyIO(HRef.make("1234-5678.foo:bar"), "@1234-5678.foo:bar");
-    verifyIO(HRef.make("1234-5678", "Foo Bar"), "@1234-5678 \"Foo Bar\"");
-    verifyIO(HRef.make("1234-5678", "Foo \"Bar\""), "@1234-5678 \"Foo \\\"Bar\\\"\"");
+    verifyZinc(HRef.make("1234-5678.foo:bar"), "@1234-5678.foo:bar");
+    verifyZinc(HRef.make("1234-5678", "Foo Bar"), "@1234-5678 \"Foo Bar\"");
+    verifyZinc(HRef.make("1234-5678", "Foo \"Bar\""), "@1234-5678 \"Foo \\\"Bar\\\"\"");
 
     // verify bad refs are caught on encoding
-    try { HRef.make("@a").write(); fail(); } catch (Exception e) { verify(true); }
-    try { HRef.make("a b").write(); fail(); } catch (Exception e) { verify(true); }
-    try { HRef.make("a\n").write(); fail(); } catch (Exception e) { verify(true); }
-    try {HVal.read("@"); fail(); } catch (Exception e) { verifyException(e); }
+    try { HRef.make("@a").toZinc(); fail(); } catch (Exception e) { verifyException(e); }
+    try { HRef.make("a b").toZinc(); fail(); } catch (Exception e) { verifyException(e); }
+    try { HRef.make("a\n").toZinc(); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("@"); fail(); } catch (Exception e) { verifyException(e); }
   }
 
 
@@ -152,13 +160,13 @@ public class ValTest extends Test
     verifyNotEq(HBin.make("text/plain"), HBin.make("text/xml"));
 
     // encoding
-    verifyIO(HBin.make("text/plain"), "Bin(text/plain)");
-    verifyIO(HBin.make("text/plain; charset=utf-8"), "Bin(text/plain; charset=utf-8)");
+    verifyZinc(HBin.make("text/plain"), "Bin(text/plain)");
+    verifyZinc(HBin.make("text/plain; charset=utf-8"), "Bin(text/plain; charset=utf-8)");
 
     // verify bad bins are caught on encoding
-    try { HBin.make("text/plain; f()").write(); fail(); } catch (Exception e) { verify(true); }
-    try { HVal.read("Bin()"); fail(); } catch (Exception e) { verifyException(e); }
-    try { HVal.read("Bin(text)"); fail(); } catch (Exception e) { verifyException(e); }
+    try { HBin.make("text/plain; f()").toZinc(); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("Bin()"); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("Bin(text)"); fail(); } catch (Exception e) { verifyException(e); }
   }
 
   public void testDate()
@@ -185,12 +193,12 @@ public class ValTest extends Test
     verifyEq(HDate.make(2008, 3, 3).minusDays(4), HDate.make(2008, 2, 28));
 
     // encoding
-    verifyIO(HDate.make(2011, 6, 7), "2011-06-07");
-    verifyIO(HDate.make(2011,10,10), "2011-10-10");
-    verifyIO(HDate.make(2011,12,31), "2011-12-31");
-    try {HVal.read("2003-xx-02"); fail(); } catch (Exception e) { verifyException(e); }
-    try {HVal.read("2003-02"); fail(); } catch (Exception e) { verifyException(e); }
-    try {HVal.read("2003-02-xx"); fail(); } catch (Exception e) { verifyException(e); }
+    verifyZinc(HDate.make(2011, 6, 7), "2011-06-07");
+    verifyZinc(HDate.make(2011,10,10), "2011-10-10");
+    verifyZinc(HDate.make(2011,12,31), "2011-12-31");
+    try { read("2003-xx-02"); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("2003-02"); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("2003-02-xx"); fail(); } catch (Exception e) { verifyException(e); }
   }
 
   public void testTime()
@@ -209,20 +217,20 @@ public class ValTest extends Test
     verify(HTime.make(2, 0, 0, 0).compareTo(HTime.make(2, 0, 0, 0)) == 0);
 
     // encoding
-    verifyIO(HTime.make(2, 3), "02:03:00");
-    verifyIO(HTime.make(2, 3, 4), "02:03:04");
-    verifyIO(HTime.make(2, 3, 4, 5), "02:03:04.005");
-    verifyIO(HTime.make(2, 3, 4, 56), "02:03:04.056");
-    verifyIO(HTime.make(2, 3, 4, 109), "02:03:04.109");
-    verifyIO(HTime.make(2, 3, 10, 109), "02:03:10.109");
-    verifyIO(HTime.make(2, 10, 59), "02:10:59");
-    verifyIO(HTime.make(10, 59, 30), "10:59:30");
-    verifyIO(HTime.make(23, 59, 59, 999), "23:59:59.999");
+    verifyZinc(HTime.make(2, 3), "02:03:00");
+    verifyZinc(HTime.make(2, 3, 4), "02:03:04");
+    verifyZinc(HTime.make(2, 3, 4, 5), "02:03:04.005");
+    verifyZinc(HTime.make(2, 3, 4, 56), "02:03:04.056");
+    verifyZinc(HTime.make(2, 3, 4, 109), "02:03:04.109");
+    verifyZinc(HTime.make(2, 3, 10, 109), "02:03:10.109");
+    verifyZinc(HTime.make(2, 10, 59), "02:10:59");
+    verifyZinc(HTime.make(10, 59, 30), "10:59:30");
+    verifyZinc(HTime.make(23, 59, 59, 999), "23:59:59.999");
 
-    try {HVal.read("3:20:00"); fail(); } catch (Exception e) { verifyException(e); }
-    try {HVal.read("13:xx:00"); fail(); } catch (Exception e) { verifyException(e); }
-    try {HVal.read("13:45:0x"); fail(); } catch (Exception e) { verifyException(e); }
-    try {HVal.read("13:45:00.4561"); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("3:20:00"); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("13:xx:00"); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("13:45:0x"); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("13:45:00.4561"); fail(); } catch (Exception e) { verifyException(e); }
   }
 
   public void testTz()
@@ -271,9 +279,9 @@ public class ValTest extends Test
 
     // encoding
     HDateTime ts = HDateTime.make(1307377618069L, HTimeZone.make("New_York"));
-    verifyIO(ts, "2011-06-06T12:26:58.069-04:00 New_York");
-    verifyEq(ts.date.write(), "2011-06-06");
-    verifyEq(ts.time.write(), "12:26:58.069");
+    verifyZinc(ts, "2011-06-06T12:26:58.069-04:00 New_York");
+    verifyEq(ts.date.toString(), "2011-06-06");
+    verifyEq(ts.time.toString(), "12:26:58.069");
     verifyEq(ts.tzOffset, -4*60*60);
     verifyEq(ts.tz.name, "New_York");
     verifyEq(ts.tz.java.getID(), "America/New_York");
@@ -285,22 +293,22 @@ public class ValTest extends Test
 
     // different timezones
     ts = HDateTime.make(949478640000L, HTimeZone.make("New_York"));
-    verifyIO(ts, "2000-02-02T03:04:00-05:00 New_York");
+    verifyZinc(ts, "2000-02-02T03:04:00-05:00 New_York");
     ts = HDateTime.make(949478640000L, HTimeZone.make("UTC"));
-    verifyIO(ts, "2000-02-02T08:04:00Z UTC");
+    verifyZinc(ts, "2000-02-02T08:04:00Z UTC");
     ts = HDateTime.make(949478640000L, HTimeZone.make("Taipei"));
-    verifyIO(ts, "2000-02-02T16:04:00+08:00 Taipei");
-    verifyIO(HDateTime.make(2011, 6, 7, 11, 3, 43, HTimeZone.make("GMT+10"), -36000),
+    verifyZinc(ts, "2000-02-02T16:04:00+08:00 Taipei");
+    verifyZinc(HDateTime.make(2011, 6, 7, 11, 3, 43, HTimeZone.make("GMT+10"), -36000),
              "2011-06-07T11:03:43-10:00 GMT+10");
-    verifyIO(HDateTime.make(HDate.make(2011, 6, 8), HTime.make(4, 7, 33, 771), HTimeZone.make("GMT-7"), 25200),
+    verifyZinc(HDateTime.make(HDate.make(2011, 6, 8), HTime.make(4, 7, 33, 771), HTimeZone.make("GMT-7"), 25200),
              "2011-06-08T04:07:33.771+07:00 GMT-7");
 
     // errors
-    try {HVal.read("2000-02-02T03:04:00-0x:00 New_York"); fail(); } catch (Exception e) { verifyException(e); }
-    try {HVal.read("2000-02-02T03:04:00-05 New_York"); fail(); } catch (Exception e) { verifyException(e); }
-    try {HVal.read("2000-02-02T03:04:00-05:!0 New_York"); fail(); } catch (Exception e) { verifyException(e); }
-    try {HVal.read("2000-02-02T03:04:00-05:00"); fail(); } catch (Exception e) { verifyException(e); }
-    try {HVal.read("2000-02-02T03:04:00-05:00 @"); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("2000-02-02T03:04:00-0x:00 New_York"); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("2000-02-02T03:04:00-05 New_York"); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("2000-02-02T03:04:00-05:!0 New_York"); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("2000-02-02T03:04:00-05:00"); fail(); } catch (Exception e) { verifyException(e); }
+    try { read("2000-02-02T03:04:00-05:00 @"); fail(); } catch (Exception e) { verifyException(e); }
   }
 
   public void testMidnight()
@@ -318,9 +326,9 @@ public class ValTest extends Test
     verifyEq(ts.time.hour, 0);
     verifyEq(ts.time.min,  0);
     verifyEq(ts.time.sec,  0);
-    verifyEq(ts.write(), str);
-    verifyEq(ts, HVal.read(ts.write()));
-    verifyEq(ts.millis(), ((HDateTime)HVal.read(str)).millis());
+    verifyEq(ts.toString(), str);
+    verifyEq(ts, read(ts.toZinc()));
+    verifyEq(ts.millis(), ((HDateTime)read(str)).millis());
   }
 
   public void testRange()
@@ -333,13 +341,13 @@ public class ValTest extends Test
     HDateTime xa = HDateTime.make(x, HTime.make(2, 30), ny);
     HDateTime xb = HDateTime.make(x, HTime.make(22, 5), ny);
 
-    verifyRange(HDateTimeRange.read("today", ny), today, today);
-    verifyRange(HDateTimeRange.read("yesterday", ny), yesterday, yesterday);
-    verifyRange(HDateTimeRange.read("2011-07-04", ny), x, x);
-    verifyRange(HDateTimeRange.read("2011-07-04,2011-11-04", ny), x, y);
-    verifyRange(HDateTimeRange.read(""+xa+","+xb, ny), xa, xb);
+    verifyRange(HDateTimeRange.make("today", ny), today, today);
+    verifyRange(HDateTimeRange.make("yesterday", ny), yesterday, yesterday);
+    verifyRange(HDateTimeRange.make("2011-07-04", ny), x, x);
+    verifyRange(HDateTimeRange.make("2011-07-04,2011-11-04", ny), x, y);
+    verifyRange(HDateTimeRange.make(""+xa+","+xb, ny), xa, xb);
 
-    HDateTimeRange r = HDateTimeRange.read(xb.write(), ny);
+    HDateTimeRange r = HDateTimeRange.make(xb.toString(), ny);
     verifyEq(r.start, xb);
     verifyEq(r.end.date, today);
     verifyEq(r.end.tz, ny);
@@ -361,11 +369,16 @@ public class ValTest extends Test
     verifyEq(r.end, end);
   }
 
-  public void verifyIO(HVal val, String s)
+  public void verifyZinc(HVal val, String s)
   {
     // println("  :: " + s);
-    // println("     " + HVal.read(s));
-    verifyEq(val.write(), s);
-    verifyEq(HVal.read(s), val);
+    // println("     " + read(s));
+    verifyEq(val.toZinc(), s);
+    verifyEq(read(s), val);
+  }
+
+  public HVal read(String s)
+  {
+    return new HZincReader(s).readScalar();
   }
 }
