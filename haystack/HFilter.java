@@ -10,18 +10,18 @@ package haystack;
 import java.util.*;
 
 /**
- * HQuery models a parsed tag query string.
+ * HFilter models a parsed tag query string.
  */
-public abstract class HQuery
+public abstract class HFilter
 {
 
 //////////////////////////////////////////////////////////////////////////
 // Encoding
 //////////////////////////////////////////////////////////////////////////
 
-  /** Decode a string into a HQuery, throw ParseException if
+  /** Decode a string into a HFilter, throw ParseException if
       not formatted correctly */
-  public static HQuery read(String s)
+  public static HFilter read(String s)
   {
     return new HReader(s).readQueryEos();
   }
@@ -33,65 +33,65 @@ public abstract class HQuery
   /**
    * Match records which have the specified tag path defined.
    */
-  public static HQuery has(String path) { return new Has(Path.make(path)); }
+  public static HFilter has(String path) { return new Has(Path.make(path)); }
 
   /**
    * Match records which do not define the specified tag path.
    */
-  public static HQuery missing(String path) { return new Missing(Path.make(path)); }
+  public static HFilter missing(String path) { return new Missing(Path.make(path)); }
 
   /**
    * Match records which have a tag are equal to the specified value.
    * If the path is not defined then it is unmatched.
    */
-  public static HQuery eq(String path, HVal val) { return new Eq(Path.make(path), val); }
+  public static HFilter eq(String path, HVal val) { return new Eq(Path.make(path), val); }
 
   /**
    * Match records which have a tag not equal to the specified value.
    * If the path is not defined then it is unmatched.
    */
-  public static HQuery ne(String path, HVal val) { return new Ne(Path.make(path), val); }
+  public static HFilter ne(String path, HVal val) { return new Ne(Path.make(path), val); }
 
   /**
    * Match records which have tags less than the specified value.
    * If the path is not defined then it is unmatched.
    */
-  public static HQuery lt(String path, HVal val) { return new Lt(Path.make(path), val); }
+  public static HFilter lt(String path, HVal val) { return new Lt(Path.make(path), val); }
 
   /**
    * Match records which have tags less than or equals to specified value.
    * If the path is not defined then it is unmatched.
    */
-  public static HQuery le(String path, HVal val) { return new Le(Path.make(path), val); }
+  public static HFilter le(String path, HVal val) { return new Le(Path.make(path), val); }
 
   /**
    * Match records which have tags greater than specified value.
    * If the path is not defined then it is unmatched.
    */
-  public static HQuery gt(String path, HVal val) { return new Gt(Path.make(path), val); }
+  public static HFilter gt(String path, HVal val) { return new Gt(Path.make(path), val); }
 
   /**
    * Match records which have tags greater than or equal to specified value.
    * If the path is not defined then it is unmatched.
    */
-  public static HQuery ge(String path, HVal val) { return new Ge(Path.make(path), val); }
+  public static HFilter ge(String path, HVal val) { return new Ge(Path.make(path), val); }
 
   /**
    * Return a query which is the logical-and of this and that query.
    */
-  public HQuery and(HQuery that) { return new And(this, that); }
+  public HFilter and(HFilter that) { return new And(this, that); }
 
   /**
    * Return a query which is the logical-or of this and that query.
    */
-  public HQuery or(HQuery that) { return new Or(this, that); }
+  public HFilter or(HFilter that) { return new Or(this, that); }
 
 //////////////////////////////////////////////////////////////////////////
 // Constructor
 //////////////////////////////////////////////////////////////////////////
 
   /** Package private constructor subclasses */
-  HQuery() {}
+  HFilter() {}
 
 //////////////////////////////////////////////////////////////////////////
 // Access
@@ -118,12 +118,12 @@ public abstract class HQuery
   /** Equality is based on string encoding */
   public final boolean equals(Object that)
   {
-    if (!(that instanceof HQuery)) return false;
+    if (!(that instanceof HFilter)) return false;
     return toString().equals(that.toString());
   }
 
 //////////////////////////////////////////////////////////////////////////
-// HQuery.Path
+// HFilter.Path
 //////////////////////////////////////////////////////////////////////////
 
   /** Pather is a callback interface used to resolve query paths. */
@@ -137,7 +137,7 @@ public abstract class HQuery
   }
 
 //////////////////////////////////////////////////////////////////////////
-// HQuery.Path
+// HFilter.Path
 //////////////////////////////////////////////////////////////////////////
 
   /** Path is a simple name or a complex path using the "->" separator */
@@ -213,12 +213,12 @@ public abstract class HQuery
   }
 
 //////////////////////////////////////////////////////////////////////////
-// PathQuery
+// PathFilter
 //////////////////////////////////////////////////////////////////////////
 
-  static abstract class PathQuery extends HQuery
+  static abstract class PathFilter extends HFilter
   {
-    PathQuery(Path p) { path = p; }
+    PathFilter(Path p) { path = p; }
     public final boolean include(HDict dict, Pather pather)
     {
       HVal val = dict.get(path.get(0), false);
@@ -243,7 +243,7 @@ public abstract class HQuery
 // Has
 //////////////////////////////////////////////////////////////////////////
 
-  static final class Has extends PathQuery
+  static final class Has extends PathFilter
   {
     Has(Path p) { super(p); }
     final boolean doInclude(HVal v) { return v != null; }
@@ -254,7 +254,7 @@ public abstract class HQuery
 // Missing
 //////////////////////////////////////////////////////////////////////////
 
-  static final class Missing extends PathQuery
+  static final class Missing extends PathFilter
   {
     Missing(Path p) { super(p); }
     final boolean doInclude(HVal v) { return v == null; }
@@ -262,12 +262,12 @@ public abstract class HQuery
   }
 
 //////////////////////////////////////////////////////////////////////////
-// CmpQuery
+// CmpFilter
 //////////////////////////////////////////////////////////////////////////
 
-  static abstract class CmpQuery extends PathQuery
+  static abstract class CmpFilter extends PathFilter
   {
-    CmpQuery(Path p, HVal val) { super(p); this.val = val; }
+    CmpFilter(Path p, HVal val) { super(p); this.val = val; }
     final String toStr()
     {
       StringBuffer s = new StringBuffer();
@@ -284,7 +284,7 @@ public abstract class HQuery
 // Eq
 //////////////////////////////////////////////////////////////////////////
 
-  static final class Eq extends CmpQuery
+  static final class Eq extends CmpFilter
   {
     Eq(Path p, HVal v) { super(p, v); }
     final String cmpStr() { return "=="; }
@@ -295,7 +295,7 @@ public abstract class HQuery
 // Ne
 //////////////////////////////////////////////////////////////////////////
 
-  static final class Ne extends CmpQuery
+  static final class Ne extends CmpFilter
   {
     Ne(Path p, HVal v) { super(p, v); }
     final String cmpStr() { return "!="; }
@@ -306,7 +306,7 @@ public abstract class HQuery
 // Lt
 //////////////////////////////////////////////////////////////////////////
 
-  static final class Lt extends CmpQuery
+  static final class Lt extends CmpFilter
   {
     Lt(Path p, HVal v) { super(p, v); }
     final String cmpStr() { return "<"; }
@@ -317,7 +317,7 @@ public abstract class HQuery
 // Le
 //////////////////////////////////////////////////////////////////////////
 
-  static final class Le extends CmpQuery
+  static final class Le extends CmpFilter
   {
     Le(Path p, HVal v) { super(p, v); }
     final String cmpStr() { return "<="; }
@@ -328,7 +328,7 @@ public abstract class HQuery
 // Gt
 //////////////////////////////////////////////////////////////////////////
 
-  static final class Gt extends CmpQuery
+  static final class Gt extends CmpFilter
   {
     Gt(Path p, HVal v) { super(p, v); }
     final String cmpStr() { return ">"; }
@@ -339,7 +339,7 @@ public abstract class HQuery
 // Ge
 //////////////////////////////////////////////////////////////////////////
 
-  static final class Ge extends CmpQuery
+  static final class Ge extends CmpFilter
   {
     Ge(Path p, HVal v) { super(p, v); }
     final String cmpStr() { return ">="; }
@@ -350,32 +350,32 @@ public abstract class HQuery
 // Compound
 //////////////////////////////////////////////////////////////////////////
 
-  static abstract class CompoundQuery extends HQuery
+  static abstract class CompoundFilter extends HFilter
   {
-    CompoundQuery(HQuery a, HQuery b) { this.a = a; this.b = b; }
+    CompoundFilter(HFilter a, HFilter b) { this.a = a; this.b = b; }
     abstract String keyword();
     final String toStr()
     {
-      boolean deep = a instanceof CompoundQuery || b instanceof CompoundQuery;
+      boolean deep = a instanceof CompoundFilter || b instanceof CompoundFilter;
       StringBuffer s = new StringBuffer();
-      if (a instanceof CompoundQuery) s.append('(').append(a).append(')');
+      if (a instanceof CompoundFilter) s.append('(').append(a).append(')');
       else s.append(a);
       s.append(' ').append(keyword()).append(' ');
-      if (b instanceof CompoundQuery) s.append('(').append(b).append(')');
+      if (b instanceof CompoundFilter) s.append('(').append(b).append(')');
       else s.append(b);
       return s.toString();
     }
-    final HQuery a;
-    final HQuery b;
+    final HFilter a;
+    final HFilter b;
   }
 
 //////////////////////////////////////////////////////////////////////////
 // And
 //////////////////////////////////////////////////////////////////////////
 
-  static final class And extends CompoundQuery
+  static final class And extends CompoundFilter
   {
-    And(HQuery a, HQuery b) { super(a, b); }
+    And(HFilter a, HFilter b) { super(a, b); }
     final String keyword() { return "and"; }
     public final boolean include(HDict dict, Pather pather)
     {
@@ -387,9 +387,9 @@ public abstract class HQuery
 // Or
 //////////////////////////////////////////////////////////////////////////
 
-  static final class Or extends CompoundQuery
+  static final class Or extends CompoundFilter
   {
-    Or(HQuery a, HQuery b) { super(a, b); }
+    Or(HFilter a, HFilter b) { super(a, b); }
     final String keyword() { return "or"; }
     public final boolean include(HDict dict, Pather pather)
     {
