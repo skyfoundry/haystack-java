@@ -27,8 +27,8 @@ public class HStdOps
   /** List the registered grid formats. */
   public static final HOp formats = new FormatsOp();
 
-  /** Query entities in database. */
-  public static final HOp query = new QueryOp();
+  /** Read entity records in database. */
+  public static final HOp read = new ReadOp();
 
   /** Read time series history data. */
   public static final HOp hisRead = new HisReadOp();
@@ -110,18 +110,41 @@ class FormatsOp extends HOp
 }
 
 //////////////////////////////////////////////////////////////////////////
-// QueryOp
+// ReadOp
 //////////////////////////////////////////////////////////////////////////
 
-class QueryOp extends HOp
+class ReadOp extends HOp
 {
-  public String name() { return "query"; }
-  public String summary() { return "Query entities in database"; }
+  public String name() { return "read"; }
+  public String summary() { return "Read entity records in database"; }
   public HGrid onService(HDatabase db, HGrid req) throws Exception
   {
+    // ensure we have one row
     if (req.isEmpty()) throw new Exception("Request has no rows");
-    String query = ((HStr)req.row(0).get("filter")).val;
-    HDict[] recs = db.query(query);
+
+    // perform filter or id read
+    HRow row = req.row(0);
+    HDict[] recs;
+    if (row.has("filter"))
+    {
+      // filter read
+      String filter = row.getStr("filter");
+      int limit = row.has("limit") ? row.getInt("limit") : Integer.MAX_VALUE;
+      recs = db.readAll(HFilter.make(filter), limit);
+    }
+    else if (row.has("id"))
+    {
+      // read by ids
+      recs = new HDict[req.numRows()];
+      for (int i=0; i<recs.length; ++i)
+        recs[i] = db.readById(req.row(i).getRef("id"), true);
+    }
+    else
+    {
+      throw new Exception("Missing filter or id columns");
+    }
+
+    // return results as grid
     return HGridBuilder.dictsToGrid(recs);
   }
 }
@@ -137,11 +160,11 @@ class HisReadOp extends HOp
   public HGrid onService(HDatabase db, HGrid req) throws Exception
   {
     if (req.isEmpty()) throw new Exception("Request has no rows");
-    HRow reqRow = req.row(0);
+    HRow row = req.row(0);
 
     // lookup entity
-    HRef id = (HRef)reqRow.get("id");
-    HDict rec = db.get(id);
+    HRef id = row.getRef("id");
+    HDict rec = db.readById(id);
 
     // check that entity has "his" tag
     if (rec.missing("his"))
@@ -149,12 +172,12 @@ class HisReadOp extends HOp
 
     // lookup "tz" on entity
     HTimeZone tz = null;
-    if (rec.has("tz")) tz = HTimeZone.make(((HStr)rec.get("tz")).val, false);
+    if (rec.has("tz")) tz = HTimeZone.make(rec.getStr("tz"), false);
     if (tz == null)
       throw new Exception("Entity missing 'tz' tag: " + rec.dis());
 
     // parse date range
-    String rangeStr = ((HStr)reqRow.get("range")).val;
+    String rangeStr = row.getStr("range");
     HDateTimeRange range = null;
     try
     {
@@ -166,6 +189,6 @@ class HisReadOp extends HOp
     }
 
     // return results
-    return HGridBuilder.hisItemsToGrid(rec, db.his(rec, range));
+    return HGridBuilder.hisItemsToGrid(rec, db.hisRead(rec, range));
   }
 }

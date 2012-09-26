@@ -90,11 +90,18 @@ public abstract class HOp
     {
       Map.Entry entry = (Map.Entry)it.next();
       String name = (String)entry.getKey();
-      String val = ((String[])entry.getValue())[0];
-      if (val.startsWith("@"))
-        b.add(name, HRef.make(val.substring(1)));
-      else
-        b.add(name, val);
+      String valStr = ((String[])entry.getValue())[0];
+
+      HVal val;
+      try
+      {
+        val = new HZincReader(valStr).readScalar();
+      }
+      catch (Exception e)
+      {
+        val = HStr.make(valStr);
+      }
+      b.add(name, val);
     }
     return HGridBuilder.dictToGrid(b.toDict());
   }

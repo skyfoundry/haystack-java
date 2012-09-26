@@ -65,6 +65,25 @@ public abstract class HDict
   }
 
 //////////////////////////////////////////////////////////////////////////
+// Get Conveniences
+//////////////////////////////////////////////////////////////////////////
+
+  /** Get tag as HBool or raise UnknownNameException or ClassCastException. */
+  public final boolean getBool(String name) { return ((HBool)get(name)).val; }
+
+  /** Get tag as HStr or raise UnknownNameException or ClassCastException. */
+  public final String getStr(String name) { return ((HStr)get(name)).val; }
+
+  /** Get tag as HRef or raise UnknownNameException or ClassCastException. */
+  public final HRef getRef(String name) { return (HRef)get(name); }
+
+  /** Get tag as HNum or raise UnknownNameException or ClassCastException. */
+  public final int getInt(String name) { return (int)((HNum)get(name)).val; }
+
+  /** Get tag as HNum or raise UnknownNameException or ClassCastException. */
+  public final double getDouble(String name) { return ((HNum)get(name)).val; }
+
+//////////////////////////////////////////////////////////////////////////
 // Identity
 //////////////////////////////////////////////////////////////////////////
 

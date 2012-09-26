@@ -8,14 +8,14 @@
 package haystack.server;
 
 /**
- * UnresolvedEntityException is thrown when attempting to
- * to resolve an entity which is not found.
+ * UnresolvedRecException is thrown when attempting to
+ * to resolve an entity record which is not found.
  */
-public class UnknownEntityException extends RuntimeException
+public class UnknownRecException extends RuntimeException
 {
 
   /** Constructor with message */
-  public UnknownEntityException(String msg)
+  public UnknownRecException(String msg)
   {
     super(msg);
   }
