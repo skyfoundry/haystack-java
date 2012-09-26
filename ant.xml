@@ -1,0 +1,53 @@
+<!--
+  Copyright (c) 2012, SkyFoundry, LLC
+  Licensed under the Academic Free License version 3.0
+-->
+
+<project default="make" basedir=".">
+
+  <property environment="env"/>
+
+  <!--========== nuke ==========-->
+  <target name="nuke">
+    <delete dir="staging"/>
+    <delete dir="dist"/>
+  </target>
+
+  <!--========== clean ==========-->
+  <target name="clean">
+    <delete dir="staging"/>
+  </target>
+
+  <!--========== compile ==========-->
+  <target name="compile">
+
+    <mkdir dir="staging"/>
+
+    <javac
+      srcdir="haystack"
+      destdir="staging"
+      source="1.3"
+      target="1.3"
+      debug="on"
+      includeantruntime="false">
+      <compilerarg value="-Xlint:deprecation"/>
+      <classpath>
+        <pathelement location="lib/servlet.jar" />
+      </classpath>
+    </javac>
+
+  </target>
+
+  <!--========== jar ==========-->
+  <target name="jar">
+    <mkdir dir="dist"/>
+    <jar
+      destfile="dist/haystack.jar"
+      basedir="staging" />
+
+  </target>
+
+  <!--========== make ==========-->
+  <target name="make" depends="clean,compile,jar"/>
+
+</project>
