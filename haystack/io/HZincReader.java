@@ -181,15 +181,23 @@ public class HZincReader extends HGridReader
     String word = s.toString();
 
     // match identifier
-    if (word.equals("N")) return null;
-    if (word.equals("M")) return HMarker.VAL;
-    if (word.equals("R")) return HStr.make("_remove_");
-    if (word.equals("T")) return HBool.TRUE;
-    if (word.equals("F")) return HBool.FALSE;
+    if (isFilter)
+    {
+      if (word.equals("true"))  return HBool.TRUE;
+      if (word.equals("false")) return HBool.FALSE;
+    }
+    else
+    {
+      if (word.equals("N"))   return null;
+      if (word.equals("M"))   return HMarker.VAL;
+      if (word.equals("R"))   return HStr.make("_remove_");
+      if (word.equals("T"))   return HBool.TRUE;
+      if (word.equals("F"))   return HBool.FALSE;
+      if (word.equals("Bin")) return readBinVal();
+    }
     if (word.equals("NaN")) return HNum.NaN;
     if (word.equals("INF")) return HNum.POS_INF;
     if (word.equals("-INF")) return HNum.NEG_INF;
-    if (word.equals("Bin")) return readBinVal();
     throw err("Unknown value identifier: " + word);
   }
 
@@ -463,6 +471,100 @@ public class HZincReader extends HGridReader
   }
 
 //////////////////////////////////////////////////////////////////////////
+// HFilter
+//////////////////////////////////////////////////////////////////////////
+
+  /** This method is only to support HFilter; never use directly. */
+  public HFilter readFilter()
+  {
+    isFilter = true;
+    skipSpace();
+    HFilter q = readFilterOr();
+    skipSpace();
+    if (cur >= 0) throw errChar("Expected end of stream");
+    return q;
+  }
+
+  private HFilter readFilterOr()
+  {
+    HFilter q = readFilterAnd();
+    skipSpace();
+    if (cur != 'o') return q;
+    if (!readId().equals("or")) throw err("Expecting 'or' keyword");
+    skipSpace();
+    return q.or(readFilterOr());
+  }
+
+  private HFilter readFilterAnd()
+  {
+    HFilter q = readFilterAtomic();
+    skipSpace();
+    if (cur != 'a') return q;
+    if (!readId().equals("and")) throw err("Expecting 'and' keyword");
+    skipSpace();
+    return q.and(readFilterAnd());
+  }
+
+  private HFilter readFilterAtomic()
+  {
+    skipSpace();
+    if (cur == '(') return readFilterParens();
+
+    String path = readFilterPath();
+    skipSpace();
+
+    if (path.toString().equals("not")) { return HFilter.missing(readFilterPath()); }
+
+    if (cur == '=' && peek == '=') { consumeCmp(); return HFilter.eq(path, readVal()); }
+    if (cur == '!' && peek == '=') { consumeCmp(); return HFilter.ne(path, readVal()); }
+    if (cur == '<' && peek == '=') { consumeCmp(); return HFilter.le(path, readVal()); }
+    if (cur == '>' && peek == '=') { consumeCmp(); return HFilter.ge(path, readVal()); }
+    if (cur == '<')                { consumeCmp(); return HFilter.lt(path, readVal()); }
+    if (cur == '>')                { consumeCmp(); return HFilter.gt(path, readVal()); }
+
+    return HFilter.has(path);
+  }
+
+  private HFilter readFilterParens()
+  {
+    consume();
+    skipSpace();
+    HFilter q = readFilterOr();
+    if (cur != ')') throw err("Expecting ')'");
+    consume();
+    return q;
+  }
+
+  private void consumeCmp()
+  {
+    consume();
+    if (cur == '=') consume();
+    skipSpace();
+  }
+
+  private String readFilterPath()
+  {
+    // read first tag name
+    String id = readId();
+
+    // if not pathed, optimize for common case
+    if (cur != '-' || peek != '>') return id;
+
+    // parse path
+    StringBuffer s = new StringBuffer().append(id);
+    ArrayList acc = new ArrayList();
+    acc.add(id);
+    while (cur == '-' || peek == '>')
+    {
+      consume();
+      consume();
+      id = readId();
+      acc.add(id);
+      s.append('-').append('>').append(id);
+    }
+    return s.toString();
+  }
+//////////////////////////////////////////////////////////////////////////
 // Char Reads
 //////////////////////////////////////////////////////////////////////////
 
@@ -554,4 +656,5 @@ public class HZincReader extends HGridReader
   private int peek;
   private int lineNum = 1;
   private int version;
+  private boolean isFilter;
 }

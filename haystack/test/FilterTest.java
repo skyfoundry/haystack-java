@@ -74,6 +74,15 @@ public class FilterTest extends Test
     verifyParse("a->b->c", HFilter.has("a->b->c"));
     verifyParse("not foo", HFilter.missing("foo"));
 
+    // verify Zinc only literals do not work
+    verifyEq(HFilter.read("x==T", false), null);
+    verifyEq(HFilter.read("x==F", false), null);
+    verifyEq(HFilter.read("x==F", false), null);
+
+    // bool literals
+    verifyParse("x->y==true", HFilter.eq("x->y", HBool.TRUE));
+    verifyParse("x->y!=false", HFilter.ne("x->y", HBool.FALSE));
+
     // str literals
     verifyParse("x==\"hi\"", HFilter.eq("x", HStr.make("hi")));
     verifyParse("x!=\"\\\"hi\\\"\"",  HFilter.ne("x", HStr.make("\"hi\"")));

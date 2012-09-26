@@ -8,6 +8,7 @@
 package haystack;
 
 import java.util.*;
+import haystack.io.HZincReader;
 
 /**
  * HFilter models a parsed tag query string.
@@ -19,11 +20,23 @@ public abstract class HFilter
 // Encoding
 //////////////////////////////////////////////////////////////////////////
 
-  /** Decode a string into a HFilter, throw ParseException if
-      not formatted correctly */
-  public static HFilter read(String s)
+  /** Convenience for "read(s, true)" */
+  public static HFilter read(String s) { return read(s, true); }
+
+  /** Decode a string into a HFilter; return null or throw
+      ParseException if not formatted correctly */
+  public static HFilter read(String s, boolean checked)
   {
-    return new HReader(s).readQueryEos();
+    try
+    {
+      return new HZincReader(s).readFilter();
+    }
+    catch (Exception e)
+    {
+      if (!checked) return null;
+      if (e instanceof ParseException) throw (ParseException)e;
+      throw new ParseException(s, e);
+    }
   }
 
 //////////////////////////////////////////////////////////////////////////
