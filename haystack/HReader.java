@@ -412,22 +412,22 @@ public class HReader
   }
 
 //////////////////////////////////////////////////////////////////////////
-// HQuery
+// HFilter
 //////////////////////////////////////////////////////////////////////////
 
-  /** Read a HQuery from stream */
-  HQuery readQueryEos()
+  /** Read a HFilter from stream */
+  HFilter readQueryEos()
   {
     skipSpace();
-    HQuery q = readQueryOr();
+    HFilter q = readQueryOr();
     skipSpace();
     if (cur >= 0) throw errChar("Expected end of stream");
     return q;
   }
 
-  private HQuery readQueryOr()
+  private HFilter readQueryOr()
   {
-    HQuery q = readQueryAnd();
+    HFilter q = readQueryAnd();
     skipSpace();
     if (cur != 'o') return q;
     if (!readId().equals("or")) throw err("Expecting 'or' keyword");
@@ -435,9 +435,9 @@ public class HReader
     return q.or(readQueryOr());
   }
 
-  private HQuery readQueryAnd()
+  private HFilter readQueryAnd()
   {
-    HQuery q = readQueryAtomic();
+    HFilter q = readQueryAtomic();
     skipSpace();
     if (cur != 'a') return q;
     if (!readId().equals("and")) throw err("Expecting 'and' keyword");
@@ -445,31 +445,31 @@ public class HReader
     return q.and(readQueryAnd());
   }
 
-  private HQuery readQueryAtomic()
+  private HFilter readQueryAtomic()
   {
     skipSpace();
     if (cur == '(') return readQueryParens();
 
-    HQuery.Path path = readQueryPath();
+    HFilter.Path path = readQueryPath();
     skipSpace();
 
-    if (path.toString().equals("not")) { return new HQuery.Missing(readQueryPath()); }
+    if (path.toString().equals("not")) { return new HFilter.Missing(readQueryPath()); }
 
-    if (cur == '=' && peek == '=') { consumeCmp(); return new HQuery.Eq(path, readVal()); }
-    if (cur == '!' && peek == '=') { consumeCmp(); return new HQuery.Ne(path, readVal()); }
-    if (cur == '<' && peek == '=') { consumeCmp(); return new HQuery.Le(path, readVal()); }
-    if (cur == '>' && peek == '=') { consumeCmp(); return new HQuery.Ge(path, readVal()); }
-    if (cur == '<')                { consumeCmp(); return new HQuery.Lt(path, readVal()); }
-    if (cur == '>')                { consumeCmp(); return new HQuery.Gt(path, readVal()); }
+    if (cur == '=' && peek == '=') { consumeCmp(); return new HFilter.Eq(path, readVal()); }
+    if (cur == '!' && peek == '=') { consumeCmp(); return new HFilter.Ne(path, readVal()); }
+    if (cur == '<' && peek == '=') { consumeCmp(); return new HFilter.Le(path, readVal()); }
+    if (cur == '>' && peek == '=') { consumeCmp(); return new HFilter.Ge(path, readVal()); }
+    if (cur == '<')                { consumeCmp(); return new HFilter.Lt(path, readVal()); }
+    if (cur == '>')                { consumeCmp(); return new HFilter.Gt(path, readVal()); }
 
-    return new HQuery.Has(path);
+    return new HFilter.Has(path);
   }
 
-  private HQuery readQueryParens()
+  private HFilter readQueryParens()
   {
     consume();
     skipSpace();
-    HQuery q = readQueryOr();
+    HFilter q = readQueryOr();
     if (cur != ')') throw err("Expecting ')'");
     consume();
     return q;
@@ -482,13 +482,13 @@ public class HReader
     skipSpace();
   }
 
-  private HQuery.Path readQueryPath()
+  private HFilter.Path readQueryPath()
   {
     // read first tag name
     String id = readId();
 
     // if not pathed, optimize for common case
-    if (cur != '-' || peek != '>') return new HQuery.Path1(id);
+    if (cur != '-' || peek != '>') return new HFilter.Path1(id);
 
     // parse path
     StringBuffer s = new StringBuffer().append(id);
@@ -502,7 +502,7 @@ public class HReader
       acc.add(id);
       s.append('-').append('>').append(id);
     }
-    return new HQuery.PathN(s.toString(), (String[])acc.toArray(new String[acc.size()]));
+    return new HFilter.PathN(s.toString(), (String[])acc.toArray(new String[acc.size()]));
   }
 
 //////////////////////////////////////////////////////////////////////////

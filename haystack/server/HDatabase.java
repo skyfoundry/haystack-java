@@ -104,18 +104,18 @@ public abstract class HDatabase
 //////////////////////////////////////////////////////////////////////////
 
   /**
-   * Convenience for query(HQuery.read(queryStr)).
+   * Convenience for query(HFilter.read(queryStr)).
    * Throw ParseException if query is invalid.
    */
   public HDict[] query(String queryStr)
   {
-    return query(HQuery.read(queryStr));
+    return query(HFilter.read(queryStr));
   }
 
   /**
    * Return list of every entity that matches given query.
    */
-  public HDict[] query(HQuery query)
+  public HDict[] query(HFilter query)
   {
     ArrayList acc = new ArrayList();
     for (Iterator it = iterator(); it.hasNext(); )
@@ -126,7 +126,7 @@ public abstract class HDatabase
     return (HDict[])acc.toArray(new HDict[acc.size()]);
   }
 
-  private HQuery.Pather queryPather = new HQuery.Pather()
+  private HFilter.Pather queryPather = new HFilter.Pather()
   {
     public HDict find(String id) { return find(id); }
   };

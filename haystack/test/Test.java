@@ -24,7 +24,7 @@ public abstract class Test
   {
     "ValTest",
     "DictTest",
-    "QueryTest",
+    "FilterTest",
     "GridTest",
     "ZincTest",
   };
