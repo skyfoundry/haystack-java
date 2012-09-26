@@ -7,10 +7,12 @@
 //
 package haystack;
 
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.ArrayList;
+import haystack.io.*;
 
 /**
  * HGrid is an immutable two dimension data structure of cols and rows.
@@ -94,6 +96,23 @@ public class HGrid
   public Iterator iterator()
   {
     return new GridIterator();
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// Debug
+//////////////////////////////////////////////////////////////////////////
+
+  /** Convenience for "dump(stdout)". */
+  public void dump()
+  {
+    dump(new PrintWriter(System.out));
+  }
+
+  /** Debug dump - this is Zinc right now. */
+  public void dump(PrintWriter out)
+  {
+    out.println(HZincWriter.gridToString(this));
+    out.flush();
   }
 
 //////////////////////////////////////////////////////////////////////////

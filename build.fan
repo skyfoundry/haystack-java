@@ -17,6 +17,7 @@ class Build : BuildJava
     mainClass = "haystack.test.Test"
     packages = ["haystack",
                 "haystack.io",
+                "haystack.client",
                 "haystack.server",
                 "haystack.test"]
   }
