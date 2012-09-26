@@ -41,6 +41,8 @@ public class HGridBuilder
   /** Convenience to build grid from array of HDict */
   public static HGrid dictsToGrid(HDict[] dicts)
   {
+    if (dicts.length == 0) return HGrid.EMPTY;
+
     HGridBuilder b = new HGridBuilder();
 
     // collect column names

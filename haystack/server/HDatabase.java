@@ -56,12 +56,11 @@ public abstract class HDatabase
   }
 
 //////////////////////////////////////////////////////////////////////////
-// Get
+// About
 //////////////////////////////////////////////////////////////////////////
 
   /**
-   * Get the about metadata which should be a constant dict with
-   * the following tags:
+   * Get the about metadata which should contain following tags:
    *   - serverName: Str
    *   - productName: Str
    *   - productVersion: Str
@@ -73,66 +72,98 @@ public abstract class HDatabase
   public abstract HDict about();
 
 //////////////////////////////////////////////////////////////////////////
-// Get
+// Read by id
 //////////////////////////////////////////////////////////////////////////
 
   /**
-   * Convenience for get(id, true)
+   * Convenience for "readById(id, true)"
    */
-  public HDict get(HRef id) { return get(id, true); }
+  public final HDict readById(HRef id)
+  {
+    return readById(id, true);
+  }
 
   /**
-   * Lookup an entity by it's unique identifier.  If not found then
-   * return null or throw an UnknownEntityException based on checked.
+   * Lookup an entity record by it's unique identifier.  If not found
+   ** then return null or throw an UnknownRecException based on checked.
    */
-  public HDict get(HRef id, boolean checked)
+  public final HDict readById(HRef id, boolean checked)
   {
-    HDict rec = find(id);
+    HDict rec = onReadById(id);
     if (rec != null) return rec;
-    if (checked) throw new UnknownEntityException(id.toString());
+    if (checked) throw new UnknownRecException(id.toString());
     return null;
   }
 
   /**
-   * Implementation hook to resolve an identifier into an entity.
-   * Return null if id does not resolve an entity
+   * Implementation hook for readById.  Return null
+   * if id does not resolve an record.
    */
-  protected abstract HDict find(HRef id);
+  protected abstract HDict onReadById(HRef id);
 
 //////////////////////////////////////////////////////////////////////////
-// Query
+// Read by filter
 //////////////////////////////////////////////////////////////////////////
 
   /**
-   * Convenience for query(HFilter.make(queryStr)).
-   * Throw ParseException if query is invalid.
+   * Convenience for "read(filter, true)".
    */
-  public HDict[] query(String queryStr)
+  public final HDict read(String filter)
   {
-    return query(HFilter.make(queryStr));
+    return read(filter, true);
   }
 
   /**
-   * Return list of every entity that matches given query.
+   * Return one entity record that matches the given filter.  If there
+   * is more than one record, then it is undefined which one is
+   * returned.  If there are no matches than return null or raise
+   * UnknownRecException based on checked flag.  Raise ParseException
+   * is filter is malformed.
    */
-  public HDict[] query(HFilter query)
+  public final HDict read(String filter, boolean checked)
+  {
+    HDict[] dicts = readAll(HFilter.make(filter), 1);
+    if (dicts.length > 0) return dicts[0];
+    if (checked) throw new UnknownRecException(filter);
+    return null;
+  }
+
+  /**
+   * Convenience for "readAll(HFilter, int)".
+   * Raise ParseException is filter is malformed.
+   */
+  public final HDict[] readAll(String filter)
+  {
+    return readAll(HFilter.make(filter), Integer.MAX_VALUE);
+  }
+
+  /**
+   * Return list of every entity record that matches given filter.
+   * Clip number of results by "limit" parameter.
+   */
+  public final HDict[] readAll(HFilter filter, int limit)
   {
     ArrayList acc = new ArrayList();
     for (Iterator it = iterator(); it.hasNext(); )
     {
       HDict rec = (HDict)it.next();
-      if (query.include(rec, queryPather)) acc.add(rec);
+      if (filter.include(rec, filterPather))
+      {
+        acc.add(rec);
+        if  (acc.size() >= limit) break;
+      }
     }
     return (HDict[])acc.toArray(new HDict[acc.size()]);
   }
 
-  private HFilter.Pather queryPather = new HFilter.Pather()
+  private HFilter.Pather filterPather = new HFilter.Pather()
   {
     public HDict find(String id) { return find(id); }
   };
 
   /**
-   * Implementation hook to iterate every entity in the database.
+   * Implementation hook to iterate every entity record in
+   * the database as a HDict.
    */
   protected abstract Iterator iterator();
 
@@ -141,11 +172,19 @@ public abstract class HDatabase
 //////////////////////////////////////////////////////////////////////////
 
   /**
-   * Given a history entity, return all the timestamp/value history
+   * Given a history record, return all the timestamp/value history
    * samples for the given inclusive timerange.  If no samples are available
    * for the range return an empty array.
    */
-  public abstract HHisItem[] his(HDict entity, HDateTimeRange range);
+  public final HHisItem[] hisRead(HDict rec, HDateTimeRange range)
+  {
+    return onHisRead(rec, range);
+  }
+
+  /**
+   * Implementation hook for onHisRead.
+   */
+  protected abstract HHisItem[] onHisRead(HDict rec, HDateTimeRange range);
 
 //////////////////////////////////////////////////////////////////////////
 // Fields

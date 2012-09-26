@@ -18,39 +18,17 @@ import haystack.server.*;
  */
 public class TestDatabase extends HDatabase
 {
+
+//////////////////////////////////////////////////////////////////////////
+// Construction
+//////////////////////////////////////////////////////////////////////////
+
   public TestDatabase()
   {
     addSite("A", "Richmond",   "VA", 1000);
     addSite("B", "Richmond",   "VA", 2000);
     addSite("C", "Washington", "DC", 3000);
     addSite("D", "Boston",     "MA", 4000);
-  }
-
-  public HOp[] ops()
-  {
-    return new HOp[] {
-      HStdOps.about,
-      HStdOps.ops,
-      HStdOps.formats,
-      HStdOps.query,
-      HStdOps.hisRead,
-    };
-  }
-
-  public HDict about() { return about; }
-  private final HDict about = new HDictBuilder()
-    .add("serverName",  hostName())
-    .add("vendorName", "Haystack Java Toolkit")
-    .add("vendorUri", HUri.make("http://project-haystack.org/"))
-    .add("productName", "Haystack Java Toolkit")
-    .add("productVersion", "2.0.0")
-    .add("productUri", HUri.make("http://project-haystack.org/"))
-    .toDict();
-
-  private static String hostName()
-  {
-    try { return InetAddress.getLocalHost().getHostName(); }
-    catch (Exception e) { return "Unknown"; }
   }
 
   private void addSite(String dis, String geoCity, String geoState, int area)
@@ -121,11 +99,46 @@ public class TestDatabase extends HDatabase
     recs.put(dis, b.toDict());
   }
 
-  protected HDict find(HRef id) { return (HDict)recs.get(id.val); }
+//////////////////////////////////////////////////////////////////////////
+// Ops
+//////////////////////////////////////////////////////////////////////////
+
+  public HOp[] ops()
+  {
+    return new HOp[] {
+      HStdOps.about,
+      HStdOps.ops,
+      HStdOps.formats,
+      HStdOps.read,
+      HStdOps.hisRead,
+    };
+  }
+
+  public HDict about() { return about; }
+  private final HDict about = new HDictBuilder()
+    .add("serverName",  hostName())
+    .add("vendorName", "Haystack Java Toolkit")
+    .add("vendorUri", HUri.make("http://project-haystack.org/"))
+    .add("productName", "Haystack Java Toolkit")
+    .add("productVersion", "2.0.0")
+    .add("productUri", HUri.make("http://project-haystack.org/"))
+    .toDict();
+
+  private static String hostName()
+  {
+    try { return InetAddress.getLocalHost().getHostName(); }
+    catch (Exception e) { return "Unknown"; }
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// Reads
+//////////////////////////////////////////////////////////////////////////
+
+  protected HDict onReadById(HRef id) { return (HDict)recs.get(id.val); }
 
   protected Iterator iterator() { return recs.values().iterator(); }
 
-  public HHisItem[] his(HDict entity, HDateTimeRange range)
+  public HHisItem[] onHisRead(HDict entity, HDateTimeRange range)
   {
     // generate dummy 15min data
     ArrayList acc = new ArrayList();
