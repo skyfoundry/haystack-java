@@ -100,22 +100,26 @@ public class HServlet extends HttpServlet
   void dumpReq(HttpServletRequest req) { dumpReq(req, null); }
   void dumpReq(HttpServletRequest req, PrintWriter out)
   {
-    if (out == null) out = new PrintWriter(System.out);
-    out.println("==========================================");
-    out.println("method      = " + req.getMethod());
-    out.println("pathInfo    = " + req.getPathInfo());
-    out.println("contextPath = " + req.getContextPath());
-    out.println("servletPath = " + req.getServletPath());
-    out.println("query       = " + (req.getQueryString() == null ? "null" : URLDecoder.decode(req.getQueryString())));
-    out.println("headers:");
-    Enumeration e = req.getHeaderNames();
-    while (e.hasMoreElements())
+    try
     {
-      String key = (String)e.nextElement();
-      String val = req.getHeader(key);
-      out.println("  " + key + " = " + val);
+      if (out == null) out = new PrintWriter(System.out);
+      out.println("==========================================");
+      out.println("method      = " + req.getMethod());
+      out.println("pathInfo    = " + req.getPathInfo());
+      out.println("contextPath = " + req.getContextPath());
+      out.println("servletPath = " + req.getServletPath());
+      out.println("query       = " + (req.getQueryString() == null ? "null" : URLDecoder.decode(req.getQueryString(), "UTF-8")));
+      out.println("headers:");
+      Enumeration e = req.getHeaderNames();
+      while (e.hasMoreElements())
+      {
+        String key = (String)e.nextElement();
+        String val = req.getHeader(key);
+        out.println("  " + key + " = " + val);
+      }
+      out.flush();
     }
-    out.flush();
+    catch (Exception e) { e.printStackTrace(); }
   }
 
 }
