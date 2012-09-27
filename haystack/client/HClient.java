@@ -119,6 +119,25 @@ public class HClient extends HProj
   }
 
 //////////////////////////////////////////////////////////////////////////
+// Evals
+//////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Evaluate a vendor specific expression on the server.
+   *   - SkySpark: any Axon expression
+   *
+   * Raise CallErrException if the server raises an exception.
+   */
+  public HGrid eval(String expr)
+  {
+    HGridBuilder b = new HGridBuilder();
+    b.addCol("expr");
+    b.addRow(new HVal[] { HStr.make(expr) });
+    HGrid req = b.toGrid();
+    return call("eval", req);
+  }
+
+//////////////////////////////////////////////////////////////////////////
 // Call
 //////////////////////////////////////////////////////////////////////////
 
