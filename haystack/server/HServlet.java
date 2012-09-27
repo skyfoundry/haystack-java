@@ -29,7 +29,7 @@ public class HServlet extends HttpServlet
    * Get the database to use for this servlet.
    * If not overridden then a test database is created.
    */
-  public HDatabase db()
+  public HServer db()
   {
     return new haystack.test.TestDatabase();
   }
@@ -58,7 +58,7 @@ public class HServlet extends HttpServlet
     throws ServletException, IOException
   {
     // get the database
-    HDatabase db = db();
+    HServer db = db();
 
     // if root, then redirect to {haystack}/about
     String path = req.getPathInfo();

@@ -42,7 +42,7 @@ class AboutOp extends HOp
 {
   public String name() { return "about"; }
   public String summary() { return "Summary information for server"; }
-  public HGrid onService(HDatabase db, HGrid req)
+  public HGrid onService(HServer db, HGrid req)
   {
     HDict about = new HDictBuilder()
                       .add(db.about())
@@ -63,7 +63,7 @@ class OpsOp extends HOp
 {
   public String name() { return "ops"; }
   public String summary() { return "Operations supported by this server"; }
-  public HGrid onService(HDatabase db, HGrid req)
+  public HGrid onService(HServer db, HGrid req)
   {
     HGridBuilder b = new HGridBuilder();
     b.addCol("name");
@@ -89,7 +89,7 @@ class FormatsOp extends HOp
 {
   public String name() { return "formats"; }
   public String summary() { return "Grid data formats supported by this server"; }
-  public HGrid onService(HDatabase db, HGrid req)
+  public HGrid onService(HServer db, HGrid req)
   {
     HGridBuilder b = new HGridBuilder();
     b.addCol("mime");
@@ -117,7 +117,7 @@ class ReadOp extends HOp
 {
   public String name() { return "read"; }
   public String summary() { return "Read entity records in database"; }
-  public HGrid onService(HDatabase db, HGrid req) throws Exception
+  public HGrid onService(HServer db, HGrid req) throws Exception
   {
     // ensure we have one row
     if (req.isEmpty()) throw new Exception("Request has no rows");
@@ -157,7 +157,7 @@ class HisReadOp extends HOp
 {
   public String name() { return "hisRead"; }
   public String summary() { return "Read time series history data from entity"; }
-  public HGrid onService(HDatabase db, HGrid req) throws Exception
+  public HGrid onService(HServer db, HGrid req) throws Exception
   {
     if (req.isEmpty()) throw new Exception("Request has no rows");
     HRow row = req.row(0);

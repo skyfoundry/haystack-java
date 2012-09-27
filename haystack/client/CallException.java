@@ -11,6 +11,13 @@ import haystack.*;
 
 /**
  * CallException base class for exceptions thrown HClient.call.
+ * Subclasses:
+ * <ul>
+ * <li>CallNetworkException: network communication error</li>
+ * <li>CallHttpException: HTTP response error such as 404</li>
+ * <li>CallErrException: server errors with server side stack trace</li>
+ * <li>CallAuthException: authentication error</li>
+ * <ul>
  */
 public class CallException extends RuntimeException
 {
