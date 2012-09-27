@@ -29,6 +29,7 @@ public class ClientTest extends Test
     verifyOps();
     verifyFormats();
     verifyRead();
+    verifyEval();
   }
 
   void verifyAuth() throws Exception
@@ -118,6 +119,16 @@ public class ClientTest extends Test
     verifyEq(grid.row(1).missing("id"), true);
     verifyEq(grid.row(2).dis(), disB);
     try { client.readByIds(new HRef[] { recA.id(), badId }); fail(); } catch(UnknownRecException e) { verifyException(e); }
+  }
+
+  void verifyEval() throws Exception
+  {
+    HGrid g = client.eval("today()");
+    verifyEq(g.row(0).get("val"), HDate.today());
+
+    g = client.eval("readAll(ahu)");
+    verify(g.numRows() > 0);
+    verifyGridContains(g, "dis", "Carytown RTU-1");
   }
 
   void verifyGridContains(HGrid g, String col, String val) { verifyGridContains(g, col, HStr.make(val)); }
