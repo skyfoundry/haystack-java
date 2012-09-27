@@ -44,14 +44,7 @@ class AboutOp extends HOp
   public String summary() { return "Summary information for server"; }
   public HGrid onService(HServer db, HGrid req)
   {
-    HDict about = new HDictBuilder()
-                      .add(db.about())
-                      .add("haystackVersion", "2.0")
-                      .add("serverTime", HDateTime.now())
-                      .add("serverBootTime", db.bootTime)
-                      .add("tz", HTimeZone.DEFAULT.name)
-                      .toDict();
-    return HGridBuilder.dictToGrid(about);
+    return HGridBuilder.dictToGrid(db.about());
   }
 }
 
@@ -130,22 +123,19 @@ class ReadOp extends HOp
       // filter read
       String filter = row.getStr("filter");
       int limit = row.has("limit") ? row.getInt("limit") : Integer.MAX_VALUE;
-      recs = db.readAll(HFilter.make(filter), limit);
+      return db.readAll(filter, limit);
     }
     else if (row.has("id"))
     {
       // read by ids
-      recs = new HDict[req.numRows()];
-      for (int i=0; i<recs.length; ++i)
-        recs[i] = db.readById(req.row(i).getRef("id"), true);
+      HRef[] ids = new HRef[req.numRows()];
+      for (int i=0; i<ids.length; ++i) ids[i] = req.row(i).id();
+      return db.readByIds(ids, false);
     }
     else
     {
       throw new Exception("Missing filter or id columns");
     }
-
-    // return results as grid
-    return HGridBuilder.dictsToGrid(recs);
   }
 }
 

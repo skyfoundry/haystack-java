@@ -20,7 +20,7 @@ public class HGridBuilder
 // Utils
 //////////////////////////////////////////////////////////////////////////
 
-  /** Convenience to build one row grid from HDict */
+  /** Convenience to build one row grid from HDict. */
   public static HGrid dictToGrid(HDict dict)
   {
     HGridBuilder b = new HGridBuilder();
@@ -38,7 +38,8 @@ public class HGridBuilder
     return b.toGrid();
   }
 
-  /** Convenience to build grid from array of HDict */
+  /** Convenience to build grid from array of HDict.
+      Any null entry will be row of all null cells. */
   public static HGrid dictsToGrid(HDict[] dicts)
   {
     if (dicts.length == 0) return HGrid.EMPTY;
@@ -50,6 +51,7 @@ public class HGridBuilder
     for (int i=0; i<dicts.length; ++i)
     {
       HDict dict = dicts[i];
+      if (dict == null) continue;
       Iterator it = dict.iterator();
       while (it.hasNext())
       {
@@ -63,6 +65,11 @@ public class HGridBuilder
       }
     }
 
+    // if all dicts were null, handle special case
+    // by creating a dummy column
+    if (colsByName.size() == 0)
+      colsByName.put("empty", "empty");
+
     // now map rows
     int numCols = b.cols.size();
     for (int ri=0; ri<dicts.length; ++ri)
@@ -70,7 +77,12 @@ public class HGridBuilder
       HDict dict = dicts[ri];
       HVal[] cells = new HVal[numCols];
       for (int ci=0; ci<numCols; ++ci)
-        cells[ci] = dict.get(((BCol)b.cols.get(ci)).name, false);
+      {
+        if (dict == null)
+          cells[ci] = null;
+        else
+          cells[ci] = dict.get(((BCol)b.cols.get(ci)).name, false);
+      }
       b.rows.add(cells);
     }
 

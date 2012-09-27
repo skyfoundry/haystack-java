@@ -14,7 +14,7 @@ import haystack.*;
  * HServer is the interface between HServlet and a database of
  * tag based entities.  All methods on HServer must be thread safe.
  */
-public abstract class HServer
+public abstract class HServer extends HProj
 {
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,6 +61,21 @@ public abstract class HServer
 
   /**
    * Get the about metadata which should contain following tags:
+   */
+  public final HDict about()
+  {
+    return new HDictBuilder()
+        .add(onAbout())
+        .add("haystackVersion", "2.0")
+        .add("serverTime", HDateTime.now())
+        .add("serverBootTime", this.bootTime)
+        .add("tz", HTimeZone.DEFAULT.name)
+        .toDict();
+  }
+
+  /**
+   * Implementation hook for "about" method.
+   * Should return these tags:
    *   - serverName: Str
    *   - productName: Str
    *   - productVersion: Str
@@ -69,91 +84,40 @@ public abstract class HServer
    *   - moduleVersion: Str
    *   - moduleUri: Uri
    */
-  public abstract HDict about();
+  protected abstract HDict onAbout();
 
 //////////////////////////////////////////////////////////////////////////
-// Read by id
-//////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Convenience for "readById(id, true)"
-   */
-  public final HDict readById(HRef id)
-  {
-    return readById(id, true);
-  }
-
-  /**
-   * Lookup an entity record by it's unique identifier.  If not found
-   ** then return null or throw an UnknownRecException based on checked.
-   */
-  public final HDict readById(HRef id, boolean checked)
-  {
-    HDict rec = onReadById(id);
-    if (rec != null) return rec;
-    if (checked) throw new UnknownRecException(id.toString());
-    return null;
-  }
-
-  /**
-   * Implementation hook for readById.  Return null
-   * if id does not resolve an record.
-   */
-  protected abstract HDict onReadById(HRef id);
-
-//////////////////////////////////////////////////////////////////////////
-// Read by filter
+// Reads
 //////////////////////////////////////////////////////////////////////////
 
   /**
-   * Convenience for "read(filter, true)".
+   * Default implementation routes to onReadById
    */
-  public final HDict read(String filter)
+  protected HGrid onReadByIds(HRef[] ids)
   {
-    return read(filter, true);
+    HDict[] recs = new HDict[ids.length];
+    for (int i=0; i<ids.length; ++i)
+      recs[i] = onReadById(ids[i]);
+    return HGridBuilder.dictsToGrid(recs);
   }
 
   /**
-   * Return one entity record that matches the given filter.  If there
-   * is more than one record, then it is undefined which one is
-   * returned.  If there are no matches than return null or raise
-   * UnknownRecException based on checked flag.  Raise ParseException
-   * is filter is malformed.
+   * Default implementation scans all records using "iterator"
    */
-  public final HDict read(String filter, boolean checked)
+  protected HGrid onReadAll(String filter, int limit)
   {
-    HDict[] dicts = readAll(HFilter.make(filter), 1);
-    if (dicts.length > 0) return dicts[0];
-    if (checked) throw new UnknownRecException(filter);
-    return null;
-  }
-
-  /**
-   * Convenience for "readAll(HFilter, int)".
-   * Raise ParseException is filter is malformed.
-   */
-  public final HDict[] readAll(String filter)
-  {
-    return readAll(HFilter.make(filter), Integer.MAX_VALUE);
-  }
-
-  /**
-   * Return list of every entity record that matches given filter.
-   * Clip number of results by "limit" parameter.
-   */
-  public final HDict[] readAll(HFilter filter, int limit)
-  {
+    HFilter f = HFilter.make(filter);
     ArrayList acc = new ArrayList();
     for (Iterator it = iterator(); it.hasNext(); )
     {
       HDict rec = (HDict)it.next();
-      if (filter.include(rec, filterPather))
+      if (f.include(rec, filterPather))
       {
         acc.add(rec);
         if  (acc.size() >= limit) break;
       }
     }
-    return (HDict[])acc.toArray(new HDict[acc.size()]);
+    return HGridBuilder.dictsToGrid((HDict[])acc.toArray(new HDict[acc.size()]));
   }
 
   private HFilter.Pather filterPather = new HFilter.Pather()
