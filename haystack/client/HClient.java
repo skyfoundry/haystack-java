@@ -20,7 +20,7 @@ import haystack.io.*;
 /**
  * HClient manages a logical connection to a HTTP REST haystack server.
  */
-public class HClient
+public class HClient extends HProj
 {
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,32 +92,13 @@ public class HClient
 // Reads
 //////////////////////////////////////////////////////////////////////////
 
-  /**
-   * Convenience for "readById(id, true)"
-   */
-  public HDict readById(HRef id)
-  {
-    return readById(id, true);
-  }
-
-  /**
-   * Call "read" to lookup an entity record by it's unique identifier.
-   * If not found then return null or throw an UnknownRecException based
-   * on checked.
-   */
-  public HDict readById(HRef id, boolean checked)
+  protected HDict onReadById(HRef id)
   {
     HGrid res = readByIds(new HRef[] { id });
-    if (res.numRows() == 1) return res.row(0);
-    if (checked) throw new UnknownRecException(id.toString());
-    return null;
+    return res.isEmpty() ? null : res.row(0);
   }
 
-  /**
-   * Call "read" to lookup entity records by their identifiers.
-   */
-// TODO: bad ids
-  public HGrid readByIds(HRef[] ids)
+  protected HGrid onReadByIds(HRef[] ids)
   {
     HGridBuilder b = new HGridBuilder();
     b.addCol("id");
@@ -127,48 +108,13 @@ public class HClient
     return call("read", req);
   }
 
-  /**
-   * Convenience for "read(filter, true)".
-   */
-  public HDict read(String filter)
-  {
-    return read(filter, true);
-  }
-
-  /**
-   * Call "read" to query one entity record that matches the given filter.
-   * If there is more than one record, then it is undefined which one is
-   * returned.  If there are no matches than return null or raise
-   * UnknownRecException based on checked flag.
-   */
-  public HDict read(String filter, boolean checked)
-  {
-    HGrid grid = readAll(filter, 1);
-    if (grid.numRows() > 0) return grid.row(0);
-    if (checked) throw new UnknownRecException(filter);
-    return null;
-  }
-
-  /**
-   * Convenience for "readAll(filter, max)".
-   */
-  public HGrid readAll(String filter)
-  {
-    return readAll(filter, Integer.MAX_VALUE);
-  }
-
-  /**
-   * Call "read" to query every entity record that matches given filter.
-   * Clip number of results by "limit" parameter.
-   */
-  public HGrid readAll(String filter, int limit)
+  protected HGrid onReadAll(String filter, int limit)
   {
     HGridBuilder b = new HGridBuilder();
     b.addCol("filter");
     b.addCol("limit");
     b.addRow(new HVal[] { HStr.make(filter), HNum.make(limit) });
     HGrid req = b.toGrid();
-
     return call("read", req);
   }
 
@@ -183,7 +129,7 @@ public class HClient
    * Raise CallErrException if there is a server side error and an error
    * grid is returned.
    */
-  HGrid call(String op, HGrid req)
+  public HGrid call(String op, HGrid req)
   {
     HGrid res = postGrid(op, req);
     if (res.isErr()) throw new CallErrException(res);

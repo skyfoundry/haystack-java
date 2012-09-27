@@ -20,4 +20,10 @@ public class UnknownRecException extends RuntimeException
     super(msg);
   }
 
+  /** Constructor with Ref */
+  public UnknownRecException(HRef ref)
+  {
+    this(String.valueOf(ref));
+  }
+
 }

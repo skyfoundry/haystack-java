@@ -114,7 +114,7 @@ public class TestDatabase extends HServer
     };
   }
 
-  public HDict about() { return about; }
+  public HDict onAbout() { return about; }
   private final HDict about = new HDictBuilder()
     .add("serverName",  hostName())
     .add("vendorName", "Haystack Java Toolkit")
