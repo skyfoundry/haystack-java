@@ -28,9 +28,9 @@ public abstract class HOp
 
   /**
    * Service the request and return response.
-   * This method routes to "onService(HDatabase,HGrid)".
+   * This method routes to "onService(HServer,HGrid)".
    */
-  public void onService(HDatabase db, HttpServletRequest req, HttpServletResponse res)
+  public void onService(HServer db, HttpServletRequest req, HttpServletResponse res)
     throws Exception
   {
     // parse GET query parameters or POST body into grid
@@ -40,7 +40,7 @@ public abstract class HOp
     if (method.equals("POST")) reqGrid = postToGrid(req, res);
     if (reqGrid == null) return;
 
-    // route to onService(HDatabase, HGrid)
+    // route to onService(HServer, HGrid)
     HGrid resGrid;
     try
     {
@@ -73,10 +73,10 @@ public abstract class HOp
   /**
    * Service the request and return response.
    */
-  public HGrid onService(HDatabase db, HGrid req)
+  public HGrid onService(HServer db, HGrid req)
     throws Exception
   {
-    throw new UnsupportedOperationException(getClass().getName()+".onService(HDatabase,HGrid)");
+    throw new UnsupportedOperationException(getClass().getName()+".onService(HServer,HGrid)");
   }
 
   /**

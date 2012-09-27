@@ -16,7 +16,7 @@ import haystack.server.*;
  * TestDatabase provides a simple implementation of
  * HDatabase with some test entities.
  */
-public class TestDatabase extends HDatabase
+public class TestDatabase extends HServer
 {
 
 //////////////////////////////////////////////////////////////////////////

@@ -11,10 +11,10 @@ import java.util.*;
 import haystack.*;
 
 /**
- * HDatabase is the interface between HServlet and a database of
- * tag based entities.  All methods on HDatabase must be thread safe.
+ * HServer is the interface between HServlet and a database of
+ * tag based entities.  All methods on HServer must be thread safe.
  */
-public abstract class HDatabase
+public abstract class HServer
 {
 
 //////////////////////////////////////////////////////////////////////////
