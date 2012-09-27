@@ -95,8 +95,17 @@ public class HZincReader extends HGridReader
       consumeNewline();
       b.addRow(cells);
     }
+    if (cur == '\n') consumeNewline();
 
     return b.toGrid();
+  }
+
+  /** Read list of grids from the stream. */
+  public HGrid[] readGrids()
+  {
+    ArrayList acc = new ArrayList();
+    while (cur > 0) acc.add(readGrid());
+    return (HGrid[])acc.toArray(new HGrid[acc.size()]);
   }
 
   /** Close underlying input stream */

@@ -129,6 +129,28 @@ public class ClientTest extends Test
     g = client.eval("readAll(ahu)");
     verify(g.numRows() > 0);
     verifyGridContains(g, "dis", "Carytown RTU-1");
+
+    HGrid[] grids = client.evalAll(new String[] { "today()", "[10, 20, 30]", "readAll(site)"});
+    verifyEq(grids.length, 3);
+    g = grids[0];
+    verifyEq(g.numRows(), 1);
+    verifyEq(g.row(0).get("val"), HDate.today());
+    g = grids[1];
+    verifyEq(g.numRows(), 3);
+    verifyEq(g.row(0).get("val"), HNum.make(10));
+    verifyEq(g.row(1).get("val"), HNum.make(20));
+    verifyEq(g.row(2).get("val"), HNum.make(30));
+    g = grids[2];
+    verify(g.numRows() > 2);
+    verifyGridContains(g, "dis", "Carytown");
+
+    grids = client.evalAll(new String[] { "today()", "readById(@badBadBadId)"}, false);
+    // for (int i=0; i<grids.length; ++i) grids[i].dump();
+    verifyEq(grids.length, 2);
+    verifyEq(grids[0].isErr(), false);
+    verifyEq(grids[0].row(0).get("val"), HDate.today());
+    verifyEq(grids[1].isErr(), true);
+    try { client.evalAll(new String[] { "today()", "readById(@badBadBadId)"}); fail(); } catch (CallErrException e) { verifyException(e); }
   }
 
   void verifyGridContains(HGrid g, String col, String val) { verifyGridContains(g, col, HStr.make(val)); }
