@@ -64,6 +64,9 @@ public class HGrid
   /** Return grid level meta */
   public HDict meta() { return meta; }
 
+  /** Error grid have the meta.err marker tag */
+  public boolean isErr() { return meta.has("err"); }
+
   /** Return if number of rows is zero */
   public boolean isEmpty() { return numRows() == 0; }
 

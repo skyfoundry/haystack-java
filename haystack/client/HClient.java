@@ -30,7 +30,7 @@ public class HClient
   /**
    * Open a connection and authenticate to a Haystack HTTP server.
    */
-  public static HClient open(String uri, String user, String pass) throws Exception
+  public static HClient open(String uri, String user, String pass)
   {
     HClient client = new HClient(uri, user, pass);
     client.authenticate();
@@ -65,76 +65,178 @@ public class HClient
 //////////////////////////////////////////////////////////////////////////
 
   /**
-   * Read "about" to query summary info.
+   * Call "about" to query summary info.
    */
-  public HGrid about() throws Exception
+  public HDict about()
   {
-    return postGrid("about", HGrid.EMPTY);
+    return call("about", HGrid.EMPTY).row(0);
   }
 
   /**
-   * Read "ops" to query which operations are supported by server.
+   * Call "ops" to query which operations are supported by server.
    */
-  public HGrid ops() throws Exception
+  public HGrid ops()
   {
-    return postGrid("ops", HGrid.EMPTY);
+    return call("ops", HGrid.EMPTY);
   }
 
   /**
-   * Read "formats" to query which MIME formats are available.
+   * Call "formats" to query which MIME formats are available.
    */
-  public HGrid formats() throws Exception
+  public HGrid formats()
   {
-    return postGrid("formats", HGrid.EMPTY);
+    return call("formats", HGrid.EMPTY);
   }
 
 //////////////////////////////////////////////////////////////////////////
-// Implementation
+// Reads
 //////////////////////////////////////////////////////////////////////////
 
-  private HGrid postGrid(String op, HGrid req) throws Exception
+  /**
+   * Convenience for "readById(id, true)"
+   */
+  public HDict readById(HRef id)
+  {
+    return readById(id, true);
+  }
+
+  /**
+   * Call "read" to lookup an entity record by it's unique identifier.
+   * If not found then return null or throw an UnknownRecException based
+   * on checked.
+   */
+  public HDict readById(HRef id, boolean checked)
+  {
+    HGrid res = readByIds(new HRef[] { id });
+    if (res.numRows() == 1) return res.row(0);
+    if (checked) throw new UnknownRecException(id.toString());
+    return null;
+  }
+
+  /**
+   * Call "read" to lookup entity records by their identifiers.
+   */
+// TODO: bad ids
+  public HGrid readByIds(HRef[] ids)
+  {
+    HGridBuilder b = new HGridBuilder();
+    b.addCol("id");
+    for (int i=0; i<ids.length; ++i)
+      b.addRow(new HVal[] { ids[i] });
+    HGrid req = b.toGrid();
+    return call("read", req);
+  }
+
+  /**
+   * Convenience for "read(filter, true)".
+   */
+  public HDict read(String filter)
+  {
+    return read(filter, true);
+  }
+
+  /**
+   * Call "read" to query one entity record that matches the given filter.
+   * If there is more than one record, then it is undefined which one is
+   * returned.  If there are no matches than return null or raise
+   * UnknownRecException based on checked flag.
+   */
+  public HDict read(String filter, boolean checked)
+  {
+    HGrid grid = readAll(filter, 1);
+    if (grid.numRows() > 0) return grid.row(0);
+    if (checked) throw new UnknownRecException(filter);
+    return null;
+  }
+
+  /**
+   * Convenience for "readAll(filter, max)".
+   */
+  public HGrid readAll(String filter)
+  {
+    return readAll(filter, Integer.MAX_VALUE);
+  }
+
+  /**
+   * Call "read" to query every entity record that matches given filter.
+   * Clip number of results by "limit" parameter.
+   */
+  public HGrid readAll(String filter, int limit)
+  {
+    HGridBuilder b = new HGridBuilder();
+    b.addCol("filter");
+    b.addCol("limit");
+    b.addRow(new HVal[] { HStr.make(filter), HNum.make(limit) });
+    HGrid req = b.toGrid();
+
+    return call("read", req);
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// Call
+//////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Make a call to the given operation.  The request grid is posted
+   * to the URI "this.uri+op" and the response is parsed as a grid.
+   * Raise CallNetworkException if there is a communication I/O error.
+   * Raise CallErrException if there is a server side error and an error
+   * grid is returned.
+   */
+  HGrid call(String op, HGrid req)
+  {
+    HGrid res = postGrid(op, req);
+    if (res.isErr()) throw new CallErrException(res);
+    return res;
+  }
+
+  private HGrid postGrid(String op, HGrid req)
   {
     String reqStr = HZincWriter.gridToString(req);
     String resStr = postString(op, reqStr);
     return new HZincReader(resStr).readGrid();
   }
 
-  private String postString(String op, String req) throws Exception
+  private String postString(String op, String req)
   {
-    // setup the POST request
-    URL url = new URL(uri + op);
-    HttpURLConnection c = (HttpURLConnection)url.openConnection();
     try
     {
-      c.setRequestMethod("POST");
-      c.setInstanceFollowRedirects(false);
-      c.setDoOutput(true);
-      c.setDoInput(true);
-      c.setRequestProperty("Connection", "Close");
-      c.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
-      if (cookie != null) c.setRequestProperty("Cookie", cookie);
-      c.connect();
+      // setup the POST request
+      URL url = new URL(uri + op);
+      HttpURLConnection c = (HttpURLConnection)url.openConnection();
+      try
+      {
+        c.setRequestMethod("POST");
+        c.setInstanceFollowRedirects(false);
+        c.setDoOutput(true);
+        c.setDoInput(true);
+        c.setRequestProperty("Connection", "Close");
+        c.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
+        if (cookie != null) c.setRequestProperty("Cookie", cookie);
+        c.connect();
 
-      // post expression
-      Writer cout = new OutputStreamWriter(c.getOutputStream(), "UTF-8");
-      cout.write(req);
-      cout.close();
+        // post expression
+        Writer cout = new OutputStreamWriter(c.getOutputStream(), "UTF-8");
+        cout.write(req);
+        cout.close();
 
-      // check for successful request
-      if (c.getResponseCode() != 200)
-        throw new Exception("Request failed HTTP code: " + c.getResponseCode());
+        // check for successful request
+        if (c.getResponseCode() != 200)
+          throw new CallHttpException(c.getResponseCode(), c.getResponseMessage());
 
-      // read response into string
-      StringBuilder s = new StringBuilder(1024);
-      Reader r = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"));
-      int n;
-      while ((n = r.read()) > 0) s.append((char)n);
-      return s.toString();
+        // read response into string
+        StringBuilder s = new StringBuilder(1024);
+        Reader r = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"));
+        int n;
+        while ((n = r.read()) > 0) s.append((char)n);
+        return s.toString();
+      }
+      finally
+      {
+        try { c.disconnect(); } catch(Exception e) {}
+      }
     }
-    finally
-    {
-      try { c.disconnect(); } catch(Exception e) {}
-    }
+    catch (Exception e) { throw new CallNetworkException(e); }
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -145,71 +247,77 @@ public class HClient
    * Authenticate with the server.  Currently we just support
    * SkySpark nonce based HMAC SHA-1 mechanism.
    */
-  private void authenticate() throws Exception
+  private void authenticate()
   {
-    HttpURLConnection c = null;
     try
     {
-      // make request to about to get headers
-      URL url = new URL(this.uri + "about");
-      c = (HttpURLConnection)url.openConnection();
-      c.setRequestMethod("GET");
-      c.setInstanceFollowRedirects(false);
-      c.connect();
-      String authUri = c.getHeaderField("Folio-Auth-Api-Uri");
-      c.disconnect();
-      if (authUri == null) throw new Exception("Missing 'Folio-Auth-Api-Uri' header");
+      HttpURLConnection c = null;
+      try
+      {
+        // make request to about to get headers
+        URL url = new URL(this.uri + "about");
+        c = (HttpURLConnection)url.openConnection();
+        c.setRequestMethod("GET");
+        c.setInstanceFollowRedirects(false);
+        c.connect();
+        String authUri = c.getHeaderField("Folio-Auth-Api-Uri");
+        c.disconnect();
+        if (c.getResponseCode() == 200) return;
+        if (authUri == null) throw new CallAuthException("Missing 'Folio-Auth-Api-Uri' header");
 
-      // make request to auth URI to get salt, nonce
-      String baseUri = uri.substring(0, uri.indexOf('/', 9));
-      url = new URL(baseUri + authUri + "?" + user);
-      c = (HttpURLConnection)url.openConnection();
-      c.setRequestMethod("GET");
-      c.setInstanceFollowRedirects(false);
-      c.connect();
+        // make request to auth URI to get salt, nonce
+        String baseUri = uri.substring(0, uri.indexOf('/', 9));
+        url = new URL(baseUri + authUri + "?" + user);
+        c = (HttpURLConnection)url.openConnection();
+        c.setRequestMethod("GET");
+        c.setInstanceFollowRedirects(false);
+        c.connect();
 
-      // parse response as name:value pairs
-      HashMap props = parseResProps(c.getInputStream());
+        // parse response as name:value pairs
+        HashMap props = parseResProps(c.getInputStream());
 
-      // get salt and nonce values
-      String salt = (String)props.get("userSalt"); if (salt == null) throw new Exception("auth missing 'userSalt'");
-      String nonce = (String)props.get("nonce");   if (nonce == null) throw new Exception("auth missing 'nonce'");
+        // get salt and nonce values
+        String salt = (String)props.get("userSalt"); if (salt == null) throw new CallAuthException("auth missing 'userSalt'");
+        String nonce = (String)props.get("nonce");   if (nonce == null) throw new CallAuthException("auth missing 'nonce'");
 
-      // compute hmac (note Java doesn't allow empty password)
-      Mac mac = Mac.getInstance("HmacSHA1");
-      SecretKeySpec secret = new SecretKeySpec(pass.getBytes(),"HmacSHA1");
-      mac.init(secret);
-      String hmac = toBase64(mac.doFinal((user + ":" + salt).getBytes()));
+        // compute hmac (note Java doesn't allow empty password)
+        Mac mac = Mac.getInstance("HmacSHA1");
+        SecretKeySpec secret = new SecretKeySpec(pass.getBytes(),"HmacSHA1");
+        mac.init(secret);
+        String hmac = toBase64(mac.doFinal((user + ":" + salt).getBytes()));
 
-      // compute digest with nonce
-      MessageDigest md = MessageDigest.getInstance("SHA-1");
-      md.update((hmac+":"+nonce).getBytes());
-      String digest = toBase64(md.digest());
+        // compute digest with nonce
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        md.update((hmac+":"+nonce).getBytes());
+        String digest = toBase64(md.digest());
 
-      // post back nonce/digest to auth URI
-      c.disconnect();
-      c = (HttpURLConnection)url.openConnection();
-      c.setRequestMethod("POST");
-      c.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
-      c.setDoInput(true);
-      c.setDoOutput(true);
-      c.setInstanceFollowRedirects(false);
-      Writer cout = new OutputStreamWriter(c.getOutputStream(), "UTF-8");
-      cout.write("nonce:" + nonce + "\n");
-      cout.write("digest:" + digest + "\n");
-      cout.close();
-      c.connect();
-      if (c.getResponseCode() != 200) throw new Exception("Invalid username/password [" + c.getResponseCode() + "]");
+        // post back nonce/digest to auth URI
+        c.disconnect();
+        c = (HttpURLConnection)url.openConnection();
+        c.setRequestMethod("POST");
+        c.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
+        c.setDoInput(true);
+        c.setDoOutput(true);
+        c.setInstanceFollowRedirects(false);
+        Writer cout = new OutputStreamWriter(c.getOutputStream(), "UTF-8");
+        cout.write("nonce:" + nonce + "\n");
+        cout.write("digest:" + digest + "\n");
+        cout.close();
+        c.connect();
+        if (c.getResponseCode() != 200) throw new CallAuthException("Invalid username/password [" + c.getResponseCode() + "]");
 
-      // parse successful authentication to get cookie value
-      props = parseResProps(c.getInputStream());
-      this.cookie = (String)props.get("cookie");
-      if (this.cookie == null) throw new Exception("auth missing 'cookie'");
+        // parse successful authentication to get cookie value
+        props = parseResProps(c.getInputStream());
+        this.cookie = (String)props.get("cookie");
+        if (this.cookie == null) throw new CallAuthException("auth missing 'cookie'");
+      }
+      finally
+      {
+        try { if (c != null) c.disconnect(); } catch(Exception e) {}
+      }
     }
-    finally
-    {
-      try { if (c != null) c.disconnect(); } catch(Exception e) {}
-    }
+    catch (CallException e) { throw e; }
+    catch (Exception e) { throw new CallNetworkException(e); }
   }
 
   private HashMap parseResProps(InputStream in) throws Exception

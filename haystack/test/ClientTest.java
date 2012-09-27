@@ -28,13 +28,14 @@ public class ClientTest extends Test
     verifyAbout();
     verifyOps();
     verifyFormats();
+    verifyRead();
   }
 
   void verifyAuth() throws Exception
   {
     // get bad credentials
-    try { HClient.open(uri, "baduser", "badpass").about(); fail(); } catch (Exception e) { verifyException(e); }
-    try { HClient.open(uri, "haystack", "badpass").about(); fail(); } catch (Exception e) { verifyException(e); }
+    try { HClient.open(uri, "baduser", "badpass").about(); fail(); } catch (CallAuthException e) { verifyException(e); }
+    try { HClient.open(uri, "haystack", "badpass").about(); fail(); } catch (CallAuthException e) { verifyException(e); }
 
     // create proper client
     this.client = HClient.open("http://localhost/api/demo", "haystack", "testpass");
@@ -42,9 +43,7 @@ public class ClientTest extends Test
 
   void verifyAbout() throws Exception
   {
-    HGrid g = client.about();
-    HRow r = g.row(0);
-    verifyEq(g.numRows(), 1);
+    HDict r = client.about();
     verifyEq(r.getStr("haystackVersion"), "2.0");
     verifyEq(r.getStr("productName"), "SkySpark");
     verifyEq(r.getStr("tz"), HTimeZone.DEFAULT.name);
@@ -59,10 +58,10 @@ public class ClientTest extends Test
     verify(g.col("summary") != null);
 
     // verify required ops
-    verifyGridContains(g, "name", HStr.make("about"));
-    verifyGridContains(g, "name", HStr.make("ops"));
-    verifyGridContains(g, "name", HStr.make("formats"));
-    //verifyGridContains(g, "name", HStr.make("read"));
+    verifyGridContains(g, "name", "about");
+    verifyGridContains(g, "name", "ops");
+    verifyGridContains(g, "name", "formats");
+    verifyGridContains(g, "name", "read");
   }
 
   void verifyFormats() throws Exception
@@ -75,10 +74,46 @@ public class ClientTest extends Test
     verify(g.col("write") != null);
 
     // verify required ops
-    verifyGridContains(g, "mime", HStr.make("text/plain"));
-    verifyGridContains(g, "mime", HStr.make("text/zinc"));
+    verifyGridContains(g, "mime", "text/plain");
+    verifyGridContains(g, "mime", "text/zinc");
   }
 
+  void verifyRead() throws Exception
+  {
+    // read
+    String disA = "Gaithersburg";
+    String disB = "Carytown";
+    HDict recA = client.read("site and dis==\"" + disA + "\"");
+    HDict recB = client.read("site and dis==\"" + disB + "\"");
+    verifyEq(recA.dis(), disA);
+    verifyEq(client.read("badTagShouldBeThere", false), null);
+    try { client.read("badTagShouldBeThere"); fail(); } catch(UnknownRecException e) { verifyException(e); }
+
+    // readAll
+    HGrid sites = client.readAll("site");
+    verifyGridContains(sites, "dis", disA);
+    verifyGridContains(sites, "dis", disB);
+    verifyGridContains(sites, "id", recA.id());
+    verifyGridContains(sites, "id", recB.id());
+
+    // readAll limit
+    verify(sites.numRows() > 2);
+    verifyEq(client.readAll("site", 2).numRows(), 2);
+
+    // readById
+    HDict rec = client.readById(recA.id());
+    verifyEq(rec.dis(), disA);
+// TODO bad ids
+
+    // readByIds
+    sites = client.readByIds(new HRef[] { recA.id(), recB.id() });
+    verifyEq(sites.numRows(), 2);
+    verifyEq(sites.row(0).dis(), disA);
+    verifyEq(sites.row(1).dis(), disB);
+// TODO bad ids
+  }
+
+  void verifyGridContains(HGrid g, String col, String val) { verifyGridContains(g, col, HStr.make(val)); }
   void verifyGridContains(HGrid g, String col, HVal val)
   {
     boolean found = false;
