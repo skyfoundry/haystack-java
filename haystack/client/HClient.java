@@ -123,7 +123,8 @@ public class HClient extends HProj
 //////////////////////////////////////////////////////////////////////////
 
   /**
-   * Evaluate a vendor specific expression on the server.
+   * Call "eval" operation to evaluate a vendor specific
+   * expression on the server:
    *   - SkySpark: any Axon expression
    *
    * Raise CallErrException if the server raises an exception.
@@ -135,6 +136,49 @@ public class HClient extends HProj
     b.addRow(new HVal[] { HStr.make(expr) });
     HGrid req = b.toGrid();
     return call("eval", req);
+  }
+
+  /**
+   * Convenience for "evalAll(HGrid, true)".
+   */
+  public HGrid[] evalAll(String[] exprs)
+  {
+    return evalAll(exprs, true);
+  }
+
+  /**
+   * Convenience for "evalAll(HGrid, checked)".
+   */
+  public HGrid[] evalAll(String[] exprs, boolean checked)
+  {
+    HGridBuilder b = new HGridBuilder();
+    b.addCol("expr");
+    for (int i=0; i<exprs.length; ++i)
+      b.addRow(new HVal[] { HStr.make(exprs[i]) });
+    return evalAll(b.toGrid(), checked);
+  }
+
+  /**
+   * Call "evalAll" operation to evaluate a batch of vendor specific
+   * expressions on the server. See "eval" method for list of vendor
+   * expression formats.  The request grid must specify an "expr" column.
+   * A separate grid is returned for each row in the request.  If checked
+   * is false, then this call does *not* automatically check for error
+   * grids.  Client code must individual check each grid for partial
+   * failures using "Grid.isErr".  If checked is true and one of the
+   * requests failed, then raise CallErrException for first failure.
+   */
+  public HGrid[] evalAll(HGrid req, boolean checked)
+  {
+    String reqStr = HZincWriter.gridToString(req);
+    String resStr = postString("evalAll", reqStr);
+    HGrid[] res = new HZincReader(resStr).readGrids();
+    if (checked)
+    {
+      for (int i=0; i<res.length; ++i)
+        if (res[i].isErr()) throw new CallErrException(res[i]);
+    }
+    return res;
   }
 
 //////////////////////////////////////////////////////////////////////////
