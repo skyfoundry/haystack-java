@@ -51,6 +51,9 @@ public abstract class HDict
   /** Create Map.Entry iteratator to walk each name/tag pair */
   public abstract Iterator iterator();
 
+  /** Get the "id" tag as HRef. */
+  public HRef id() { return getRef("id"); }
+
   /**
    * Get display string for this entity:
    *    - dis tag

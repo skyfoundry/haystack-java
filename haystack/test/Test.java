@@ -9,6 +9,7 @@ package haystack.test;
 
 import java.lang.reflect.*;
 import haystack.*;
+import haystack.client.*;
 
 /**
  * Simple test harness to avoid pulling in dependencies.
@@ -306,8 +307,19 @@ public abstract class Test
     }
     catch (Throwable e)
     {
+      if (e instanceof InvocationTargetException)
+        e = ((InvocationTargetException)e).getCause();
+
       println("### Failed: " + testName);
       e.printStackTrace();
+
+      if (e instanceof CallErrException)
+      {
+        System.out.println();
+        System.out.println("CallErrException server side trace:");
+        System.out.println(((CallErrException)e).trace());
+      }
+
       return false;
     }
   }
