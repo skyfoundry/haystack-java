@@ -84,6 +84,9 @@ public abstract class HOp
    */
   private HGrid getToGrid(HttpServletRequest req)
   {
+    if (req.getParameterMap() == null)
+        return HGrid.EMPTY;
+
     HDictBuilder b = new HDictBuilder();
     Iterator it = req.getParameterMap().entrySet().iterator();
     while (it.hasNext())
