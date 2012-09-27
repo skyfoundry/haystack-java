@@ -90,27 +90,34 @@ public class ClientTest extends Test
     try { client.read("badTagShouldBeThere"); fail(); } catch(UnknownRecException e) { verifyException(e); }
 
     // readAll
-    HGrid sites = client.readAll("site");
-    verifyGridContains(sites, "dis", disA);
-    verifyGridContains(sites, "dis", disB);
-    verifyGridContains(sites, "id", recA.id());
-    verifyGridContains(sites, "id", recB.id());
+    HGrid grid = client.readAll("site");
+    verifyGridContains(grid, "dis", disA);
+    verifyGridContains(grid, "dis", disB);
+    verifyGridContains(grid, "id", recA.id());
+    verifyGridContains(grid, "id", recB.id());
 
     // readAll limit
-    verify(sites.numRows() > 2);
+    verify(grid.numRows() > 2);
     verifyEq(client.readAll("site", 2).numRows(), 2);
 
     // readById
     HDict rec = client.readById(recA.id());
     verifyEq(rec.dis(), disA);
-// TODO bad ids
+    HRef badId = HRef.make("badBadId");
+    verifyEq(client.readById(badId, false), null);
+    try { client.readById(badId); fail(); } catch(UnknownRecException e) { verifyException(e); }
 
     // readByIds
-    sites = client.readByIds(new HRef[] { recA.id(), recB.id() });
-    verifyEq(sites.numRows(), 2);
-    verifyEq(sites.row(0).dis(), disA);
-    verifyEq(sites.row(1).dis(), disB);
-// TODO bad ids
+    grid = client.readByIds(new HRef[] { recA.id(), recB.id() });
+    verifyEq(grid.numRows(), 2);
+    verifyEq(grid.row(0).dis(), disA);
+    verifyEq(grid.row(1).dis(), disB);
+    grid = client.readByIds(new HRef[] { recA.id(), badId, recB.id() }, false);
+    verifyEq(grid.numRows(), 3);
+    verifyEq(grid.row(0).dis(), disA);
+    verifyEq(grid.row(1).missing("id"), true);
+    verifyEq(grid.row(2).dis(), disB);
+    try { client.readByIds(new HRef[] { recA.id(), badId }); fail(); } catch(UnknownRecException e) { verifyException(e); }
   }
 
   void verifyGridContains(HGrid g, String col, String val) { verifyGridContains(g, col, HStr.make(val)); }
