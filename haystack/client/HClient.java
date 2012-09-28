@@ -236,8 +236,18 @@ public class HClient extends HProj
       b.addRow(new HVal[] { ids[i] });
 
     // make request
-    HGrid req = b.toGrid();
-    HGrid res = call("watchSub", req);
+    HGrid res;
+    try
+    {
+      HGrid req = b.toGrid();
+      res = call("watchSub", req);
+    }
+    catch (CallErrException e)
+    {
+      // any server side error is considered close
+      watchClose(w, false);
+      throw e;
+    }
 
     // make sure watch is stored with its watch id
     if (w.id == null)

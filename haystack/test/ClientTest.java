@@ -219,7 +219,7 @@ public class ClientTest extends Test
     verifyEq(sub.row(2).dis(), d.dis());
 
     // verify state of watch now
-    verify(client.watch(w.id(), true) == w);
+    verify(client.watch(w.id()) == w);
     verifyEq(client.watches().length, 1);
     verify(client.watches()[0] == w);
 

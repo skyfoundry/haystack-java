@@ -9,6 +9,7 @@ package haystack;
 
 /**
  * HWatch models a subscription to a list of entity records.
+ * Use HProj.watchOpen to create a new watch.
  */
 public abstract class HWatch
 {

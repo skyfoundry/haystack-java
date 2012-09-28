@@ -160,6 +160,11 @@ public abstract class HProj
   public abstract HWatch[] watches();
 
   /**
+   * Convenience for "watch(id, true)"
+   */
+  public final HWatch watch(String id) { return watch(id, true); }
+
+  /**
    * Lookup a watch by its unique identifier.  If not found then
    * raise UnknownWatchErr or return null based on checked flag.
    */

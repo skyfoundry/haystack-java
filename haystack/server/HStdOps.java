@@ -30,8 +30,20 @@ public class HStdOps
   /** Read entity records in database. */
   public static final HOp read = new ReadOp();
 
+  /** Watch subscription. */
+  public static final HOp watchSub = new WatchSubOp();
+
+  /** Watch unsubscription. */
+  public static final HOp watchUnsub = new WatchUnsubOp();
+
+  /** Watch poll cov or refresh. */
+  public static final HOp watchPoll = new WatchPollOp();
+
   /** Read time series history data. */
   public static final HOp hisRead = new HisReadOp();
+
+  /** Write time series history data. */
+  public static final HOp hisWrite = new HisWriteOp();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -128,14 +140,94 @@ class ReadOp extends HOp
     else if (row.has("id"))
     {
       // read by ids
-      HRef[] ids = new HRef[req.numRows()];
-      for (int i=0; i<ids.length; ++i) ids[i] = req.row(i).id();
+      HRef[] ids = gridToIds(req);
       return db.readByIds(ids, false);
     }
     else
     {
       throw new Exception("Missing filter or id columns");
     }
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// WatchSubOp
+//////////////////////////////////////////////////////////////////////////
+
+class WatchSubOp extends HOp
+{
+  public String name() { return "watchSub"; }
+  public String summary() { return "Watch subscription"; }
+  public HGrid onService(HServer db, HGrid req) throws Exception
+  {
+    // check for watchId or watchId
+    String watchId = null;
+    String watchDis = null;
+    if (req.meta().has("watchId"))
+      watchId = req.meta().getStr("watchId");
+    else
+      watchDis = req.meta().getStr("watchDis");
+
+    // open or lookup watch
+    HWatch watch = watchId == null ?
+                   db.watchOpen(watchDis) :
+                   db.watch(watchId);
+
+    // map grid to ids
+    HRef[] ids = gridToIds(req);
+
+    // subscribe and return resulting grid
+    return watch.sub(ids);
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// WatchUnsubOp
+//////////////////////////////////////////////////////////////////////////
+
+class WatchUnsubOp extends HOp
+{
+  public String name() { return "watchUnsub"; }
+  public String summary() { return "Watch unsubscription"; }
+  public HGrid onService(HServer db, HGrid req) throws Exception
+  {
+    // lookup watch, silently ignore failure
+    String watchId = req.meta().getStr("watchId");
+    HWatch watch = db.watch(watchId, false);
+
+    // check for close or unsub
+    if (watch != null)
+    {
+      if (req.meta().has("close"))
+        watch.close();
+      else
+        watch.unsub(gridToIds(req));
+    }
+
+    // nothing to return
+    return HGrid.EMPTY;
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// WatchPollOp
+//////////////////////////////////////////////////////////////////////////
+
+class WatchPollOp extends HOp
+{
+  public String name() { return "watchPoll"; }
+  public String summary() { return "Watch poll cov or refresh"; }
+  public HGrid onService(HServer db, HGrid req) throws Exception
+  {
+    // lookup watch
+    String watchId = req.meta().getStr("watchId");
+    HWatch watch = db.watch(watchId);
+
+    // poll cov or refresh
+    if (req.meta().has("refresh"))
+      return watch.pollRefresh();
+    else
+      return watch.pollChanges();
   }
 }
 
