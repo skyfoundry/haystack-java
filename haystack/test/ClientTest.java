@@ -34,6 +34,7 @@ public class ClientTest extends Test
     verifyFormats();
     verifyRead();
     verifyEval();
+    verifyWatches();
     verifyHisRead();
     verifyHisWrite();
   }
@@ -181,6 +182,97 @@ public class ClientTest extends Test
     verifyEq(grids[0].row(0).get("val"), HDate.today());
     verifyEq(grids[1].isErr(), true);
     try { client.evalAll(new String[] { "today()", "readById(@badBadBadId)"}); fail(); } catch (CallErrException e) { verifyException(e); }
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// Watches
+//////////////////////////////////////////////////////////////////////////
+
+  void verifyWatches() throws Exception
+  {
+    // create new watch
+    HWatch w = client.watchOpen("Java Haystack Test");
+    verifyEq(w.id(), null);
+    verifyEq(w.dis(), "Java Haystack Test");
+
+    // do query to get some recs
+    HGrid recs = client.readAll("ahu");
+    verify(recs.numRows() >= 4);
+    HDict a = recs.row(0);
+    HDict b = recs.row(1);
+    HDict c = recs.row(2);
+    HDict d = recs.row(3);
+
+    // do first sub
+    HGrid sub = w.sub(new HRef[] { a.id(), b.id() });
+    verifyEq(sub.numRows(), 2);
+    verifyEq(sub.row(0).dis(), a.dis());
+    verifyEq(sub.row(1).dis(), b.dis());
+
+    // now add c, bad, d
+    HRef badId = HRef.make("badBadBad");
+    try { w.sub(new HRef[] { badId }).dump(); fail(); } catch (UnknownRecException e) { verifyException(e); }
+    sub = w.sub(new HRef[] { c.id(), badId , d.id() }, false);
+    verifyEq(sub.numRows(), 3);
+    verifyEq(sub.row(0).dis(), c.dis());
+    verifyEq(sub.row(1).missing("id"), true);
+    verifyEq(sub.row(2).dis(), d.dis());
+
+    // verify state of watch now
+    verify(client.watch(w.id(), true) == w);
+    verifyEq(client.watches().length, 1);
+    verify(client.watches()[0] == w);
+
+    // poll for changes (should be none yet)
+    HGrid poll = w.pollChanges();
+    verifyEq(poll.numRows(), 0);
+
+    // make change to b and d
+    verifyEq(b.has("javaTest"), false);
+    verifyEq(d.has("javaTest"), false);
+    client.eval("commit(diff(readById(@" + b.id().val + "), {javaTest:123}))");
+    client.eval("commit(diff(readById(@" + d.id().val + "), {javaTest:456}))");
+    poll = w.pollChanges();
+    verifyEq(poll.numRows(), 2);
+    HDict newb, newd;
+    if (poll.row(0).id().equals(b.id())) { newb = poll.row(0); newd = poll.row(1); }
+    else { newb = poll.row(1); newd = poll.row(0); }
+    verifyEq(newb.dis(), b.dis());
+    verifyEq(newd.dis(), d.dis());
+    verifyEq(newb.get("javaTest"), HNum.make(123));
+    verifyEq(newd.get("javaTest"), HNum.make(456));
+
+    // poll refresh
+    poll = w.pollRefresh();
+    verifyEq(poll.numRows(), 4);
+    verifyGridContains(poll, "id", a.id());
+    verifyGridContains(poll, "id", b.id());
+    verifyGridContains(poll, "id", c.id());
+    verifyGridContains(poll, "id", d.id());
+
+    // remove d, and then poll changes
+    w.unsub(new HRef[] { d.id() });
+    client.eval("commit(diff(readById(@" + b.id().val + "), {-javaTest}))");
+    client.eval("commit(diff(readById(@" + d.id().val + "), {-javaTest}))");
+    poll = w.pollChanges();
+    verifyEq(poll.numRows(), 1);
+    verifyEq(poll.row(0).dis(), b.dis());
+    verifyEq(poll.row(0).has("javaTest"), false);
+
+    // remove a and c and poll refresh
+    w.unsub(new HRef[] { a.id(), c.id() });
+    poll = w.pollRefresh();
+    verifyEq(poll.numRows(), 1);
+    verifyEq(poll.row(0).dis(), b.dis());
+
+    // close
+    String expr = "folioDebugWatches().findAll(x=>x->dis.contains(\"Java Haystack Test\")).size";
+    verifyEq(client.eval(expr).row(0).getInt("val"), 1);
+    w.close();
+    try { poll = w.pollRefresh(); fail(); } catch (Exception e) { verifyException(e); }
+    verifyEq(client.eval(expr).row(0).getInt("val"), 0);
+    verifyEq(client.watch(w.id(), false), null);
+    verifyEq(client.watches().length, 0);
   }
 
 //////////////////////////////////////////////////////////////////////////

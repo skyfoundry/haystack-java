@@ -138,6 +138,29 @@ public class TestDatabase extends HServer
 
   protected Iterator iterator() { return recs.values().iterator(); }
 
+//////////////////////////////////////////////////////////////////////////
+// Watches
+//////////////////////////////////////////////////////////////////////////
+
+  protected HWatch onWatchOpen(String dis)
+  {
+    throw new UnsupportedOperationException();
+  }
+
+  protected HWatch[] onWatches()
+  {
+    throw new UnsupportedOperationException();
+  }
+
+  protected HWatch onWatch(String id)
+  {
+    throw new UnsupportedOperationException();
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// History
+//////////////////////////////////////////////////////////////////////////
+
   public HHisItem[] onHisRead(HDict entity, HDateTimeRange range)
   {
     // generate dummy 15min data
