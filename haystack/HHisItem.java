@@ -3,7 +3,7 @@
 // Licensed under the Academic Free License version 3.0
 //
 // History:
-//   04 Nov 2011  Brian Frank  My birthday!
+//   04 Nov 2011  Brian Frank  Creation
 //
 package haystack;
 

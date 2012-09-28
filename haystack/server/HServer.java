@@ -132,6 +132,56 @@ public abstract class HServer extends HProj
   protected abstract Iterator iterator();
 
 //////////////////////////////////////////////////////////////////////////
+// Watches
+//////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Create a new watch with an empty subscriber list.  The dis
+   * string is a debug string to keep track of who created the watch.
+   */
+  public final HWatch watchOpen(String dis)
+  {
+    dis = dis.trim();
+    if (dis.length() == 0) throw new IllegalArgumentException("dis is empty");
+    return onWatchOpen(dis);
+  }
+
+  /**
+   * List the open watches.
+   */
+  public final HWatch[] watches()
+  {
+    return onWatches();
+  }
+
+  /**
+   * Lookup a watch by its unique identifier.  If not found then
+   * raise UnknownWatchErr or return null based on checked flag.
+   */
+  public HWatch watch(String id, boolean checked)
+  {
+    HWatch w = onWatch(id);
+    if (w != null) return w;
+    if (checked) throw new UnknownWatchException(id);
+    return null;
+  }
+
+  /**
+   * Implementation hook for watchOpen.
+   */
+  protected abstract HWatch onWatchOpen(String dis);
+
+  /**
+   * Implementation hook for watches.
+   */
+  protected abstract HWatch[] onWatches();
+
+  /**
+   * Implementation hook for watch lookup, return null if not found.
+   */
+  protected abstract HWatch onWatch(String id);
+
+//////////////////////////////////////////////////////////////////////////
 // History
 //////////////////////////////////////////////////////////////////////////
 

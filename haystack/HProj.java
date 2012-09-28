@@ -145,6 +145,27 @@ public abstract class HProj
   protected abstract HGrid onReadAll(String filter, int limit);
 
 //////////////////////////////////////////////////////////////////////////
+// Watches
+//////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Create a new watch with an empty subscriber list.  The dis
+   * string is a debug string to keep track of who created the watch.
+   */
+  public abstract HWatch watchOpen(String dis);
+
+  /**
+   * List the open watches.
+   */
+  public abstract HWatch[] watches();
+
+  /**
+   * Lookup a watch by its unique identifier.  If not found then
+   * raise UnknownWatchErr or return null based on checked flag.
+   */
+  public abstract HWatch watch(String id, boolean checked);
+
+//////////////////////////////////////////////////////////////////////////
 // Historian
 //////////////////////////////////////////////////////////////////////////
 

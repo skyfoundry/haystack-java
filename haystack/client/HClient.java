@@ -94,8 +94,11 @@ public class HClient extends HProj
 
   protected HDict onReadById(HRef id)
   {
-    HGrid res = readByIds(new HRef[] { id });
-    return res.isEmpty() ? null : res.row(0);
+    HGrid res = readByIds(new HRef[] { id }, false);
+    if (res.isEmpty()) return null;
+    HDict rec = res.row(0);
+    if (rec.missing("id")) return null;
+    return rec;
   }
 
   protected HGrid onReadByIds(HRef[] ids)
@@ -179,6 +182,162 @@ public class HClient extends HProj
         if (res[i].isErr()) throw new CallErrException(res[i]);
     }
     return res;
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// Watches
+//////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Create a new watch with an empty subscriber list.  The dis
+   * string is a debug string to keep track of who created the watch.
+   */
+  public HWatch watchOpen(String dis)
+  {
+    return new HClientWatch(this, dis);
+  }
+
+  /**
+   * List the open watches associated with this HClient.
+   * This list does *not* contain a watch until it has been successfully
+   * subscribed and assigned an identifier by the server.
+   */
+  public HWatch[] watches()
+  {
+    return (HWatch[])watches.values().toArray(new HWatch[watches.size()]);
+  }
+
+  /**
+   * Lookup a watch by its unique identifier associated with this HClient.
+   * If not found return null or raise UnknownWatchException based on
+   * checked flag.
+   */
+  public HWatch watch(String id, boolean checked)
+  {
+    HWatch w = (HWatch)watches.get(id);
+    if (w != null) return w;
+    if (checked) throw new UnknownWatchException(id);
+    return null;
+  }
+
+  HGrid watchSub(HClientWatch w, HRef[] ids, boolean checked)
+  {
+    if (ids.length == 0) throw new IllegalArgumentException("ids are empty");
+    if (w.closed) throw new IllegalStateException("watch is closed");
+
+    // grid meta
+    HGridBuilder b = new HGridBuilder();
+    if (w.id != null) b.meta().add("watchId", w.id);
+    b.meta().add("watchDis", w.dis);
+
+    // grid rows
+    b.addCol("id");
+    for (int i=0; i<ids.length; ++i)
+      b.addRow(new HVal[] { ids[i] });
+
+    // make request
+    HGrid req = b.toGrid();
+    HGrid res = call("watchSub", req);
+
+    // make sure watch is stored with its watch id
+    if (w.id == null)
+    {
+      w.id = res.meta().getStr("watchId");
+      watches.put(w.id, w);
+    }
+
+    // if checked, then check it
+    if (checked)
+    {
+      for (int i=0; i<res.numRows(); ++i)
+        if (res.row(i).missing("id")) throw new UnknownRecException(ids[i]);
+    }
+    return res;
+  }
+
+  void watchUnsub(HClientWatch w, HRef[] ids)
+  {
+    if (ids.length == 0) throw new IllegalArgumentException("ids are empty");
+    if (w.id == null) throw new IllegalStateException("nothing subscribed yet");
+    if (w.closed) throw new IllegalStateException("watch is closed");
+
+    // grid meta
+    HGridBuilder b = new HGridBuilder();
+    b.meta().add("watchId", w.id);
+
+    // grid rows
+    b.addCol("id");
+    for (int i=0; i<ids.length; ++i)
+      b.addRow(new HVal[] { ids[i] });
+
+    // make request
+    HGrid req = b.toGrid();
+    call("watchUnsub", req);
+  }
+
+  HGrid watchPoll(HClientWatch w, boolean refresh)
+  {
+    if (w.id == null) throw new IllegalStateException("nothing subscribed yet");
+    if (w.closed) throw new IllegalStateException("watch is closed");
+
+    // grid meta
+    HGridBuilder b = new HGridBuilder();
+    b.meta().add("watchId", w.id);
+    if (refresh) b.meta().add("refresh");
+    b.addCol("empty");
+
+    // make request
+    HGrid req = b.toGrid();
+    try
+    {
+      return call("watchPoll", req);
+    }
+    catch (CallErrException e)
+    {
+      // any server side error is considered close
+      watchClose(w, false);
+      throw e;
+    }
+  }
+
+  void watchClose(HClientWatch w, boolean send)
+  {
+    // mark flag on watch itself, short circuit if already closed
+    if (w.closed) return;
+    w.closed = true;
+
+    // remove it from my lookup table
+    if (w.id != null) watches.remove(w.id);
+
+    // optionally send close message to server
+    if (send)
+    {
+      try
+      {
+        HGridBuilder b = new HGridBuilder();
+        b.meta().add("watchId", w.id).add("close");
+        b.addCol("id");
+        call("watchUnsub", b.toGrid());
+      }
+      catch (Exception e) {}
+    }
+  }
+
+  static class HClientWatch extends HWatch
+  {
+    HClientWatch(HClient c, String d) { client = c; dis = d; }
+    public String id() { return id; }
+    public String dis() { return dis; }
+    public HGrid sub(HRef[] ids, boolean checked) { return client.watchSub(this, ids, checked); }
+    public void unsub(HRef[] ids) { client.watchUnsub(this, ids); }
+    public HGrid pollChanges() { return client.watchPoll(this, false); }
+    public HGrid pollRefresh() { return client.watchPoll(this, true); }
+    public void close() { client.watchClose(this, true); }
+
+    final HClient client;
+    final String dis;
+    String id;
+    boolean closed;
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -446,5 +605,6 @@ public class HClient extends HProj
   private final String user;
   private final String pass;
   private String cookie;
+  private HashMap watches = new HashMap();
 
 }
