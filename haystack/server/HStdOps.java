@@ -146,7 +146,7 @@ class ReadOp extends HOp
 class HisReadOp extends HOp
 {
   public String name() { return "hisRead"; }
-  public String summary() { return "Read time series history data from entity"; }
+  public String summary() { return "Read time series from historian"; }
   public HGrid onService(HServer db, HGrid req) throws Exception
   {
     if (req.isEmpty()) throw new Exception("Request has no rows");
@@ -155,5 +155,23 @@ class HisReadOp extends HOp
     String range = row.getStr("range");
     HHisItem[] items = db.hisRead(id, range);
     return HGridBuilder.hisItemsToGrid(id, items);
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// HisWriteOp
+//////////////////////////////////////////////////////////////////////////
+
+class HisWriteOp extends HOp
+{
+  public String name() { return "hisWrite"; }
+  public String summary() { return "Write time series data to historian"; }
+  public HGrid onService(HServer db, HGrid req) throws Exception
+  {
+    if (req.isEmpty()) throw new Exception("Request has no rows");
+    HRef id = req.meta().id();
+    HHisItem[] items = HHisItem.gridToItems(req);
+    db.hisWrite(id, items);
+    return HGrid.EMPTY;
   }
 }
