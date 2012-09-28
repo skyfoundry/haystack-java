@@ -155,4 +155,11 @@ public abstract class HOp
     if (format == null) format = HGridFormat.find("text/plain", true);
     return format;
   }
+
+  HRef[] gridToIds(HGrid grid)
+  {
+    HRef[] ids = new HRef[grid.numRows()];
+    for (int i=0; i<ids.length; ++i) ids[i] = grid.row(i).id();
+    return ids;
+  }
 }
