@@ -186,10 +186,11 @@ public class HClient extends HProj
 //////////////////////////////////////////////////////////////////////////
 
   /**
-   * Read history time-series data for given record and time range.  Raise
-   * exception if id does not map to a record with the required tags "his"
-   * or "tz".  The range may be either a String or a HDateTimeRange.  If
-   * HTimeDateRange is passed then must match the timezone configured on
+   * Read history time-series data for given record and time range. The
+   * items returned are exclusive of start time and inclusive of end time.
+   * Raise exception if id does not map to a record with the required tags
+   * "his" or "tz".  The range may be either a String or a HDateTimeRange.
+   * If HTimeDateRange is passed then must match the timezone configured on
    * the history record.  Otherwise if a String is passed, it is resolved
    * relative to the history record's timezone.
    */
@@ -202,6 +203,19 @@ public class HClient extends HProj
     HGrid req = b.toGrid();
     HGrid res = call("hisRead", req);
     return HHisItem.gridToItems(res);
+  }
+
+  /**
+   * Write a set of history time-series data to the given point record.
+   * The record must already be defined and must be properly tagged as
+   * a historized point.  The timestamp timezone must exactly match the
+   * point's configured "tz" tag.  If duplicate or out-of-order items are
+   * inserted then they must be gracefully merged.
+   */
+  public void hisWrite(HRef id, HHisItem[] items)
+  {
+    HGrid req = HGridBuilder.hisItemsToGrid(id, items);
+    call("hisWrite", req);
   }
 
 //////////////////////////////////////////////////////////////////////////
