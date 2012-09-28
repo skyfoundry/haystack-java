@@ -150,10 +150,15 @@ public class TestDatabase extends HServer
         (HVal)HBool.make(acc.size() % 2 == 0) :
         (HVal)HNum.make(acc.size());
       HDict item = HHisItem.make(ts, val);
-      acc.add(item);
+      if (ts != range.start) acc.add(item);
       ts = HDateTime.make(ts.millis() + 15*60*1000);
     }
     return (HHisItem[])acc.toArray(new HHisItem[acc.size()]);
+  }
+
+  public void onHisWrite(HDict rec, HHisItem[] items)
+  {
+    throw new RuntimeException("Unsupported");
   }
 
   HashMap recs = new HashMap();

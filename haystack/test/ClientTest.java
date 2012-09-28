@@ -35,6 +35,7 @@ public class ClientTest extends Test
     verifyRead();
     verifyEval();
     verifyHisRead();
+    verifyHisWrite();
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -190,10 +191,59 @@ public class ClientTest extends Test
   {
     HDict kw = client.read("kw and siteMeter");
     HHisItem[] his = client.hisRead(kw.id(), "yesterday");
-    //for (int i=0; i<his.length; ++i) System.out.println("  " + his[i]);
+    // for (int i=0; i<his.length; ++i) System.out.println("  " + his[i]);
     verify(his.length > 90);
-    verifyEq(his[20].ts.date, HDate.today().minusDays(1));
+    int last = his.length-1;
+    verifyEq(his[0].ts.date, HDate.today().minusDays(1));
+    verifyEq(his[0].ts.time, HTime.make(0, 15));
+    verifyEq(his[last].ts.date, HDate.today());
+    verifyEq(his[last].ts.time, HTime.make(0, 0));
     verifyEq(((HNum)his[0].val).unit, "kW");
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// His Reads
+//////////////////////////////////////////////////////////////////////////
+
+  void verifyHisWrite() throws Exception
+  {
+    // setup test
+    HDict kw = client.read("kw and not siteMeter");
+    clearHisWrite(kw);
+
+    // create some items
+    HDate date = HDate.make(2010, 6, 7);
+    HTimeZone tz = HTimeZone.make(kw.getStr("tz"));
+    HHisItem[] write = new HHisItem[5];
+    for (int i=0; i<write.length; ++i)
+    {
+      HDateTime ts = HDateTime.make(date, HTime.make(i+1, 0), tz);
+      HVal val = HNum.make(i, "kW");
+      write[i] = HHisItem.make(ts, val);
+    }
+
+    // write and verify
+    client.hisWrite(kw.id(), write);
+    Thread.sleep(200);
+    HHisItem[] read = client.hisRead(kw.id(), "2010-06-07");
+    verifyEq(read.length, write.length);
+    for (int i=0; i<read.length; ++i)
+    {
+      verifyEq(read[i].ts, write[i].ts);
+      verifyEq(read[i].val, write[i].val);
+    }
+
+    // clean test
+    clearHisWrite(kw);
+  }
+
+  private void clearHisWrite(HDict rec)
+  {
+    // existing data and verify we don't have any data for 7 June 20120
+    String expr = "hisClear(@" + rec.id().val + ", 2010-06)";
+    client.eval(expr);
+    HHisItem[] his = client.hisRead(rec.id(), "2010-06-07");
+    verify(his.length == 0);
   }
 
 //////////////////////////////////////////////////////////////////////////

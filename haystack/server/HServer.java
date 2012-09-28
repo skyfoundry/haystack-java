@@ -136,10 +136,11 @@ public abstract class HServer extends HProj
 //////////////////////////////////////////////////////////////////////////
 
   /**
-   * Read history time-series data for given record and time range.  Raise
-   * exception if id does not map to a record with the required tags "his"
-   * or "tz".  The range may be either a String or a HDateTimeRange.  If
-   * HTimeDateRange is passed then must match the timezone configured on
+   * Read history time-series data for given record and time range. The
+   * items returned are exclusive of start time and inclusive of end time.
+   * Raise exception if id does not map to a record with the required tags
+   * "his" or "tz".  The range may be either a String or a HDateTimeRange.
+   * If HTimeDateRange is passed then must match the timezone configured on
    * the history record.  Otherwise if a String is passed, it is resolved
    * relative to the history record's timezone.
    */
@@ -150,13 +151,13 @@ public abstract class HServer extends HProj
 
     // check that entity has "his" tag
     if (rec.missing("his"))
-      throw new UnknownNameException("Entity missing 'his' tag: " + rec.dis());
+      throw new UnknownNameException("Rec missing 'his' tag: " + rec.dis());
 
     // lookup "tz" on entity
     HTimeZone tz = null;
     if (rec.has("tz")) tz = HTimeZone.make(rec.getStr("tz"), false);
     if (tz == null)
-      throw new UnknownNameException("Entity missing or invalid 'tz' tag: " + rec.dis());
+      throw new UnknownNameException("Rec missing or invalid 'tz' tag: " + rec.dis());
 
     // check or parse date range
     HDateTimeRange r = null;
@@ -179,13 +180,59 @@ public abstract class HServer extends HProj
     }
 
     // route to subclass
-    return onHisRead(rec, r);
+    HHisItem[] items = onHisRead(rec, r);
+
+    // check items
+    if (items.length > 0)
+    {
+      if (r.start.millis() >= items[0].ts.millis()) throw new IllegalStateException("start range not met");
+      if (r.end.millis() < items[items.length-1].ts.millis()) throw new IllegalStateException("end range not met");
+    }
+
+    return items;
   }
 
   /**
-   * Implementation hook for onHisRead.
+   * Implementation hook for onHisRead.  The items must be exclusive
+   * of start and inclusive of end time.
    */
   protected abstract HHisItem[] onHisRead(HDict rec, HDateTimeRange range);
+
+  /**
+   * Write a set of history time-series data to the given point record.
+   * The record must already be defined and must be properly tagged as
+   * a historized point.  The timestamp timezone must exactly match the
+   * point's configured "tz" tag.  If duplicate or out-of-order items are
+   * inserted then they must be gracefully merged.
+   */
+  public final void hisWrite(HRef id, HHisItem[] items)
+  {
+    // lookup entity
+    HDict rec = readById(id);
+
+    // check that entity has "his" tag
+    if (rec.missing("his"))
+      throw new UnknownNameException("Entity missing 'his' tag: " + rec.dis());
+
+    // lookup "tz" on entity
+    HTimeZone tz = null;
+    if (rec.has("tz")) tz = HTimeZone.make(rec.getStr("tz"), false);
+    if (tz == null)
+      throw new UnknownNameException("Rec missing or invalid 'tz' tag: " + rec.dis());
+
+    // check tz of items
+    if (items.length == 0) return;
+    for (int i=0; i<items.length; ++i)
+      if (!items[i].ts.tz.equals(tz)) throw new RuntimeException("item.tz != rec.tz: " + items[i].ts.tz + " != " + tz);
+
+    // route to subclass
+    onHisWrite(rec, items);
+  }
+
+  /**
+   * Implementation hook for onHisWrite.
+   */
+  protected abstract void onHisWrite(HDict rec, HHisItem[] items);
 
 //////////////////////////////////////////////////////////////////////////
 // Fields
