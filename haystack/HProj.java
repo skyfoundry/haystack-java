@@ -144,4 +144,18 @@ public abstract class HProj
    */
   protected abstract HGrid onReadAll(String filter, int limit);
 
+//////////////////////////////////////////////////////////////////////////
+// Historian
+//////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Read history time-series data for given record and time range.  Raise
+   * exception if id does not map to a record with the required tags "his"
+   * or "tz".  The range may be either a String or a HDateTimeRange.  If
+   * HTimeDateRange is passed then must match the timezone configured on
+   * the history record.  Otherwise if a String is passed, it is resolved
+   * relative to the history record's timezone.
+   */
+  public abstract HHisItem[] hisRead(HRef id, Object range);
+
 }

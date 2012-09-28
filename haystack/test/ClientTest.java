@@ -22,6 +22,10 @@ public class ClientTest extends Test
   final String uri = "http://localhost/api/demo";
   HClient client;
 
+//////////////////////////////////////////////////////////////////////////
+// Main
+//////////////////////////////////////////////////////////////////////////
+
   public void test() throws Exception
   {
     verifyAuth();
@@ -30,7 +34,12 @@ public class ClientTest extends Test
     verifyFormats();
     verifyRead();
     verifyEval();
+    verifyHisRead();
   }
+
+//////////////////////////////////////////////////////////////////////////
+// Auth
+//////////////////////////////////////////////////////////////////////////
 
   void verifyAuth() throws Exception
   {
@@ -42,6 +51,10 @@ public class ClientTest extends Test
     this.client = HClient.open("http://localhost/api/demo", "haystack", "testpass");
   }
 
+//////////////////////////////////////////////////////////////////////////
+// About
+//////////////////////////////////////////////////////////////////////////
+
   void verifyAbout() throws Exception
   {
     HDict r = client.about();
@@ -49,6 +62,10 @@ public class ClientTest extends Test
     verifyEq(r.getStr("productName"), "SkySpark");
     verifyEq(r.getStr("tz"), HTimeZone.DEFAULT.name);
   }
+
+//////////////////////////////////////////////////////////////////////////
+// Ops
+//////////////////////////////////////////////////////////////////////////
 
   void verifyOps() throws Exception
   {
@@ -65,6 +82,10 @@ public class ClientTest extends Test
     verifyGridContains(g, "name", "read");
   }
 
+//////////////////////////////////////////////////////////////////////////
+// Formats
+//////////////////////////////////////////////////////////////////////////
+
   void verifyFormats() throws Exception
   {
     HGrid g = client.formats();
@@ -78,6 +99,10 @@ public class ClientTest extends Test
     verifyGridContains(g, "mime", "text/plain");
     verifyGridContains(g, "mime", "text/zinc");
   }
+
+//////////////////////////////////////////////////////////////////////////
+// Reads
+//////////////////////////////////////////////////////////////////////////
 
   void verifyRead() throws Exception
   {
@@ -121,6 +146,10 @@ public class ClientTest extends Test
     try { client.readByIds(new HRef[] { recA.id(), badId }); fail(); } catch(UnknownRecException e) { verifyException(e); }
   }
 
+//////////////////////////////////////////////////////////////////////////
+// Eval
+//////////////////////////////////////////////////////////////////////////
+
   void verifyEval() throws Exception
   {
     HGrid g = client.eval("today()");
@@ -152,6 +181,24 @@ public class ClientTest extends Test
     verifyEq(grids[1].isErr(), true);
     try { client.evalAll(new String[] { "today()", "readById(@badBadBadId)"}); fail(); } catch (CallErrException e) { verifyException(e); }
   }
+
+//////////////////////////////////////////////////////////////////////////
+// His Reads
+//////////////////////////////////////////////////////////////////////////
+
+  void verifyHisRead() throws Exception
+  {
+    HDict kw = client.read("kw and siteMeter");
+    HHisItem[] his = client.hisRead(kw.id(), "yesterday");
+    //for (int i=0; i<his.length; ++i) System.out.println("  " + his[i]);
+    verify(his.length > 90);
+    verifyEq(his[20].ts.date, HDate.today().minusDays(1));
+    verifyEq(((HNum)his[0].val).unit, "kW");
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// Utils
+//////////////////////////////////////////////////////////////////////////
 
   void verifyGridContains(HGrid g, String col, String val) { verifyGridContains(g, col, HStr.make(val)); }
   void verifyGridContains(HGrid g, String col, HVal val)

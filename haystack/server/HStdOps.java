@@ -151,34 +151,10 @@ class HisReadOp extends HOp
   {
     if (req.isEmpty()) throw new Exception("Request has no rows");
     HRow row = req.row(0);
-
-    // lookup entity
-    HRef id = row.getRef("id");
+    HRef id = row.id();
+    String range = row.getStr("range");
     HDict rec = db.readById(id);
-
-    // check that entity has "his" tag
-    if (rec.missing("his"))
-      throw new Exception("Entity missing 'his' tag: " + rec.dis());
-
-    // lookup "tz" on entity
-    HTimeZone tz = null;
-    if (rec.has("tz")) tz = HTimeZone.make(rec.getStr("tz"), false);
-    if (tz == null)
-      throw new Exception("Entity missing 'tz' tag: " + rec.dis());
-
-    // parse date range
-    String rangeStr = row.getStr("range");
-    HDateTimeRange range = null;
-    try
-    {
-      range = HDateTimeRange.make(rangeStr, tz);
-    }
-    catch (ParseException e)
-    {
-      throw new Exception("Invalid date time range: " + rangeStr);
-    }
-
-    // return results
-    return HGridBuilder.hisItemsToGrid(rec, db.hisRead(rec, range));
+    HHisItem[] items = db.hisRead(id, range);
+    return HGridBuilder.hisItemsToGrid(rec, items);
   }
 }

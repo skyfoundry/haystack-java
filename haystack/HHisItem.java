@@ -17,6 +17,20 @@ import java.util.NoSuchElementException;
  */
 public class HHisItem extends HDict
 {
+  /** Map HGrid to HHisItem[].  Grid must have ts and val columns. */
+  public static HHisItem[] gridToItems(HGrid grid)
+  {
+    HCol ts  = grid.col("ts");
+    HCol val = grid.col("val");
+    HHisItem[] items = new HHisItem[grid.numRows()];
+    for (int i=0; i<items.length; ++i)
+    {
+      HRow row = grid.row(i);
+      items[i] = new HHisItem((HDateTime)row.get(ts, true), row.get(val, false));
+    }
+    return items;
+  }
+
   /** Construct from timestamp, value */
   public static HHisItem make(HDateTime ts, HVal val)
   {
