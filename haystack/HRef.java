@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2011, SkyFoundry, LLC
+// Copyright (c) 2011, Brian Frank
 // Licensed under the Academic Free License version 3.0
 //
 // History:
