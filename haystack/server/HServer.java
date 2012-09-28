@@ -136,13 +136,50 @@ public abstract class HServer extends HProj
 //////////////////////////////////////////////////////////////////////////
 
   /**
-   * Given a history record, return all the timestamp/value history
-   * samples for the given inclusive timerange.  If no samples are available
-   * for the range return an empty array.
+   * Read history time-series data for given record and time range.  Raise
+   * exception if id does not map to a record with the required tags "his"
+   * or "tz".  The range may be either a String or a HDateTimeRange.  If
+   * HTimeDateRange is passed then must match the timezone configured on
+   * the history record.  Otherwise if a String is passed, it is resolved
+   * relative to the history record's timezone.
    */
-  public final HHisItem[] hisRead(HDict rec, HDateTimeRange range)
+  public final HHisItem[] hisRead(HRef id, Object range)
   {
-    return onHisRead(rec, range);
+    // lookup entity
+    HDict rec = readById(id);
+
+    // check that entity has "his" tag
+    if (rec.missing("his"))
+      throw new UnknownNameException("Entity missing 'his' tag: " + rec.dis());
+
+    // lookup "tz" on entity
+    HTimeZone tz = null;
+    if (rec.has("tz")) tz = HTimeZone.make(rec.getStr("tz"), false);
+    if (tz == null)
+      throw new UnknownNameException("Entity missing or invalid 'tz' tag: " + rec.dis());
+
+    // check or parse date range
+    HDateTimeRange r = null;
+    if (range instanceof HDateTimeRange)
+    {
+      r = (HDateTimeRange)range;
+      if (!r.start.tz.equals(tz))
+        throw new RuntimeException("range.tz != rec: " + r.start.tz + " != " + tz);
+    }
+    else
+    {
+      try
+      {
+        r = HDateTimeRange.make(range.toString(), tz);
+      }
+      catch (ParseException e)
+      {
+        throw new ParseException("Invalid date time range: " + range);
+      }
+    }
+
+    // route to subclass
+    return onHisRead(rec, r);
   }
 
   /**

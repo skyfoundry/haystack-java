@@ -119,6 +119,7 @@ public class HGridBuilder
   public static HGrid hisItemsToGrid(HDict rec, HHisItem [] items)
   {
     HGridBuilder b = new HGridBuilder();
+    b.meta.add("id", rec.id());
     b.addCol("ts");
     b.addCol("val");
     for (int i=0; i<items.length; ++i)
