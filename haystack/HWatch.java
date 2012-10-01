@@ -27,6 +27,11 @@ public abstract class HWatch
   public abstract String dis();
 
   /**
+   * Lease period or null if watch has not been opened yet.
+   */
+  public abstract HNum lease();
+
+  /**
    * Convenience for "sub(ids, true)"
    */
   public final HGrid sub(HRef[] ids){ return sub(ids, true); }

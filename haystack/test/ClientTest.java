@@ -222,6 +222,7 @@ public class ClientTest extends Test
     verify(client.watch(w.id()) == w);
     verifyEq(client.watches().length, 1);
     verify(client.watches()[0] == w);
+    verifyEq(w.lease().millis(), 60000L);
 
     // poll for changes (should be none yet)
     HGrid poll = w.pollChanges();
