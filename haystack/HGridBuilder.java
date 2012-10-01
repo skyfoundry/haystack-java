@@ -70,7 +70,10 @@ public class HGridBuilder
     // if all dicts were null, handle special case
     // by creating a dummy column
     if (colsByName.size() == 0)
+    {
       colsByName.put("empty", "empty");
+      b.addCol("empty");
+    }
 
     // now map rows
     int numCols = b.cols.size();
