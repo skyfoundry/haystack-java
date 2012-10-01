@@ -13,6 +13,8 @@ import haystack.*;
 
 /**
  * HZincWriter is used to write grids in the Zinc format
+ *
+ * @see <a href='http://project-haystack.org/doc/Zinc'>Project Haystack</a>
  */
 public class HZincWriter extends HGridWriter
 {

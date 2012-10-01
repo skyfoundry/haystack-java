@@ -15,6 +15,8 @@ import java.util.HashMap;
 /**
  * HTimeZone handles the mapping between Haystack timezone
  * names and Java timezones.
+ *
+ * @see <a href='http://project-haystack.org/doc/TimeZones'>Project Haystack</a>
  */
 public final class HTimeZone
 {

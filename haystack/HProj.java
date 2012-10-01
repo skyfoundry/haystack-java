@@ -20,6 +20,8 @@ import haystack.io.*;
 /**
  * HProj is the common interface for HClient and HServer to provide
  * access to a database tagged entity records.
+ *
+ * @see <a href='http://project-haystack.org/doc/TagModel'>Project Haystack</a>
  */
 public abstract class HProj
 {

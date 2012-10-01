@@ -11,6 +11,8 @@ import java.text.*;
 
 /**
  * HNum wraps a 64-bit floating point number and optional unit name.
+ *
+ * @see <a href='http://project-haystack.org/doc/TagModel#tagKinds'>Project Haystack</a>
  */
 public class HNum extends HVal
 {

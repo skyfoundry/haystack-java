@@ -13,6 +13,8 @@ import java.util.TimeZone;
 
 /**
  * HDateTime models a timestamp with a specific timezone.
+ *
+ * @see <a href='http://project-haystack.org/doc/TagModel#tagKinds'>Project Haystack</a>
  */
 public class HDateTime extends HVal
 {

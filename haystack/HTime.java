@@ -12,6 +12,8 @@ import haystack.io.HZincReader;
 
 /**
  * HTime models a time of day tag value.
+ *
+ * @see <a href='http://project-haystack.org/doc/TagModel#tagKinds'>Project Haystack</a>
  */
 public class HTime extends HVal
 {

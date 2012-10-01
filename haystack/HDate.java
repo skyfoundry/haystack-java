@@ -12,6 +12,8 @@ import haystack.io.HZincReader;
 
 /**
  * HDate models a date (day in year) tag value.
+ *
+ * @see <a href='http://project-haystack.org/doc/TagModel#tagKinds'>Project Haystack</a>
  */
 public class HDate extends HVal
 {

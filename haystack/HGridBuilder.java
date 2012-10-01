@@ -12,6 +12,8 @@ import java.util.*;
 
 /**
  * HGridBuilder is used to construct an immutable HGrid instance.
+ *
+ * @see <a href='http://project-haystack.org/doc/Grids'>Project Haystack</a>
  */
 public class HGridBuilder
 {

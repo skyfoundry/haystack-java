@@ -20,6 +20,8 @@ import haystack.*;
  * <li>cells containing the delimiter, '"' double quote, or
  *     newline are quoted; quotes are escaped as with two quotes</li>
  * </ul>
+ *
+ * @see <a href='http://project-haystack.org/doc/Csv'>Project Haystack</a>
  */
 public class HCsvWriter extends HGridWriter
 {

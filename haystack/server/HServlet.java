@@ -17,6 +17,8 @@ import haystack.*;
 /**
  * HServlet implements the haystack HTTP REST API for
  * querying entities and history data.
+ *
+ * @see <a href='http://project-haystack.org/doc/Rest'>Project Haystack</a>
  */
 public class HServlet extends HttpServlet
 {

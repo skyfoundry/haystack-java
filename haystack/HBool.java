@@ -9,6 +9,8 @@ package haystack;
 
 /**
  * HBool defines singletons for true/false tag values.
+ *
+ * @see <a href='http://project-haystack.org/doc/TagModel#tagKinds'>Project Haystack</a>
  */
 public class HBool extends HVal
 {
