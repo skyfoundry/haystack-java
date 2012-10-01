@@ -253,6 +253,7 @@ public class HClient extends HProj
     if (w.id == null)
     {
       w.id = res.meta().getStr("watchId");
+      w.lease = (HNum)res.meta().get("lease");
       watches.put(w.id, w);
     }
 
@@ -337,6 +338,7 @@ public class HClient extends HProj
   {
     HClientWatch(HClient c, String d) { client = c; dis = d; }
     public String id() { return id; }
+    public HNum lease() { return lease; }
     public String dis() { return dis; }
     public HGrid sub(HRef[] ids, boolean checked) { return client.watchSub(this, ids, checked); }
     public void unsub(HRef[] ids) { client.watchUnsub(this, ids); }
@@ -347,6 +349,7 @@ public class HClient extends HProj
     final HClient client;
     final String dis;
     String id;
+    HNum lease;
     boolean closed;
   }
 

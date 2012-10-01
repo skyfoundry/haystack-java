@@ -133,6 +133,21 @@ public class HNum extends HVal
     return s.toString();
   }
 
+  /**
+   * Get this number as a duration of milliseconds.
+   * Raise IllegalStateException if the unit is not a duration unit.
+   */
+  public long millis()
+  {
+    String u = this.unit;
+    if (u == null) u = "null";
+    if (u.equals("ms")  || u.equals("millisecond")) return (long)val;
+    if (u.equals("s")   || u.equals("sec") || u.equals("millisecond")) return (long)(val*1000.0);
+    if (u.equals("min") || u.equals("minute")) return (long)(val*1000.0*60.0);
+    if (u.equals("h")   || u.equals("hr") || u.equals("minute")) return (long)(val*1000.0*60.0*60.0);
+    throw new IllegalStateException("Invalid duration unit: " + u);
+  }
+
   private static boolean[] unitChars = new boolean[128];
   static
   {
