@@ -58,33 +58,25 @@ table { padding-left: 3em; }
 <h1 class='title'>Haystack Java Toolkit</h1>
 <h2 id='overview'>Overview </h2>
 
-<p><a href='http://project-haystack.org/'>Project Haystack</a> defines a tagging library for modeling building systems such as HVAC, lighting, and energy equipment.  This toolkit provides a simple, small Java API for working with haystack tags:</p>
+<p><a href='http://project-haystack.org/'>Project Haystack</a> defines a tagging model and REST API for sensor systems such as HVAC, lighting, and energy equipment. This toolkit provides a simple, small Java API for working with haystack:</p>
 
 <ul>
-<li><strong>Modeling</strong>: simple APIs for modeling tags and their scalar values.</li>
+<li><strong>Modeling</strong>: APIs for modeling tags values and grids</li>
 
-<li><strong>String Serialization</strong>: encoding and decoding tags using simple plain text format</li>
+<li><strong>Formats</strong>: encoding and decoding of grids using Zinc, CSV, etc</li>
 
-<li><strong>Query</strong>: simple query language AST and parser</li>
+<li><strong>Filter</strong>: Haystack query language AST and parser</li>
 
-<li><strong>Servlet</strong>: servlet with simple Rest HTTP API to query entities by their tags and access historical time-series data</li>
+<li><strong>Client</strong>: full client side implementation of HTTP REST API</li>
+
+<li><strong>Server</strong>: servlet and server side implementation of HTTP REST API with hooks to glue to specific database</li>
 </ul>
 
 <p>All code is written to work with Java 1.4 and J2ME (no use of newer Java features such as generics).  This code is all open sourced under the Academic Free License version 3.0 (same license used as Project Haystack).</p>
 
-<h2 id='model'>Model APIs </h2>
+<h2 id='vals'>HVal APIs </h2>
 
-<p>The API is designed to model tags using the following key classes:</p>
-
-<ul>
-<li><code>HDict</code>: immutable map of name/value tag pairs</li>
-
-<li><code>HVal</code>: base class for tag value types</li>
-
-<li><code>HDictBuilder</code>: builder used to construct an HDict instance</li>
-</ul>
-
-<p>The <code>HVal</code> subclasses for each of the haystack tag types:</p>
+<p>The <code>HVal</code> class is the common base class for classes used to model the scalar values of <a href='http://project-haystack.org/doc/TagModel#tagKinds'>tag kinds</a>:</p>
 
 <ul>
 <li><code>HMarker</code>: singleton value for marker tag</li>
@@ -104,9 +96,15 @@ table { padding-left: 3em; }
 <li><code>HTime</code>: time as hour, minute, second, milliseconds</li>
 
 <li><code>HDateTime</code>: date time with timezone offset and timezone name</li>
+
+<li><code>HBin</code>: MIME typed binary blob</li>
 </ul>
 
-<p>The <code>HDict</code> and <code>HVal</code> classes are immutable, once an instance is constructed it cannot be modified.  The <code>HDictBuilder</code> class is used to build an immutable <code>HDict</code> instance:</p>
+<p>All <code>HVal</code> classes are immutable, once created they cannot be modified.</p>
+
+<h2 id='dict'>HDict API </h2>
+
+<p>The <code>HDict</code> class models a set of tag name/value pairs.  The tag names are modeled as <code>String</code> and values as <code>HVal</code>.  The <code>HDict</code> class is immutable, once an instance is created it cannot be modified.  Use <code>HDictBuilder</code> to build an immutable <code>HDict</code> instance:</p>
 
 <pre>// using builder API
 HDict tags = new HDictBuilder()
@@ -114,10 +112,7 @@ HDict tags = new HDictBuilder()
                    .add("area", 13500)
                    .add("built", HDate.make(1970,6,3))
                    .add("site")
-                   .toDict();
-
-// if performance isn't critical, just use string
-HDict tags = HDict.read("dis:\"Building A\", area:13500, built: 1970-06-03, site");</pre>
+                   .toDict();</pre>
 
 <p>Once an instance is created, you can query for the tags using the <code>HDict.get</code> method or iterate with <code>HDict.iterator</code> method:</p>
 
@@ -133,220 +128,70 @@ for (Iterator it = tags.iterator(); it.hasNext(); )
   HVal val    = (HVal)e.getValue();
 }</pre>
 
-<h2 id='format'>Plaintext Format </h2>
+<h2 id='grid'>HGrid API </h2>
 
-<p>The toolkit supports a simple plaintext format for serializing and deserializing tags to/from string.  This format is designed to be easy to read/write by humans but is also extremely efficient for serializing tags between machines.</p>
-
-<p>The basic format follows these rules:</p>
+<p>The <code>HGrid</code> class models a <a href='http://project-haystack.org/doc/Grids'>Haystack grid</a>. A grid is composed</p>
 
 <ul>
-<li>Encode each entity's tags on a single line separated by newline "\n" character</li>
+<li>metadata tags modeled via <code>HDict</code></li>
 
-<li>Encode tags as comma separated list of "name:val" pairs</li>
+<li>a set of one or more named columns modeld via <code>HCol</code></li>
 
-<li>Marker value is encoded as "name" omitting ":val"</li>
-
-<li>Bool value is encoded as "true" or "false"</li>
-
-<li>Num value is encoded as Java-styled floating point number with optional <a href='http://project-haystack.org/doc/Units'>unit name</a></li>
-
-<li>Str value is encoded as string literal using Java-styled backslash escapes</li>
-
-<li>Uri value is encoded with <code>`</code> backticks</li>
-
-<li>Ref value is encoded inside "@xxxx" followed by optional display name as string literal</li>
-
-<li>Date value is encoded in ISO 8601 as "YYYY-MM-DD"</li>
-
-<li>Time value is encoded in ISO 8601 as "hh:mm:ss[.FFF]"</li>
-
-<li>DateTime value is encoded in ISO 8601 as "YYYY-MM-DD'T'hh:mm:ss[.FFF]zz tz" where "tz" is a standard <a href='http://project-haystack.org/doc/TimeZones'>timezone name</a></li>
-
-<li>Must always use UTF-8 for input/output</li>
+<li>zero or more rows modeled by the <code>HRow</code> class which subclasses <code>HDict</code> so you can use it anywhere a <code>HDict</code> is expected.</li>
 </ul>
 
-<p>Here are some simple examples:</p>
+<p>The <code>HGrid</code> class is immutable, once constructed it cannot be modified. Use the <code>HGridBuilder</code> class to construct a grid:</p>
 
-<pre>id:@site-a, dis:"Site-A", site, built: 1970-06-03, occStart: 09:30:00
-dis:"Site-A RTU-1", ahu, equip, siteRef:@site-a "Site A"
-dis:"Damper", point, val:10%, lastRead:2011-06-08T17:07:34-04:00 New_York</pre>
+<pre>HGridBuilder b = new HGridBuilder();
+b.addCol("id");
+b.addCol("dis");
+b.addCol("area");
+b.addRow(new HVal[] { HRef.make("a"), HStr.make("Alpha"), HNum.make(1200) });
+b.addRow(new HVal[] { HRef.make("b"), HStr.make("Beta"),  null });
+HGrid grid = b.toGrid();</pre>
 
-<p>Formal BNF grammer of the string encoding:</p>
+<p>Helper methods on <code>HGridBuilder</code> can also be used to construct grids from a <code>HDict</code> or <code>HDict[]</code>.</p>
 
-<pre>// tags
-&lt;tags>        := &lt;tag> (&lt;sp> "," &lt;sp> &lt;tag>)*
-&lt;tag>         := &lt;name> [":" &lt;val>]
-&lt;val>         := &lt;bool> | &lt;num> | &lt;str> | &lt;uri> | &lt;ref> | &lt;date> | &lt;time> | &lt;dateTime>
-&lt;sp>          := 0x20 space
+<p>The following snippets illustrate accessing grid structure:</p>
 
-// name identifiers
-&lt;name>        :=  &lt;alphaLo> (&lt;alphaLo> | &lt;alphaHi> | &lt;digit> | '_')*
-&lt;alphaLo>     := ('a' - 'z')
-&lt;alphaHi>     := ('A' - 'Z')
-&lt;digit>       := ('0' - '9')
-&lt;digits>      := &lt;digit> (&lt;digit> | "_")*
+<pre>// check grid metadata for tag
+grid.meta().has("err");
 
-// bool value
-&lt;bool>        := "true" | "false"
+// lookup column by name (checked)
+HCol col = grid.col("id");
 
-// num value
-&lt;number>      := &lt;decimal> | "INF" | "-INF" | "NaN"
-&lt;decimal>     := ["-"] &lt;digits> ["." &lt;digits>] [&lt;exp>] [&lt;unit>]
-&lt;exp>         := ("e"|"E") ["+"|"-"] &lt;digits>
-&lt;unit>        := &lt;unitChar>*
-&lt;unitChar>    := &lt;alpha> | "%" | "_" | "/" | "$" | any char > 128
+// iterate columns
+for (int i=0; i&lt;grid.numCols(); ++i)
+{
+  HCol col = grid.col(i);
+}
 
-// str value
-&lt;str>         := '"' &lt;strChar>* '"'
-&lt;strChar>     := &lt;unicodeChar> | &lt;escapeChar>
-&lt;unicodeChar> := any 16-bit Unicode char >= 0x20 and not "$"
-&lt;escapeChar>  := "\b" | "\f" | "\n" | "\r" | "\r" | "\t" | "\"" |
-                 "\$" | "\'" | "\`" | "\\" |
-                 "\u" &lt;hexDigit> &lt;hexDigit> &lt;hexDigit> &lt;hexDigit>
-&lt;hexDigit>    := ('a'-'f') | ('A'-'F') | &lt;digit>
+// iterate rows
+for (int i=0; i&lt;grid.numRows(); ++i)
+{
+  HRow row = grid.row(i);
+}</pre>
 
-// uri value
-&lt;uri>         := '`' &lt;uriChar>* '`'
-&lt;uriChar>     := any ASCII char between 0x20 and 0x7f except "`" 0x60
+<h2 id='client'>HClient API </h2>
 
-// ref value
-&lt;ref>         := "@" &lt;refChar>* [ " " &lt;str> ]
-&lt;refChar>     := &lt;alpha> | &lt;digit> | "_" | ":" | "-" | "."
+<p>The <code>HClient</code> class is used to communicate over HTTP to a Haystack server via the <a href='http://project-haystack.org/doc/Rest'>REST API</a>.</p>
 
-// binary
-&lt;bin>         := "Bin(" &lt;binChar>* ")"
-&lt;binChar>     := any char between 0x20 and 0x7F except ")"
+<pre>// open new client
+HClient client = HClient.open("http://localhost/api/demo", "user", "pass");
 
-// date/time values
-&lt;date>        := YYYY-MM-DD
-&lt;time>        := hh:mm:ss[.FFF]
-&lt;dateTime>    := YYYY-MM-DD'T'h:mm:ss[.FFF]zz tz</pre>
+// query server about info
+client.about();
 
-<h2 id='query'>Query Language </h2>
+// read all records that have "site" tag
+HGrid sites = client.readAll("site");</pre>
 
-<p>The toolkit includes a simple tag based query modeled by the <code>HQuery</code> class. You can parse a query using <code>read</code> and use <code>include</code> to check if a <code>HDict</code> instance matches the query:</p>
+<h2 id='server'>HServer API </h2>
 
-<pre>HQuery query = HQuery.read("site and area > 15000");
-boolean match = query.include(db, rec);</pre>
+<p>The <code>HServer</code> class provides infrastructure to add server side support for the <a href='http://project-haystack.org/doc/Rest'>Haystack REST API</a>.</p>
 
-<p>The simple usage is just a tag name which matches any record that has the tag (regardless of its value):</p>
+<p>The <code>HServlet</code> class is designed to plug into a Java servlet namespace. It handles the basic URI routing, decoding, and error handling.</p>
 
-<pre>site  // query any record with the "site" tag</pre>
+<p>The <code>HStdOps</code> class defines all the <a href='http://project-haystack.org/doc/Ops'>standard operations</a> specified by Haystack.  You can also create your own operations by subclassing <code>HOp</code>.</p>
 
-<p>To match a tag value you can use any of the equality or comparison operators:</p>
-
-<pre>geoPostalCode == "23220"   // equal to
-geoPostalCode != "23220"   // not equal to
-temp &lt; 75                  // less than
-temp &lt;= 75                 // less than or equal to
-temp > 75                  // greater than
-temp >= 75                 // greater than or equal to</pre>
-
-<p>Compare operators can use all the standard scalar from the <a href='#format'>plain text</a> format.</p>
-
-<p>You can combine filters using <code>and</code>, <code>or</code>, or <code>not</code>:</p>
-
-<pre>site or equip             // has site or equip tag
-equip and hvac            // has equip and hvac tag
-equip and not ahu         // has equip tag, but not the ahu tag</pre>
-
-<p>You use the <code>-></code> to dereference a tag which has a Ref value.  For example if your <code>equip</code> rec has a <code>siteRef</code> tag that references the site, you can query for equip in a given city such as:</p>
-
-<pre>equip and siteRef->geoCity == "Chicago"</pre>
-
-<p>The way to read the above expression is match a record if:</p>
-
-<ul>
-<li>it has equip tag</li>
-
-<li>and it has a siteRef tag which is a Ref</li>
-
-<li>and what the siteRef tag points to has the geoCity tag</li>
-
-<li>and that the site's geoCity tag is equal to "Chicago"</li>
-</ul>
-
-<p>The formal grammar of the query langauge:</p>
-
-<pre>&lt;query>      :=  &lt;predicate>
-&lt;predicate>  :=  &lt;condOr>
-&lt;condOr>     :=  &lt;condAnd> ("or" &lt;condAnd>)*
-&lt;condAnd>    :=  &lt;term> ("and" &lt;term>)*
-&lt;term>       :=  &lt;parens> | &lt;has> | &lt;missing> | &lt;cmp>
-&lt;parens>     :=  "(" &lt;predicate> ")"
-&lt;has>        :=  &lt;path>
-&lt;missing>    :=  "not" &lt;path>
-&lt;cmp>        :=  &lt;path> &lt;cmpOp> &lt;val>
-&lt;cmpOp>      :=  "=" | "!=" | "&lt;" | "&lt;=" | ">" | ">="
-&lt;path>       :=  &lt;name> ("->" &lt;name>)*
-&lt;val>        :=  same as plain text format</pre>
-
-<h2 id='rest'>Rest API </h2>
-
-<p>The <code>HServlet</code> class provides a Java Servlet that can be used to expose Haystack tagged data over a simple HTTP API.  The following URIs are published:</p>
-
-<pre>GET  {haystack}/about
-GET  {haystack}/query?{query}
-POST {haystack}/query
-GET  {haystack}/his/{id}?{range}</pre>
-
-<p>For all URIs you can pass the query string as part of the URI query after the <code>?</code>, but it must be correctly encoded.  Or you can use a POST request and pass the query as the request content.</p>
-
-<h3 id='restAbout'>Rest About </h3>
-
-<p>Return server meta which includes:</p>
-
-<pre>haystackVersion: "1.0"
-serverName: Str
-serverBootTime: DateTime
-serverTime: DateTime
-productName: Str
-productVersion: Str
-productUri: Uri
-moduleName: Str
-moduleVersion: Str
-moduleUri: Str
-tz: Str</pre>
-
-<h3 id='restQuery'>Rest Query </h3>
-
-<p>A query request takes a tag query in the query string or as the POST content which.  The query string must adhere to <a href='#query'>HQuery grammar</a>. Any matching entities in the server are returned in plain text as encoded tags.  Every entity must have an <code>id</code> tag.</p>
-
-<p>Error conditions:</p>
-
-<ul>
-<li>400: if query is not valid query format</li>
-</ul>
-
-<h3 id='restHis'>Rest His </h3>
-
-<p>A his request takes an entity id and a date range and returns history items as ts, val pair encoded tags.  The date range should match the syntax supported by <code>HDateTimeRange</code>:</p>
-
-<ul>
-<li>"today"</li>
-
-<li>"yesterday"</li>
-
-<li>"{date}"</li>
-
-<li>"{date},{date}"</li>
-
-<li>"{dateTime},{dateTime}"</li>
-
-<li>"{dateTime}"  // anything after given timestamp</li>
-</ul>
-
-<p>Date based ranges are always inferred to be from midnight of starting date to midnight of the day after ending date using the timezone of the his entity being queried.</p>
-
-<p>Error conditions:</p>
-
-<ul>
-<li>404: if id does not map to known entity</li>
-
-<li>404: if entity does implement the <code>his</code> tag</li>
-
-<li>404: if entity does define a valid <code>tz</code> tag</li>
-
-<li>400: if date range is not properly formatted</li>
-</ul>
+<p>The <code>HServlet</code> class defines the hooks for gluing the toolkit into your native database.</p>
 </body></html>
