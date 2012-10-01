@@ -15,6 +15,8 @@ import haystack.io.*;
 
 /**
  * HStdOps defines the standard operations available.
+ *
+ * @see <a href='http://project-haystack.org/doc/Ops'>Project Haystack</a>
  */
 public class HStdOps
 {

@@ -11,6 +11,8 @@ import haystack.*;
 
 /**
  * HGridReader is base class for reading grids from an input stream.
+ *
+ * @see <a href='http://project-haystack.org/doc/Rest#contentNegotiation'>Project Haystack</a>
  */
 public abstract class HGridReader
 {

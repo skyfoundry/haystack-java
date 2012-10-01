@@ -14,6 +14,8 @@ import java.util.Map.Entry;
 
 /**
  * HRow is a row in a HGrid.  It implements the HDict interface also.
+ *
+ * @see <a href='http://project-haystack.org/doc/Grids'>Project Haystack</a>
  */
 public class HRow extends HDict
 {

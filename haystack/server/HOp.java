@@ -17,6 +17,8 @@ import haystack.io.*;
 /**
  * HOp is the base class for server side operations exposed by the REST API.
  * All methods on HOp must be thread safe.
+ *
+ * @see <a href='http://project-haystack.org/doc/Ops'>Project Haystack</a>
  */
 public abstract class HOp
 {

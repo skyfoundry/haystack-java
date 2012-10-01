@@ -13,6 +13,8 @@ import haystack.*;
 /**
  * HServer is the interface between HServlet and a database of
  * tag based entities.  All methods on HServer must be thread safe.
+ *
+ * @see <a href='http://project-haystack.org/doc/Rest'>Project Haystack</a>
  */
 public abstract class HServer extends HProj
 {

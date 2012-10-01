@@ -14,6 +14,8 @@ import java.util.NoSuchElementException;
 
 /**
  * HHisItem is used to model a timestamp/value pair
+ *
+ * @see <a href='http://project-haystack.org/doc/Ops#hisRead'>Project Haystack</a>
  */
 public class HHisItem extends HDict
 {

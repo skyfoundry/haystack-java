@@ -10,6 +10,8 @@ package haystack;
 /**
  * HVal is the base class for representing haystack tag
  * scalar values as an immutable class.
+ *
+ * @see <a href='http://project-haystack.org/doc/TagModel#tagKinds'>Project Haystack</a>
  */
 public abstract class HVal implements Comparable
 {

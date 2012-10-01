@@ -13,6 +13,8 @@ import java.util.Iterator;
 
 /**
  * HDictBuilder is used to construct an immutable HDict instance.
+ *
+ * @see <a href='http://project-haystack.org/doc/TagModel#tags'>Project Haystack</a>
  */
 public class HDictBuilder
 {

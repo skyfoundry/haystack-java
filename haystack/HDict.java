@@ -14,6 +14,8 @@ import java.util.Map.Entry;
 /**
  * HDict is an immutable map of name/HVal pairs.  Use HDictBuilder
  * to construct a HDict instance.
+ *
+ * @see <a href='http://project-haystack.org/doc/TagModel#tags'>Project Haystack</a>
  */
 public abstract class HDict
 {

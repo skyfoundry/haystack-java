@@ -8,7 +8,9 @@
 package haystack;
 
 /**
- * HBin models a binary file with a MIME type
+ * HBin models a binary file with a MIME type.
+ *
+ * @see <a href='http://project-haystack.org/doc/TagModel#tagKinds'>Project Haystack</a>
  */
 public class HBin extends HVal
 {

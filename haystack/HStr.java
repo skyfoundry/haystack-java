@@ -11,6 +11,8 @@ import java.util.ArrayList;
 
 /**
  * HStr wraps a java.lang.String as a tag value.
+ *
+ * @see <a href='http://project-haystack.org/doc/TagModel#tagKinds'>Project Haystack</a>
  */
 public class HStr extends HVal
 {

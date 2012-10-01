@@ -14,6 +14,8 @@ import haystack.*;
 
 /**
  * HZincReader reads grids using the Zinc format.
+ *
+ * @see <a href='http://project-haystack.org/doc/Zinc'>Project Haystack</a>
  */
 public class HZincReader extends HGridReader
 {

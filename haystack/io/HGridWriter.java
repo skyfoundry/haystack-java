@@ -11,6 +11,8 @@ import haystack.*;
 
 /**
  * HGridWriter is base class for writing grids to an output stream.
+ *
+ * @see <a href='http://project-haystack.org/doc/Rest#contentNegotiation'>Project Haystack</a>
  */
 public abstract class HGridWriter
 {

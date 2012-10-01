@@ -9,6 +9,8 @@ package haystack;
 
 /**
  * HUri models a URI as a string.
+ *
+ * @see <a href='http://project-haystack.org/doc/TagModel#tagKinds'>Project Haystack</a>
  */
 public class HUri extends HVal
 {

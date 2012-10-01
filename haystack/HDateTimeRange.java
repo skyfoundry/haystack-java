@@ -11,6 +11,8 @@ import haystack.io.HZincReader;
 
 /**
  * HDateTimeRange models a starting and ending timestamp
+ *
+ * @see <a href='http://project-haystack.org/doc/Ops#hisRead'>Project Haystack</a>
  */
 public class HDateTimeRange
 {

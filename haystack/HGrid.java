@@ -16,7 +16,9 @@ import haystack.io.*;
 
 /**
  * HGrid is an immutable two dimension data structure of cols and rows.
- ** Use HGridBuilder to construct a HGrid instance.
+ * Use HGridBuilder to construct a HGrid instance.
+ *
+ * @see <a href='http://project-haystack.org/doc/Grids'>Project Haystack</a>
  */
 public class HGrid
 {

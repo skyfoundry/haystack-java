@@ -9,6 +9,8 @@ package haystack;
 
 /**
  * HMarker is the singleton value for a marker tag.
+ *
+ * @see <a href='http://project-haystack.org/doc/TagModel#tagKinds'>Project Haystack</a>
  */
 public class HMarker extends HVal
 {

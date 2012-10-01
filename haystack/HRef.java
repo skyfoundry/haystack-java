@@ -9,6 +9,8 @@ package haystack;
 
 /**
  * HRef wraps a string reference identifier and optional display name.
+ *
+ * @see <a href='http://project-haystack.org/doc/TagModel#tagKinds'>Project Haystack</a>
  */
 public class HRef extends HVal
 {

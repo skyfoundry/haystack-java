@@ -14,6 +14,8 @@ import java.util.Iterator;
 
 /**
  * HGridFormat models a format used to encode/decode HGrid.
+ *
+ * @see <a href='http://project-haystack.org/doc/Rest#contentNegotiation'>Project Haystack</a>
  */
 public class HGridFormat
 {

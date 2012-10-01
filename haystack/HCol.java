@@ -13,6 +13,8 @@ import java.util.Map.Entry;
 
 /**
  * HCol is a column in a HGrid.
+ *
+ * @see <a href='http://project-haystack.org/doc/Grids'>Project Haystack</a>
  */
 public class HCol
 {

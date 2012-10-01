@@ -19,6 +19,8 @@ import haystack.io.*;
 
 /**
  * HClient manages a logical connection to a HTTP REST haystack server.
+ *
+ * @see <a href='http://project-haystack.org/doc/Rest'>Project Haystack</a>
  */
 public class HClient extends HProj
 {

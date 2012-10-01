@@ -12,6 +12,8 @@ import haystack.io.HZincReader;
 
 /**
  * HFilter models a parsed tag query string.
+ *
+ * @see <a href='http://project-haystack.org/doc/Filters'>Project Haystack</a>
  */
 public abstract class HFilter
 {
