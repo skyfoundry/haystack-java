@@ -216,8 +216,6 @@ public abstract class HServer extends HProj
     if (range instanceof HDateTimeRange)
     {
       r = (HDateTimeRange)range;
-      if (!r.start.tz.equals(tz))
-        throw new RuntimeException("range.tz != rec: " + r.start.tz + " != " + tz);
     }
     else
     {
@@ -230,6 +228,10 @@ public abstract class HServer extends HProj
         throw new ParseException("Invalid date time range: " + range);
       }
     }
+
+    // checking
+    if (!r.start.tz.equals(tz))
+      throw new RuntimeException("range.tz != rec: " + r.start.tz + " != " + tz);
 
     // route to subclass
     HHisItem[] items = onHisRead(rec, r);

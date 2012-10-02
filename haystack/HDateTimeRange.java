@@ -45,7 +45,6 @@ public class HDateTimeRange
     {
       start = new HZincReader(str.substring(0, comma)).readScalar();
       end   = new HZincReader(str.substring(comma+1)).readScalar();
-
     }
 
     // figure out what we parsed for start,end
