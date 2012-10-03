@@ -121,10 +121,10 @@ public class HGridBuilder
   }
 
   /** Convenience to build grid from array of HHisItem */
-  public static HGrid hisItemsToGrid(HRef id, HHisItem [] items)
+  public static HGrid hisItemsToGrid(HDict meta, HHisItem [] items)
   {
     HGridBuilder b = new HGridBuilder();
-    b.meta.add("id", id);
+    b.meta.add(meta);
     b.addCol("ts");
     b.addCol("val");
     for (int i=0; i<items.length; ++i)

@@ -247,8 +247,7 @@ class HisReadOp extends HOp
     HRow row = req.row(0);
     HRef id = row.id();
     String range = row.getStr("range");
-    HHisItem[] items = db.hisRead(id, range);
-    return HGridBuilder.hisItemsToGrid(id, items);
+    return db.hisRead(id, range);
   }
 }
 
