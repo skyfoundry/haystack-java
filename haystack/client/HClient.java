@@ -368,7 +368,7 @@ public class HClient extends HProj
    * the history record.  Otherwise if a String is passed, it is resolved
    * relative to the history record's timezone.
    */
-  public HHisItem[] hisRead(HRef id, Object range)
+  public HGrid hisRead(HRef id, Object range)
   {
     HGridBuilder b = new HGridBuilder();
     b.addCol("id");
@@ -376,7 +376,7 @@ public class HClient extends HProj
     b.addRow(new HVal[] { id, HStr.make(range.toString()) });
     HGrid req = b.toGrid();
     HGrid res = call("hisRead", req);
-    return HHisItem.gridToItems(res);
+    return res;
   }
 
   /**
@@ -388,7 +388,8 @@ public class HClient extends HProj
    */
   public void hisWrite(HRef id, HHisItem[] items)
   {
-    HGrid req = HGridBuilder.hisItemsToGrid(id, items);
+    HDict meta = new HDictBuilder().add("id", id).toDict();
+    HGrid req = HGridBuilder.hisItemsToGrid(meta, items);
     call("hisWrite", req);
   }
 

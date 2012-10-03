@@ -283,16 +283,22 @@ public class ClientTest extends Test
   void verifyHisRead() throws Exception
   {
     HDict kw = client.read("kw and siteMeter");
-    HHisItem[] his = client.hisRead(kw.id(), "yesterday");
-    // for (int i=0; i<his.length; ++i) System.out.println("  " + his[i]);
-    verify(his.length > 90);
-    int last = his.length-1;
-    verifyEq(his[0].ts.date, HDate.today().minusDays(1));
-    verifyEq(his[0].ts.time, HTime.make(0, 15));
-    verifyEq(his[last].ts.date, HDate.today());
-    verifyEq(his[last].ts.time, HTime.make(0, 0));
-    verifyEq(((HNum)his[0].val).unit, "kW");
+    HGrid his = client.hisRead(kw.id(), "yesterday");
+    verifyEq(his.meta().id(), kw.id());
+    verifyEq(ts(his.meta(), "hisStart").date, HDate.today().minusDays(1));
+    verifyEq(ts(his.meta(), "hisEnd").date, HDate.today());
+    verify(his.numRows() > 90);
+    int last = his.numRows()-1;
+    verifyEq(ts(his.row(0)).date, HDate.today().minusDays(1));
+    verifyEq(ts(his.row(0)).time, HTime.make(0, 15));
+    verifyEq(ts(his.row(last)).date, HDate.today());
+    verifyEq(ts(his.row(last)).time, HTime.make(0, 0));
+    verifyEq(numVal(his.row(0)).unit, "kW");
   }
+
+  private HDateTime ts(HDict r, String col) { return (HDateTime)r.get(col); }
+  private HDateTime ts(HDict r) { return (HDateTime)r.get("ts"); }
+  private HNum numVal(HRow r) { return (HNum)r.get("val"); }
 
 //////////////////////////////////////////////////////////////////////////
 // His Reads
@@ -318,12 +324,12 @@ public class ClientTest extends Test
     // write and verify
     client.hisWrite(kw.id(), write);
     Thread.sleep(200);
-    HHisItem[] read = client.hisRead(kw.id(), "2010-06-07");
-    verifyEq(read.length, write.length);
-    for (int i=0; i<read.length; ++i)
+    HGrid read = client.hisRead(kw.id(), "2010-06-07");
+    verifyEq(read.numRows(), write.length);
+    for (int i=0; i<read.numRows(); ++i)
     {
-      verifyEq(read[i].ts, write[i].ts);
-      verifyEq(read[i].val, write[i].val);
+      verifyEq(read.row(i).get("ts"), write[i].ts);
+      verifyEq(read.row(i).get("val"), write[i].val);
     }
 
     // clean test
@@ -335,8 +341,8 @@ public class ClientTest extends Test
     // existing data and verify we don't have any data for 7 June 20120
     String expr = "hisClear(@" + rec.id().val + ", 2010-06)";
     client.eval(expr);
-    HHisItem[] his = client.hisRead(rec.id(), "2010-06-07");
-    verify(his.length == 0);
+    HGrid his = client.hisRead(rec.id(), "2010-06-07");
+    verifyEq(his.numRows(), 0);
   }
 
 //////////////////////////////////////////////////////////////////////////

@@ -196,7 +196,7 @@ public abstract class HServer extends HProj
    * the history record.  Otherwise if a String is passed, it is resolved
    * relative to the history record's timezone.
    */
-  public final HHisItem[] hisRead(HRef id, Object range)
+  public final HGrid hisRead(HRef id, Object range)
   {
     // lookup entity
     HDict rec = readById(id);
@@ -243,7 +243,13 @@ public abstract class HServer extends HProj
       if (r.end.millis() < items[items.length-1].ts.millis()) throw new IllegalStateException("end range not met");
     }
 
-    return items;
+    // build and return result grid
+    HDict meta = new HDictBuilder()
+      .add("id", id)
+      .add("hisStart", r.start)
+      .add("hisEnd", r.end)
+      .toDict();
+    return HGridBuilder.hisItemsToGrid(meta, items);
   }
 
   /**
