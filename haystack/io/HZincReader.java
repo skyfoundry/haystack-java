@@ -487,14 +487,36 @@ public class HZincReader extends HGridReader
   {
     consume(); // opening backtick
     StringBuffer s = new StringBuffer();
-    while (cur != '`')
+
+    while (true)
     {
       if (cur < 0) throw err("Unexpected end of uri literal");
       if (cur == '\n' || cur == '\r') throw err("Unexpected newline in uri literal");
-      s.append((char)cur);
-      consume();
+      if (cur == '`') break;
+      if (cur == '\\')
+      {
+        switch (peek)
+        {
+          case ':': case '/': case '?': case '#':
+          case '[': case ']': case '@': case '\\':
+          case '&': case '=': case ';':
+            s.append((char)cur);
+            s.append((char)peek);
+            consume();
+            consume();
+            break;
+          default:
+            s.append((char)readEscChar());
+            break;
+        }
+      }
+      else
+      {
+        s.append((char)cur);
+        consume();
+      }
     }
-    consume(); // opening backtick
+    consume(); // closing backtick
     return HUri.make(s.toString());
   }
 
