@@ -131,6 +131,7 @@ public class ZincTest extends Test
       "ver:\"2.0\"\n" +
       "foo\n" +
       "`foo$20bar`\n" +
+      "`foo\\`bar`\n" +
       "`file \\#2`\n" +
       "\"$15\"\n",
       null,
@@ -139,6 +140,7 @@ public class ZincTest extends Test
       },
       new HVal[][] {
         new HVal[] {HUri.make("foo$20bar"), },
+        new HVal[] {HUri.make("foo`bar"), },
         new HVal[] {HUri.make("file \\#2"), },
         new HVal[] {HStr.make("$15"), },
       }

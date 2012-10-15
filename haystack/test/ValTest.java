@@ -126,9 +126,11 @@ public class ValTest extends Test
 
     // encoding
     verifyZinc(HUri.make("http://foo.com/f?q"), "`http://foo.com/f?q`");
+    verifyZinc(HUri.make("a$b"), "`a$b`");
+    verifyZinc(HUri.make("a`b"), "`a\\`b`");
+    verifyZinc(HUri.make("a\\?b"), "`a\\?b`");
 
     // errors
-    try { HUri.make("`bad`").toZinc(); fail(); } catch (Exception e) { verifyException(e); }
     try { read("`no end"); fail(); } catch (ParseException e) { verifyException(e); }
     try { read("`new\nline`"); fail(); } catch (ParseException e) { verifyException(e); }
   }
@@ -372,7 +374,7 @@ public class ValTest extends Test
   public void verifyZinc(HVal val, String s)
   {
     // println("  :: " + s);
-    // println("     " + read(s));
+    // println("     " + read(s).toZinc());
     verifyEq(val.toZinc(), s);
     verifyEq(read(s), val);
   }
