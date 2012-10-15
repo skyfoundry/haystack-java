@@ -75,7 +75,7 @@ public class HStr extends HVal
           case '\\':  s.append('\\'); break;
           default:
             s.append('u').append('0').append('0');
-            if (c < 0xf) s.append('0');
+            if (c <= 0xf) s.append('0');
             s.append(Integer.toHexString(c));
         }
       }
