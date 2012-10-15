@@ -54,7 +54,7 @@ public class HUri extends HVal
     for (int i=0; i<val.length(); ++i)
     {
       int c = val.charAt(i);
-      if (c < ' ' || c > 127) throw new IllegalArgumentException("Invalid URI char '" + val + "', char='" + (char)c + "'");
+      if (c < ' ') throw new IllegalArgumentException("Invalid URI char '" + val + "', char='" + (char)c + "'");
       if (c == '`') s.append('\\');
       s.append((char)c);
     }

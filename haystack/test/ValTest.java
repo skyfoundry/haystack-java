@@ -128,7 +128,8 @@ public class ValTest extends Test
     verifyZinc(HUri.make("http://foo.com/f?q"), "`http://foo.com/f?q`");
     verifyZinc(HUri.make("a$b"), "`a$b`");
     verifyZinc(HUri.make("a`b"), "`a\\`b`");
-    verifyZinc(HUri.make("a\\?b"), "`a\\?b`");
+    verifyZinc(HUri.make("http\\:a\\?b"), "`http\\:a\\?b`");
+    verifyZinc(HUri.make("\u01ab.txt"), "`\u01ab.txt`");
 
     // errors
     try { read("`no end"); fail(); } catch (ParseException e) { verifyException(e); }

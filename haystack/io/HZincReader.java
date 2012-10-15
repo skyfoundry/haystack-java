@@ -456,8 +456,6 @@ public class HZincReader extends HGridReader
       case 't':   consume(); return '\t';
       case '"':   consume(); return '"';
       case '$':   consume(); return '$';
-      case '\'':  consume(); return '\'';
-      case '`':   consume(); return '`';
       case '\\':  consume(); return '\\';
     }
 
@@ -472,7 +470,7 @@ public class HZincReader extends HGridReader
       return (n3 << 12) | (n2 << 8) | (n1 << 4) | (n0);
     }
 
-    throw err("Invalid escape sequence");
+    throw err("Invalid escape sequence: \\" + (char)cur);
   }
 
   private int toNibble(int c)
@@ -505,8 +503,14 @@ public class HZincReader extends HGridReader
             consume();
             consume();
             break;
+          case '`':
+            s.append('`');
+            consume();
+            consume();
+            break;
           default:
-            s.append((char)readEscChar());
+            if (peek == 'u' || peek == '\\') s.append((char)readEscChar());
+            else throw err("Invalid URI escape sequence \\" + (char)peek);
             break;
         }
       }
