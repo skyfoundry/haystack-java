@@ -84,6 +84,7 @@ public class HRef extends HVal
     idChars[':'] = true;
     idChars['-'] = true;
     idChars['.'] = true;
+    idChars['~'] = true;
   }
 
 }
