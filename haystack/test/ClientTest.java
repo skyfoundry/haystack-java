@@ -159,7 +159,7 @@ public class ClientTest extends Test
 
     g = client.eval("readAll(ahu)");
     verify(g.numRows() > 0);
-    verifyGridContains(g, "dis", "Carytown RTU-1");
+    verifyGridContains(g, "navName", "RTU-1");
 
     HGrid[] grids = client.evalAll(new String[] { "today()", "[10, 20, 30]", "readAll(site)"});
     verifyEq(grids.length, 3);
