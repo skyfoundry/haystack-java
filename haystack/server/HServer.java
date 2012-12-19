@@ -202,6 +202,59 @@ public abstract class HServer extends HProj
   protected abstract HWatch onWatch(String id);
 
 //////////////////////////////////////////////////////////////////////////
+// Point Writes
+//////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Return priority array for writable point identified by id.
+   * The grid contains 17 rows with following columns:
+   *   - level: number from 1 - 17 (17 is default)
+   *   - levelDis: human description of level
+   *   - val: current value at level or null
+   *   - who: who last controlled the value at this level
+   */
+  public final HGrid pointWriteArray(HRef id)
+  {
+    // lookup entity
+    HDict rec = readById(id);
+
+    // check that entity has "writable" tag
+    if (rec.missing("writable"))
+      throw new UnknownNameException("Rec missing 'writable' tag: " + rec.dis());
+
+    return onPointWriteArray(rec);
+  }
+
+  /**
+   * Write to the given priority array level.
+   */
+  public final void pointWrite(HRef id, int level, HVal val, String who, HNum dur)
+  {
+    // argument checks
+    if (level < 1 || level > 17) throw new IllegalArgumentException("Invalid level 1-17: " + level);
+    if (who == null) throw new IllegalArgumentException("who is null");
+
+    // lookup entity
+    HDict rec = readById(id);
+
+    // check that entity has "writable" tag
+    if (rec.missing("writable"))
+      throw new UnknownNameException("Rec missing 'writable' tag: " + rec.dis());
+
+    onPointWrite(rec, level, val, who, dur);
+  }
+
+  /**
+   * Implementation hook for pointWriteArray
+   */
+  protected abstract HGrid onPointWriteArray(HDict rec);
+
+  /**
+   * Implementation hook for pointWrite
+   */
+  protected abstract void onPointWrite(HDict rec, int level, HVal val, String who, HNum dur);
+
+//////////////////////////////////////////////////////////////////////////
 // History
 //////////////////////////////////////////////////////////////////////////
 
@@ -271,7 +324,7 @@ public abstract class HServer extends HProj
   }
 
   /**
-   * Implementation hook for onHisRead.  The items must be exclusive
+   * Implementation hook for hisRead.  The items must be exclusive
    * of start and inclusive of end time.
    */
   protected abstract HHisItem[] onHisRead(HDict rec, HDateTimeRange range);

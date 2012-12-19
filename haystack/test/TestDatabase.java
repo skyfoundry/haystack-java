@@ -75,11 +75,12 @@ public class TestDatabase extends HServer
       .add("siteRef", site.get("id"))
       .toDict();
     recs.put(dis, equip);
-    addPoint(equip, dis+"-Fan",   null,      "discharge air fan cmd");
-    addPoint(equip, dis+"-Cool",  null,      "cool cmd");
-    addPoint(equip, dis+"-Heat",  null,      "heat cmd");
-    addPoint(equip, dis+"-DTemp", "\u00B0F", "discharge air temp sensor");
-    addPoint(equip, dis+"-RTemp", "\u00B0F", "return air temp sensor");
+    addPoint(equip, dis+"-Fan",    null,      "discharge air fan cmd");
+    addPoint(equip, dis+"-Cool",   null,      "cool cmd");
+    addPoint(equip, dis+"-Heat",   null,      "heat cmd");
+    addPoint(equip, dis+"-DTemp",  "\u00B0F", "discharge air temp sensor");
+    addPoint(equip, dis+"-RTemp",  "\u00B0F", "return air temp sensor");
+    addPoint(equip, dis+"-ZoneSP", "\u00B0F", "zone air temp sp writable");
   }
 
   private void addPoint(HDict equip, String dis, String unit, String markers)
@@ -111,6 +112,7 @@ public class TestDatabase extends HServer
       HStdOps.formats,
       HStdOps.read,
       HStdOps.nav,
+      HStdOps.pointWrite,
       HStdOps.hisRead,
     };
   }
@@ -188,6 +190,49 @@ public class TestDatabase extends HServer
   {
     throw new UnsupportedOperationException();
   }
+
+//////////////////////////////////////////////////////////////////////////
+// Point Write
+//////////////////////////////////////////////////////////////////////////
+
+  protected HGrid onPointWriteArray(HDict rec)
+  {
+    WriteArray array = (WriteArray)writeArrays.get(rec.id());
+    if (array == null) array = new WriteArray();
+
+    HGridBuilder b = new HGridBuilder();
+    b.addCol("level");
+    b.addCol("levelDis");
+    b.addCol("val");
+    b.addCol("who");
+
+    for (int i=0; i<17; ++i)
+      b.addRow(new HVal[] {
+          HNum.make(i+1),
+          HStr.make("" + (i+1)),
+          array.val[i],
+          HStr.make(array.who[i]),
+        });
+    return b.toGrid();
+  }
+
+  protected void onPointWrite(HDict rec, int level, HVal val, String who, HNum dur)
+  {
+    System.out.println("onPointWrite: " + rec.dis() + "  " + val + " @ " + level + " [" + who + "]");
+    WriteArray array = (WriteArray)writeArrays.get(rec.id());
+    if (array == null) writeArrays.put(rec.id(), array = new WriteArray());
+    array.val[level-1] = val;
+    array.who[level-1] = who;
+  }
+
+  static class WriteArray
+  {
+    final HVal[] val = new HVal[17];
+    final String[] who = new String[17];
+  }
+
+  // hacky, but keep it simple for servlet environment
+  static HashMap writeArrays = new HashMap();
 
 //////////////////////////////////////////////////////////////////////////
 // History
