@@ -28,7 +28,7 @@ public class HGridFormat
   public static HGridFormat find(String mime, boolean checked)
   {
     // normalize mime type to strip parameters
-    int semicolon = mime.indexOf(',');
+    int semicolon = mime.indexOf(';');
     if (semicolon > 0) mime = mime.substring(0, semicolon).trim();
 
     // lookup format
