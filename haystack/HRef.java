@@ -49,6 +49,9 @@ public class HRef extends HVal
   /** Return the val string */
   public String toString() { return val; }
 
+  /** Encode as "@id" */
+  public String toCode() { return "@" + val; }
+
   /** Encode as "@id <dis>" */
   public String toZinc()
   {
