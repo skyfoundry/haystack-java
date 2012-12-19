@@ -262,6 +262,8 @@ public class HClient extends HProj
     // if checked, then check it
     if (checked)
     {
+      if (res.numRows() != ids.length && ids.length > 0)
+        throw new UnknownRecException(ids[0]);
       for (int i=0; i<res.numRows(); ++i)
         if (res.row(i).missing("id")) throw new UnknownRecException(ids[i]);
     }
