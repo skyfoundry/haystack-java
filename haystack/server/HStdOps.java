@@ -44,6 +44,9 @@ public class HStdOps
   /** Watch poll cov or refresh. */
   public static final HOp watchPoll = new WatchPollOp();
 
+  /** Read/write writable point priority array. */
+  public static final HOp pointWrite = new PointWriteOp();
+
   /** Read time series history data. */
   public static final HOp hisRead = new HisReadOp();
 
@@ -254,6 +257,35 @@ class WatchPollOp extends HOp
       return watch.pollRefresh();
     else
       return watch.pollChanges();
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// PointWriteOp
+//////////////////////////////////////////////////////////////////////////
+
+class PointWriteOp extends HOp
+{
+  public String name() { return "pointWrite"; }
+  public String summary() { return "Read/write writable point priority array"; }
+  public HGrid onService(HServer db, HGrid req) throws Exception
+  {
+    // get required point id
+    if (req.isEmpty()) throw new Exception("Request has no rows");
+    HRow row = req.row(0);
+    HRef id = row.id();
+
+    // check for write
+    if (row.has("level"))
+    {
+      int level  = row.getInt("level");
+      String who = row.getStr("who"); // be nice to have user fallback
+      HVal val   = row.get("val", false);
+      HNum dur   = (HNum)row.get("duration", false);
+      db.pointWrite(id, level, val, who, dur);
+    }
+
+    return db.pointWriteArray(id);
   }
 }
 

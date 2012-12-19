@@ -19,6 +19,7 @@ public class HStr extends HVal
   /** Construct from java.lang.String value */
   public static HStr make(String val)
   {
+    if (val == null) return null;
     if (val.length() == 0) return EMPTY;
     return new HStr(val);
   }
