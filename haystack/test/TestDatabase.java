@@ -110,6 +110,7 @@ public class TestDatabase extends HServer
       HStdOps.ops,
       HStdOps.formats,
       HStdOps.read,
+      HStdOps.nav,
       HStdOps.hisRead,
     };
   }
@@ -137,6 +138,37 @@ public class TestDatabase extends HServer
   protected HDict onReadById(HRef id) { return (HDict)recs.get(id.val); }
 
   protected Iterator iterator() { return recs.values().iterator(); }
+
+//////////////////////////////////////////////////////////////////////////
+// Navigation
+//////////////////////////////////////////////////////////////////////////
+
+  protected HGrid onNav(String navId)
+  {
+    // test database navId is record id
+    HDict base = null;
+    if (navId != null) base = readById(HRef.make(navId));
+
+    // map base record to site, equip, or point
+    String filter = "site";
+    if (base != null)
+    {
+      if (base.has("site")) filter = "equip and siteRef==" + base.id().toCode();
+      else if (base.has("equip")) filter = "point and equipRef==" + base.id().toCode();
+      else filter = "navNoChildren";
+    }
+
+    // read children of base record
+    HGrid grid = readAll(filter);
+
+    // add navId column to results
+    HDict[] rows = new HDict[grid.numRows()];
+    Iterator it = grid.iterator();
+    for (int i=0; it.hasNext(); ) rows[i++] = (HDict)it.next();
+    for (int i=0; i<rows.length; ++i)
+      rows[i] = new HDictBuilder().add(rows[i]).add("navId", rows[i].id().val).toDict();
+    return HGridBuilder.dictsToGrid(rows);
+  }
 
 //////////////////////////////////////////////////////////////////////////
 // Watches

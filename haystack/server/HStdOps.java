@@ -32,6 +32,9 @@ public class HStdOps
   /** Read entity records in database. */
   public static final HOp read = new ReadOp();
 
+  /** Navigate tree structure of database. */
+  public static final HOp nav = new NavOp();
+
   /** Watch subscription. */
   public static final HOp watchSub = new WatchSubOp();
 
@@ -149,6 +152,27 @@ class ReadOp extends HOp
     {
       throw new Exception("Missing filter or id columns");
     }
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// NavOp
+//////////////////////////////////////////////////////////////////////////
+
+class NavOp extends HOp
+{
+  public String name() { return "nav"; }
+  public String summary() { return "Navigate record tree"; }
+  public HGrid onService(HServer db, HGrid req) throws Exception
+  {
+    // ensure we have one row
+    String navId = null;
+    if (!req.isEmpty())
+    {
+      HVal val = req.row(0).get("navId", false);
+      if (val instanceof HStr) navId = ((HStr)val).val;
+    }
+    return db.nav(navId);
   }
 }
 
