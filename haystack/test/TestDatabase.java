@@ -92,7 +92,7 @@ public class TestDatabase extends HServer
       .add("his",      HMarker.VAL)
       .add("siteRef",  equip.get("siteRef"))
       .add("equipRef", equip.get("id"))
-      .add("kind",     unit == null ? "Bool" : "Num")
+      .add("kind",     unit == null ? "Bool" : "Number")
       .add("tz",       "New_York");
     if (unit != null) b.add("unit", unit);
     StringTokenizer st = new StringTokenizer(markers);
