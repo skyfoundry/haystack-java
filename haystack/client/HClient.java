@@ -16,6 +16,7 @@ import javax.crypto.spec.*;
 import java.security.*;
 import haystack.*;
 import haystack.io.*;
+import haystack.util.*;
 
 /**
  * HClient manages a logical connection to a HTTP REST haystack server.
@@ -507,12 +508,12 @@ public class HClient extends HProj
         Mac mac = Mac.getInstance("HmacSHA1");
         SecretKeySpec secret = new SecretKeySpec(pass.getBytes(),"HmacSHA1");
         mac.init(secret);
-        String hmac = toBase64(mac.doFinal((user + ":" + salt).getBytes()));
+        String hmac = Base64.STANDARD.encodeBytes(mac.doFinal((user + ":" + salt).getBytes()));
 
         // compute digest with nonce
         MessageDigest md = MessageDigest.getInstance("SHA-1");
         md.update((hmac+":"+nonce).getBytes());
-        String digest = toBase64(md.digest());
+        String digest = Base64.STANDARD.encodeBytes(md.digest());
 
         // post back nonce/digest to auth URI
         c.disconnect();
@@ -578,43 +579,6 @@ public class HClient extends HProj
     while ((n = in.read()) > 0) System.out.print((char)n);
   }
   */
-
-//////////////////////////////////////////////////////////////////////////
-// Base64 Utils
-//////////////////////////////////////////////////////////////////////////
-
-  private static String toBase64(byte[] buf) { return toBase64(buf, buf.length); }
-  private static String toBase64(byte[] buf, int size)
-  {
-    StringBuilder s = new StringBuilder(size*2);
-    int i = 0;
-
-    // append full 24-bit chunks
-    int end = size-2;
-    for (; i<end; i += 3)
-    {
-      int n = ((buf[i] & 0xff) << 16) + ((buf[i+1] & 0xff) << 8) + (buf[i+2] & 0xff);
-      s.append(base64chars[(n >>> 18) & 0x3f]);
-      s.append(base64chars[(n >>> 12) & 0x3f]);
-      s.append(base64chars[(n >>> 6) & 0x3f]);
-      s.append(base64chars[n & 0x3f]);
-    }
-
-    // pad and encode remaining bits
-    int rem = size - i;
-    if (rem > 0)
-    {
-      int n = ((buf[i] & 0xff) << 10) | (rem == 2 ? ((buf[size-1] & 0xff) << 2) : 0);
-      s.append(base64chars[(n >>> 12) & 0x3f]);
-      s.append(base64chars[(n >>> 6) & 0x3f]);
-      s.append(rem == 2 ? base64chars[n & 0x3f] : '=');
-      s.append('=');
-    }
-
-    return s.toString();
-  }
-
-  static char[] base64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".toCharArray();
 
 //////////////////////////////////////////////////////////////////////////
 // Fields

@@ -19,7 +19,8 @@ class Build : BuildJava
                 "haystack.io",
                 "haystack.client",
                 "haystack.server",
-                "haystack.test"]
+                "haystack.test",
+                "haystack.util"]
   }
 
   @Target { help = "clean up files we don't want to zip" }

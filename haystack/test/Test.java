@@ -28,6 +28,7 @@ public abstract class Test
     "FilterTest",
     "GridTest",
     "ZincTest",
+    "UtilTest",
     "ClientTest",
   };
 
