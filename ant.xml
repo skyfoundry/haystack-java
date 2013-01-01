@@ -46,4 +46,15 @@
   <!--========== make ==========-->
   <target name="make" depends="clean,compile,jar"/>
 
+  <!--========== test ==========-->
+  <target name="test" depends="make">
+
+    <java classname="haystack.test.Test">
+      <classpath>
+        <pathelement location="dist/haystack.jar"/>
+      </classpath>
+    </java>
+
+  </target> 
+
 </project>
