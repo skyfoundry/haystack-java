@@ -48,7 +48,7 @@ public class HClient extends HProj
 
     // sanity check arguments
     if (user.length() == 0) throw new IllegalArgumentException("user cannot be empty string");
-    if (pass.length() == 0) throw new IllegalArgumentException("password cannot be empty string");
+//    if (pass.length() == 0) throw new IllegalArgumentException("password cannot be empty string");
 
     this.uri  = uri;
     this.user = user;
@@ -436,7 +436,8 @@ public class HClient extends HProj
         c.setDoInput(true);
         c.setRequestProperty("Connection", "Close");
         c.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
-        if (cookie != null) c.setRequestProperty("Cookie", cookie);
+        if (authProperty != null) c.setRequestProperty(
+            authProperty.key, authProperty.value);
         c.connect();
 
         // post expression
@@ -484,56 +485,22 @@ public class HClient extends HProj
         c.setRequestMethod("GET");
         c.setInstanceFollowRedirects(false);
         c.connect();
-        String authUri = c.getHeaderField("Folio-Auth-Api-Uri");
-        c.disconnect();
-        if (c.getResponseCode() == 200) return;
-        if (authUri == null) throw new CallAuthException("Missing 'Folio-Auth-Api-Uri' header");
 
-        // make request to auth URI to get salt, nonce
-        String baseUri = uri.substring(0, uri.indexOf('/', 9));
-        url = new URL(baseUri + authUri + "?" + user);
-        c = (HttpURLConnection)url.openConnection();
-        c.setRequestMethod("GET");
-        c.setInstanceFollowRedirects(false);
-        c.connect();
+        int respCode = c.getResponseCode();
 
-        // parse response as name:value pairs
-        HashMap props = parseResProps(c.getInputStream());
-
-        // get salt and nonce values
-        String salt = (String)props.get("userSalt"); if (salt == null) throw new CallAuthException("auth missing 'userSalt'");
-        String nonce = (String)props.get("nonce");   if (nonce == null) throw new CallAuthException("auth missing 'nonce'");
-
-        // compute hmac (note Java doesn't allow empty password)
-        Mac mac = Mac.getInstance("HmacSHA1");
-        SecretKeySpec secret = new SecretKeySpec(pass.getBytes(),"HmacSHA1");
-        mac.init(secret);
-        String hmac = Base64.STANDARD.encodeBytes(mac.doFinal((user + ":" + salt).getBytes()));
-
-        // compute digest with nonce
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        md.update((hmac+":"+nonce).getBytes());
-        String digest = Base64.STANDARD.encodeBytes(md.digest());
-
-        // post back nonce/digest to auth URI
-        c.disconnect();
-        c = (HttpURLConnection)url.openConnection();
-        c.setRequestMethod("POST");
-        c.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
-        c.setDoInput(true);
-        c.setDoOutput(true);
-        c.setInstanceFollowRedirects(false);
-        Writer cout = new OutputStreamWriter(c.getOutputStream(), "UTF-8");
-        cout.write("nonce:" + nonce + "\n");
-        cout.write("digest:" + digest + "\n");
-        cout.close();
-        c.connect();
-        if (c.getResponseCode() != 200) throw new CallAuthException("Invalid username/password [" + c.getResponseCode() + "]");
-
-        // parse successful authentication to get cookie value
-        props = parseResProps(c.getInputStream());
-        this.cookie = (String)props.get("cookie");
-        if (this.cookie == null) throw new CallAuthException("auth missing 'cookie'");
+        switch(respCode)
+        {
+          case 200: 
+            return;
+          case 301:
+            authenticateFolio(c);
+            break;
+          case 401:
+            authenticateBasic(c);
+            break;
+          default:
+            throw new CallAuthException("Unexpected Response Code: " + respCode);
+        }
       }
       finally
       {
@@ -542,6 +509,79 @@ public class HClient extends HProj
     }
     catch (CallException e) { throw e; }
     catch (Exception e) { throw new CallNetworkException(e); }
+  }
+
+  /**
+   * Authenticate using Basic HTTP
+   */
+  private void authenticateBasic(HttpURLConnection c) throws Exception
+  {
+    // According to http://en.wikipedia.org/wiki/Basic_access_authentication,
+    // we are supposed to get a "WWW-Authenticate" header, that has the 'realm' in it.
+    // We don't get it, but it doesn't matter.  Just set up a Property
+    // to send back Basic Authorization on subsequent requests.
+
+    this.authProperty = new Property(
+      "Authorization", 
+      "Basic " + Base64.STANDARD.encode(user + ":" + pass));
+  }
+
+  /**
+   * Authenticate with SkySpark nonce based HMAC SHA-1 mechanism.
+   */
+  private void authenticateFolio(HttpURLConnection c) throws Exception
+  {
+    String authUri = c.getHeaderField("Folio-Auth-Api-Uri");
+    c.disconnect();
+    if (authUri == null) throw new CallAuthException("Missing 'Folio-Auth-Api-Uri' header");
+
+    // make request to auth URI to get salt, nonce
+    String baseUri = uri.substring(0, uri.indexOf('/', 9));
+    URL url = new URL(baseUri + authUri + "?" + user);
+    c = (HttpURLConnection)url.openConnection();
+    c.setRequestMethod("GET");
+    c.setInstanceFollowRedirects(false);
+    c.connect();
+
+    // parse response as name:value pairs
+    HashMap props = parseResProps(c.getInputStream());
+
+    // get salt and nonce values
+    String salt = (String)props.get("userSalt"); if (salt == null) throw new CallAuthException("auth missing 'userSalt'");
+    String nonce = (String)props.get("nonce");   if (nonce == null) throw new CallAuthException("auth missing 'nonce'");
+
+    // compute hmac (note Java doesn't allow empty password)
+    Mac mac = Mac.getInstance("HmacSHA1");
+    SecretKeySpec secret = new SecretKeySpec(pass.getBytes(),"HmacSHA1");
+    mac.init(secret);
+    String hmac = Base64.STANDARD.encodeBytes(mac.doFinal((user + ":" + salt).getBytes()));
+
+    // compute digest with nonce
+    MessageDigest md = MessageDigest.getInstance("SHA-1");
+    md.update((hmac+":"+nonce).getBytes());
+    String digest = Base64.STANDARD.encodeBytes(md.digest());
+
+    // post back nonce/digest to auth URI
+    c.disconnect();
+    c = (HttpURLConnection)url.openConnection();
+    c.setRequestMethod("POST");
+    c.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
+    c.setDoInput(true);
+    c.setDoOutput(true);
+    c.setInstanceFollowRedirects(false);
+    Writer cout = new OutputStreamWriter(c.getOutputStream(), "UTF-8");
+    cout.write("nonce:" + nonce + "\n");
+    cout.write("digest:" + digest + "\n");
+    cout.close();
+    c.connect();
+    if (c.getResponseCode() != 200) throw new CallAuthException("Invalid username/password [" + c.getResponseCode() + "]");
+
+    // parse successful authentication to get cookie value
+    props = parseResProps(c.getInputStream());
+    String cookie = (String)props.get("cookie");
+    if (cookie == null) throw new CallAuthException("auth missing 'cookie'");
+
+    this.authProperty = new Property("Cookie", cookie);
   }
 
   private HashMap parseResProps(InputStream in) throws Exception
@@ -558,6 +598,29 @@ public class HClient extends HProj
     }
     return props;
   }
+
+////////////////////////////////////////////////////////////////
+// Property
+////////////////////////////////////////////////////////////////
+
+    static class Property
+    {
+      Property(String key, String value)
+      {
+        this.key = key;
+        this.value = value;
+      }
+
+      public String toString()
+      {
+        return "[Property " +
+          "key:" + key + ", " +
+          "value:" + value + "]";
+      }
+
+      final String key;
+      final String value;
+    }
 
 //////////////////////////////////////////////////////////////////////////
 // Debug Utils
@@ -586,7 +649,7 @@ public class HClient extends HProj
 
   private final String user;
   private final String pass;
-  private String cookie;
+  private Property authProperty;
   private HashMap watches = new HashMap();
 
 }
