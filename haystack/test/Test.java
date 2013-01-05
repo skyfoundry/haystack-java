@@ -21,15 +21,15 @@ public abstract class Test
 // Test Case List
 //////////////////////////////////////////////////////////////////////////
 
-  public static String[] tests =
+  public static String[] TESTS =
   {
-    "ValTest",
-    "DictTest",
-    "FilterTest",
-    "GridTest",
-    "ZincTest",
-    "UtilTest",
-    "ClientTest",
+    "haystack.test.ValTest",
+    "haystack.test.DictTest",
+    "haystack.test.FilterTest",
+    "haystack.test.GridTest",
+    "haystack.test.ZincTest",
+    "haystack.test.UtilTest",
+    "haystack.test.ClientTest",
   };
 
 //////////////////////////////////////////////////////////////////////////
@@ -292,7 +292,7 @@ public abstract class Test
   {
     try
     {
-      Class cls = Class.forName("haystack.test." + testName);
+      Class cls = Class.forName(testName);
       Method[] methods = cls.getMethods();
       for (int i=0; i<methods.length; ++i)
       {
@@ -325,7 +325,7 @@ public abstract class Test
     }
   }
 
-  public static boolean runTests(String pattern)
+  public static boolean runTests(String[] tests, String pattern)
   {
     if (pattern == null) pattern = "";
 
@@ -361,7 +361,7 @@ public abstract class Test
         pattern = arg;
       }
     }
-    runTests(pattern);
+    runTests(TESTS, pattern);
   }
 
 //////////////////////////////////////////////////////////////////////////
