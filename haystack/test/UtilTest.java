@@ -52,7 +52,7 @@ public class UtilTest extends Test
   static
   {
     long seed = System.currentTimeMillis();
-    System.out.println("TestUtil SEED: " + seed);
+    // System.out.println("TestUtil SEED: " + seed);
     RND = new Random(seed);
   }
 }
