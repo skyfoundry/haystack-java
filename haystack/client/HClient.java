@@ -490,9 +490,9 @@ public class HClient extends HProj
 
         switch(respCode)
         {
-          case 200: 
+          case 200:
             return;
-          case 301:
+          case 303:
             authenticateFolio(c);
             break;
           case 401:
@@ -522,7 +522,7 @@ public class HClient extends HProj
     // to send back Basic Authorization on subsequent requests.
 
     this.authProperty = new Property(
-      "Authorization", 
+      "Authorization",
       "Basic " + Base64.STANDARD.encode(user + ":" + pass));
   }
 
