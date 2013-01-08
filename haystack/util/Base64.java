@@ -19,23 +19,23 @@ public class Base64
     * Return a Base64 codec that uses standard Base64 format.
     */
   public static Base64 STANDARD = new Base64(
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray(), 
-    '~');
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".toCharArray(),
+    '=');
 
   /**
     * Return a Base64 codec that uses a custom, Uri-friendly Base64 format.
     * <p>
     * This codec <i>mostly</i> follows the RFC 3548 standard for Base64.
-    * It uses '-' and '_' instead of '+' and '/' (as per RFC 3548), 
+    * It uses '-' and '_' instead of '+' and '/' (as per RFC 3548),
     * but uses use '~' as padding instead of '=' (this is the non-standard part).
     * <p>
-    * This approach allows us to encode and decode HRef instances. 
-    * HRef has five special chars available for us to use: ':', '.', '-', '_', '~'.  
+    * This approach allows us to encode and decode HRef instances.
+    * HRef has five special chars available for us to use: ':', '.', '-', '_', '~'.
     * We are using three of them here, leaving two still available: ':' and '.'
     */
   public static Base64 URI = new Base64(
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".toCharArray(), 
-    '=');
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray(),
+    '~');
 
 ////////////////////////////////////////////////////////////////
 // constructor
@@ -162,7 +162,7 @@ public class Base64
     }
 
     return bytes;
-  } 
+  }
 
 ////////////////////////////////////////////////////////////////
 // Attributes
