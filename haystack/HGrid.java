@@ -39,6 +39,9 @@ public class HGrid
     this.meta = meta;
     this.cols = cols;
 
+    if (meta == null)
+        throw new IllegalStateException("metadata cannot be null");
+
     this.rows = new HRow[rowList.size()];
     for (int i=0; i<rows.length; ++i)
     {
