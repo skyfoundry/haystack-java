@@ -44,9 +44,20 @@ public class HGridBuilder
       Any null entry will be row of all null cells. */
   public static HGrid dictsToGrid(HDict[] dicts)
   {
-    if (dicts.length == 0) return HGrid.EMPTY;
+      return dictsToGrid(HDict.EMPTY, dicts);
+  }
+
+  /** Convenience to build grid from array of HDict.
+      Any null entry will be row of all null cells. */
+  public static HGrid dictsToGrid(HDict meta, HDict[] dicts)
+  {
+    if (dicts.length == 0) return new HGrid(
+        meta,
+        new HCol[] { new HCol(0, "empty", HDict.EMPTY) },
+        new ArrayList()); 
 
     HGridBuilder b = new HGridBuilder();
+    b.meta.add(meta); 
 
     // collect column names
     HashMap colsByName = new HashMap();
