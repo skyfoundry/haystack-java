@@ -495,6 +495,7 @@ public class HClient extends HProj
           case 303:
             authenticateFolio(c);
             break;
+          case 302:
           case 401:
             authenticateBasic(c);
             break;
