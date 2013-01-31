@@ -215,7 +215,8 @@ public class ZincTest extends Test
       "45$\n" +
       "33\u00a3\n" +
       "@12cbb08e-0c02ae73\n" +
-      "7.15625E-4kWh/ft\u00b2\n",
+      "7.15625E-4kWh/ft\u00b2\n" +
+      "C(33.4,-12.3)\n",
       null,
       new Object[] {
          "a", null,
@@ -228,6 +229,7 @@ public class ZincTest extends Test
         new HVal[] {HNum.make(33.0, "\u00a3"), },
         new HVal[] {HRef.make("12cbb08e-0c02ae73", null), },
         new HVal[] {HNum.make(7.15625E-4, "kWh/ft\u00b2"), },
+        new HVal[] {HCoord.make(33.4, -12.3), },
       }
     );
   }

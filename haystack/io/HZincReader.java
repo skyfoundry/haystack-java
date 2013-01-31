@@ -222,6 +222,7 @@ public class HZincReader extends HGridReader
       if (word.equals("T"))   return HBool.TRUE;
       if (word.equals("F"))   return HBool.FALSE;
       if (word.equals("Bin")) return readBinVal();
+      if (word.equals("C"))   return readCoordVal();
     }
     if (word.equals("NaN")) return HNum.NaN;
     if (word.equals("INF")) return HNum.POS_INF;
@@ -243,6 +244,23 @@ public class HZincReader extends HGridReader
     }
     consume();
     return HBin.make(s.toString());
+  }
+
+  private HVal readCoordVal()
+  {
+    if (cur < 0) throw err("Expected '(' after Coord");
+    consume();
+    StringBuffer s = new StringBuffer("C(");
+    while (cur != ')')
+    {
+      if (cur < 0) throw err("Unexpected end of coord literal");
+      if (cur == '\n' || cur == '\r') throw err("Unexpected newline in coord literal");
+      s.append((char)cur);
+      consume();
+    }
+    consume();
+    s.append(")");
+    return HCoord.make(s.toString());
   }
 
   private HVal readNumVal()
