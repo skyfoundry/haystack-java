@@ -334,6 +334,64 @@ public class ValTest extends Test
     verifyEq(ts.millis(), ((HDateTime)read(str)).millis());
   }
 
+  public void testCoord()
+  {
+    verifyCoord(12, 34, "C(12.0,34.0)");
+
+    // lat boundaries
+    verifyCoord(90, 123, "C(90.0,123.0)");
+    verifyCoord(-90, 123, "C(-90.0,123.0)");
+    verifyCoord(89.888999, 123, "C(89.888999,123.0)");
+    verifyCoord(-89.888999, 123, "C(-89.888999,123.0)");
+
+    // lon boundaries
+    verifyCoord(45, 180, "C(45.0,180.0)");
+    verifyCoord(45, -180, "C(45.0,-180.0)");
+    verifyCoord(45, 179.999129, "C(45.0,179.999129)");
+    verifyCoord(45, -179.999129, "C(45.0,-179.999129)");
+
+    // decimal places
+    verifyCoord(9.1, -8.1, "C(9.1,-8.1)");
+    verifyCoord(9.12, -8.13, "C(9.12,-8.13)");
+    verifyCoord(9.123, -8.134, "C(9.123,-8.134)");
+    verifyCoord(9.1234, -8.1346, "C(9.1234,-8.1346)");
+    verifyCoord(9.12345,- 8.13456, "C(9.12345,-8.13456)");
+    verifyCoord(9.123452, -8.134567, "C(9.123452,-8.134567)");
+
+    // zero boundaries
+    verifyCoord(0, 0, "C(0.0,0.0)");
+    verifyCoord(0.3, -0.3, "C(0.3,-0.3)");
+    verifyCoord(0.03, -0.03, "C(0.03,-0.03)");
+    verifyCoord(0.003, -0.003, "C(0.003,-0.003)");
+    verifyCoord(0.0003, -0.0003, "C(0.0003,-0.0003)");
+    verifyCoord(0.02003, -0.02003, "C(0.02003,-0.02003)");
+    verifyCoord(0.020003, -0.020003, "C(0.020003,-0.020003)");
+    verifyCoord(0.000123, -0.000123, "C(0.000123,-0.000123)");
+    verifyCoord(7.000123, -7.000123, "C(7.000123,-7.000123)");
+
+
+    // arg errors
+    try { HCoord.make(91, 12); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
+    try { HCoord.make(-90.2, 12); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
+    try { HCoord.make(13, 180.009); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
+    try { HCoord.make(13, -181); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
+
+    // parse errs
+    try { HCoord.make("1.0,2.0"); fail(); } catch (ParseException e) { verifyException(e); }
+    try { HCoord.make("(1.0,2.0)"); fail(); } catch (ParseException e) { verifyException(e); }
+    try { HCoord.make("C(1.0,2.0"); fail(); } catch (ParseException e) { verifyException(e); }
+    try { HCoord.make("C(x,9)"); fail(); } catch (ParseException e) { verifyException(e); }
+  }
+
+  void verifyCoord(double lat, double lng, String s)
+  {
+    HCoord c = HCoord.make(lat, lng);
+    verifyEq(c.lat(), lat);
+    verifyEq(c.lng(), lng);
+    verifyEq(c.toString(), s);
+    verifyEq(HCoord.make(s), c);
+  }
+
   public void testRange()
   {
     HTimeZone ny = HTimeZone.make("New_York");
