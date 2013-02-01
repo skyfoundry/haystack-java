@@ -179,6 +179,16 @@ public abstract class Test
   }
 
   /**
+   * Verify a and b are equal.
+   */
+  public void verifyEq(double a, double b)
+  {
+    if (a != b) throw new RuntimeException("Test failed " + a + " != " + b);
+    verified++;
+    totalVerified++;
+  }
+
+  /**
    * Verify a and b are equal taking into account nulls.
    */
   public void verifyEq(Object a, Object b)
