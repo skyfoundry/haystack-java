@@ -52,6 +52,9 @@ public class HStdOps
 
   /** Write time series history data. */
   public static final HOp hisWrite = new HisWriteOp();
+
+  /** Invoke action. */
+  public static final HOp invokeAction = new InvokeActionOp();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -322,5 +325,23 @@ class HisWriteOp extends HOp
     HHisItem[] items = HHisItem.gridToItems(req);
     db.hisWrite(id, items);
     return HGrid.EMPTY;
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// InvokeActionOp
+//////////////////////////////////////////////////////////////////////////
+
+class InvokeActionOp extends HOp
+{
+  public String name() { return "invokeAction"; }
+  public String summary() { return "Invoke action on target entity"; }
+  public HGrid onService(HServer db, HGrid req) throws Exception
+  {
+    HRef id = req.meta().id();
+    String action = req.meta().getStr("action");
+    HDict args = HDict.EMPTY;
+    if (req.numRows() > 0) args = req.row(0);
+    return db.invokeAction(id, action, args);
   }
 }

@@ -366,6 +366,27 @@ public abstract class HServer extends HProj
   protected abstract void onHisWrite(HDict rec, HHisItem[] items);
 
 //////////////////////////////////////////////////////////////////////////
+// Actions
+//////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Invoke an action identified by id and action.
+   */
+  public final HGrid invokeAction(HRef id, String action, HDict args)
+  {
+    // lookup entity
+    HDict rec = readById(id);
+
+    // route to subclass
+    return onInvokeAction(rec, action, args);
+  }
+
+  /**
+   * Implementation hook for invokeAction
+   */
+  protected abstract HGrid onInvokeAction(HDict rec, String action, HDict args);
+
+//////////////////////////////////////////////////////////////////////////
 // Fields
 //////////////////////////////////////////////////////////////////////////
 
