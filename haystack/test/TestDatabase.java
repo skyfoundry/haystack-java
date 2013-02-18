@@ -114,6 +114,7 @@ public class TestDatabase extends HServer
       HStdOps.nav,
       HStdOps.pointWrite,
       HStdOps.hisRead,
+      HStdOps.invokeAction,
     };
   }
 
@@ -260,6 +261,20 @@ public class TestDatabase extends HServer
   {
     throw new RuntimeException("Unsupported");
   }
+
+//////////////////////////////////////////////////////////////////////////
+// Actions
+//////////////////////////////////////////////////////////////////////////
+
+  public HGrid onInvokeAction(HDict rec, String action, HDict args)
+  {
+    System.out.println("-- invokeAction \"" + rec.dis() + "." + action + "\" " + args);
+    return HGrid.EMPTY;
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// Fields
+//////////////////////////////////////////////////////////////////////////
 
   HashMap recs = new HashMap();
 }
