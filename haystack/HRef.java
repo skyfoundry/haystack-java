@@ -77,6 +77,9 @@ public class HRef extends HVal
     return ch >= 0 && ch < idChars.length && idChars[ch];
   }
 
+  /** Singleton for the null ref */
+  public static final HRef nullRef = new HRef("null",  null);
+
   private static boolean[] idChars = new boolean[127];
   static
   {

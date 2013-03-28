@@ -151,6 +151,25 @@ public abstract class HServer extends HProj
    */
   protected abstract HGrid onNav(String navId);
 
+  /**
+   * Read a record from the database using a navigation path.
+   * If not found then return null or raise UnknownRecException
+   * base on checked flag.
+   */
+  public HDict navReadByUri(HUri uri, boolean checked)
+  {
+    HDict rec = onNavReadByUri(uri);
+    if (rec != null) return rec;
+    if (checked) throw new UnknownRecException(uri.toString());
+    return null;
+  }
+
+  /**
+   * Implementation hook for navReadByUri.  Return null if not
+   * found.  Do NOT raise any exceptions.
+   */
+  protected abstract HDict onNavReadByUri(HUri uri);
+
 //////////////////////////////////////////////////////////////////////////
 // Watches
 //////////////////////////////////////////////////////////////////////////
