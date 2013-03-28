@@ -158,10 +158,22 @@ public abstract class HOp
     return format;
   }
 
-  HRef[] gridToIds(HGrid grid)
+  HRef[] gridToIds(HServer db, HGrid grid)
   {
     HRef[] ids = new HRef[grid.numRows()];
-    for (int i=0; i<ids.length; ++i) ids[i] = grid.row(i).id();
+    for (int i=0; i<ids.length; ++i)
+    {
+      HVal val = grid.row(i).get("id");
+      if (val instanceof HUri)
+      {
+        HDict rec = db.navReadByUri((HUri)val, false);
+        ids[i] = rec == null ? HRef.nullRef : rec.id();
+      }
+      else
+      {
+        ids[i] = (HRef)val;
+      }
+    }
     return ids;
   }
 }

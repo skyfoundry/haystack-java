@@ -151,7 +151,7 @@ class ReadOp extends HOp
     else if (row.has("id"))
     {
       // read by ids
-      HRef[] ids = gridToIds(req);
+      HRef[] ids = gridToIds(db, req);
       return db.readByIds(ids, false);
     }
     else
@@ -206,7 +206,7 @@ class WatchSubOp extends HOp
                    db.watch(watchId);
 
     // map grid to ids
-    HRef[] ids = gridToIds(req);
+    HRef[] ids = gridToIds(db, req);
 
     // subscribe and return resulting grid
     return watch.sub(ids);
@@ -233,7 +233,7 @@ class WatchUnsubOp extends HOp
       if (req.meta().has("close"))
         watch.close();
       else
-        watch.unsub(gridToIds(req));
+        watch.unsub(gridToIds(db, req));
     }
 
     // nothing to return
