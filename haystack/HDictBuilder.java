@@ -89,5 +89,34 @@ public class HDictBuilder
     return dict;
   }
 
+//////////////////////////////////////////////////////////////////////////
+// Access
+//////////////////////////////////////////////////////////////////////////
+
+  /** Return if size is zero */
+  public final boolean isEmpty() { return size() == 0; }
+
+  /** Return number of tag name/value pairs */
+  public int size() { return map.size(); }
+
+  /** Return if the given tag is present */
+  public final boolean has(String name) { return get(name, false) != null; }
+
+  /** Return if the given tag is not present */
+  public final boolean missing(String name) { return get(name, false) == null; }
+
+  /** Convenience for "get(name, true)" */
+  public final HVal get(String name) { return get(name, true); }
+
+  /** Get a tag by name.  If not found and checked if false then
+      return null, otherwise throw UnknownNameException */
+  public HVal get(String name, boolean checked)
+  {
+      HVal val = (HVal)map.get(name);
+      if (val != null) return val;
+      if (!checked) return null;
+      throw new UnknownNameException(name);
+  }
+
   private HashMap map;
 }
