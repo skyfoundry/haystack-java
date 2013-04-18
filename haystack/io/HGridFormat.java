@@ -138,9 +138,10 @@ public class HGridFormat
   {
     try
     {
-      register(new HGridFormat("text/plain", HZincReader.class, HZincWriter.class));
-      register(new HGridFormat("text/zinc",  HZincReader.class, HZincWriter.class));
-      register(new HGridFormat("text/csv",   null,              HCsvWriter.class));
+      register(new HGridFormat("text/plain",       HZincReader.class, HZincWriter.class));
+      register(new HGridFormat("text/zinc",        HZincReader.class, HZincWriter.class));
+      register(new HGridFormat("text/csv",         null,              HCsvWriter.class));
+      register(new HGridFormat("application/json", null,              HJsonWriter.class));
     }
     catch (Throwable e) { e.printStackTrace(); }
   }

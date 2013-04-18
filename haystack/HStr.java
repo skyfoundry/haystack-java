@@ -58,6 +58,14 @@ public class HStr extends HVal
   }
 
   /** Encode using double quotes and back slash escapes */
+  public static String toCode(String val)
+  {
+    StringBuffer s = new StringBuffer();
+    toZinc(s, val);
+    return s.toString();
+  }
+
+  /** Encode using double quotes and back slash escapes */
   static void toZinc(StringBuffer s, String val)
   {
     s.append('"');
