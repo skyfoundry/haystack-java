@@ -276,7 +276,7 @@ class PointWriteOp extends HOp
     // get required point id
     if (req.isEmpty()) throw new Exception("Request has no rows");
     HRow row = req.row(0);
-    HRef id = row.id();
+    HRef id = valToId(db, row.get("id"));
 
     // check for write
     if (row.has("level"))
@@ -304,7 +304,8 @@ class HisReadOp extends HOp
   {
     if (req.isEmpty()) throw new Exception("Request has no rows");
     HRow row = req.row(0);
-    HRef id = row.id();
+    HRef id = valToId(db, row.get("id"));
+
     String range = row.getStr("range");
     return db.hisRead(id, range);
   }
@@ -321,7 +322,8 @@ class HisWriteOp extends HOp
   public HGrid onService(HServer db, HGrid req) throws Exception
   {
     if (req.isEmpty()) throw new Exception("Request has no rows");
-    HRef id = req.meta().id();
+    HRef id = valToId(db, req.meta().get("id"));
+
     HHisItem[] items = HHisItem.gridToItems(req);
     db.hisWrite(id, items);
     return HGrid.EMPTY;
@@ -338,7 +340,8 @@ class InvokeActionOp extends HOp
   public String summary() { return "Invoke action on target entity"; }
   public HGrid onService(HServer db, HGrid req) throws Exception
   {
-    HRef id = req.meta().id();
+    HRef id = valToId(db, req.meta().get("id"));
+
     String action = req.meta().getStr("action");
     HDict args = HDict.EMPTY;
     if (req.numRows() > 0) args = req.row(0);
