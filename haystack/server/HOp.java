@@ -164,16 +164,22 @@ public abstract class HOp
     for (int i=0; i<ids.length; ++i)
     {
       HVal val = grid.row(i).get("id");
-      if (val instanceof HUri)
-      {
-        HDict rec = db.navReadByUri((HUri)val, false);
-        ids[i] = rec == null ? HRef.nullRef : rec.id();
-      }
-      else
-      {
-        ids[i] = (HRef)val;
-      }
+      ids[i] = valToId(db, val);
     }
     return ids;
   }
+
+  HRef valToId(HServer db, HVal val)
+  {
+    if (val instanceof HUri)
+    {
+      HDict rec = db.navReadByUri((HUri)val, false);
+      return rec == null ? HRef.nullRef : rec.id();
+    }
+    else
+    {
+      return (HRef)val;
+    }
+  }
+
 }
