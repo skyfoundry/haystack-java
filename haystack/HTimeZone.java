@@ -60,7 +60,28 @@ public final class HTimeZone
    */
   public static HTimeZone make(TimeZone java, boolean checked)
   {
-    String name = (String)fromJava.get(java.getID());
+    String javaId = java.getID();
+
+    // Sometimes the java ID is of the form "GMT[+,-]hh:00".  This seems
+    // to occur when timesync in turned off.  In that case, convert the 
+    // java ID to "Etc/GMT[+,-]h".
+    //
+    // Note that this does not handle settings like "GMT+03:30", which
+    // cannot be automatically converted to an Etc timezone.
+    if (javaId.startsWith("GMT") && javaId.endsWith(":00"))
+    {
+      javaId = javaId.substring(0, javaId.length() - ":00".length());
+
+      // remove leading 0
+      if (javaId.startsWith("GMT-0"))
+        javaId = "GMT-" + javaId.substring("GMT-0".length());
+      else if (javaId.startsWith("GMT+0"))
+        javaId = "GMT+" + javaId.substring("GMT+0".length());
+
+      javaId = "Etc/" + javaId;
+    }
+
+    String name = (String)fromJava.get(javaId);
     if (name != null) return make(name);
     if (checked) throw new RuntimeException("Invalid Java timezone: " + java.getID());
     return null;
