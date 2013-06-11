@@ -68,7 +68,12 @@ public class HNum extends HVal
   public static final HNum NaN = new HNum(Double.NaN, null);
 
   /** Private constructor */
-  private HNum(double val, String unit) { this.val = val; this.unit = unit; }
+  private HNum(double val, String unit)
+  {
+    if (!isUnitName(unit)) throw new IllegalArgumentException("Invalid unit name: " + unit);
+    this.val = val;
+    this.unit = unit;
+  }
 
   /** Double scalar value */
   public final double val;
@@ -125,11 +130,7 @@ public class HNum extends HVal
       if (unit != null)
       {
         for (int i=0; i<unit.length(); ++i)
-        {
-          int c = unit.charAt(i);
-          if (c < 128 && !unitChars[c]) throw new IllegalArgumentException("Invalid unit name '" + unit + "', char='" + (char)c + "'");
-          s.append((char)c);
-        }
+          s.append(unit.charAt(i));
       }
     }
     return s.toString();
@@ -148,6 +149,24 @@ public class HNum extends HVal
     if (u.equals("min") || u.equals("minute")) return (long)(val*1000.0*60.0);
     if (u.equals("h")   || u.equals("hr") || u.equals("minute")) return (long)(val*1000.0*60.0*60.0);
     throw new IllegalStateException("Invalid duration unit: " + u);
+  }
+
+  /**
+   * Return true if the given string is null or contains only valid unit
+   * chars.  If the unit name contains invalid chars return false.  This
+   * method does *not* check that the unit name is part of the standard
+   * unit database.
+   */
+  public static boolean isUnitName(String unit)
+  {
+    if (unit == null) return true;
+    if (unit.length() == 0) return false;
+    for (int i=0; i<unit.length(); ++i)
+    {
+      int c = unit.charAt(i);
+      if (c < 128 && !unitChars[c]) return false;
+    }
+    return true;
   }
 
   private static boolean[] unitChars = new boolean[128];
