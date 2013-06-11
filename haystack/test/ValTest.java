@@ -373,8 +373,16 @@ public class ValTest extends Test
     verifyCoord(0.000123, -0.000123, "C(0.000123,-0.000123)");
     verifyCoord(7.000123, -7.000123, "C(7.000123,-7.000123)");
 
-
     // arg errors
+    verifyEq(HCoord.isLat(-91.0), false);
+    verifyEq(HCoord.isLat(-90.0), true);
+    verifyEq(HCoord.isLat(-89.0), true);
+    verifyEq(HCoord.isLat(90.0), true);
+    verifyEq(HCoord.isLat(91.0), false);
+    verifyEq(HCoord.isLng(-181.0), false);
+    verifyEq(HCoord.isLng(-179.99), true);
+    verifyEq(HCoord.isLng(180.0), true);
+    verifyEq(HCoord.isLng(181.0), false);
     try { HCoord.make(91, 12); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
     try { HCoord.make(-90.2, 12); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
     try { HCoord.make(13, 180.009); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
