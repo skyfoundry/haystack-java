@@ -17,12 +17,6 @@ import haystack.io.HZincReader;
  */
 public class HCoord extends HVal
 {
-  /** Construct from basic fields */
-  public static HCoord make(double lat, double lng)
-  {
-    return new HCoord((int)(lat * 1000000.0), (int)(lng * 1000000.0));
-  }
-
   /** Parse from string fomat "C(lat,lng)" or raise ParseException */
   public static HCoord make(String s)
   {
@@ -42,6 +36,12 @@ public class HCoord extends HVal
     }
   }
 
+  /** Construct from basic fields */
+  public static HCoord make(double lat, double lng)
+  {
+    return new HCoord((int)(lat * 1000000.0), (int)(lng * 1000000.0));
+  }
+
   /** Package private constructor */
   HCoord(int ulat, int ulng)
   {
@@ -50,6 +50,12 @@ public class HCoord extends HVal
     this.ulat = ulat;
     this.ulng = ulng;
   }
+
+  /** Return if given latitude is legal value between -90.0 and +90.0 */
+  public static boolean isLat(double lat) { return -90.0 <= lat && lat <= 90.0; }
+
+  /** Return if given is longtitude is legal value between -180.0 and +180.0 */
+  public static boolean isLng(double lng) { return -180.0 <= lng && lng <= 180.0; }
 
 //////////////////////////////////////////////////////////////////////////
 // Access
