@@ -153,9 +153,15 @@ public class ValTest extends Test
     verifyZinc(HRef.make("1234-5678", "Foo \"Bar\""), "@1234-5678 \"Foo \\\"Bar\\\"\"");
 
     // verify bad refs are caught on encoding
-    try { HRef.make("@a").toZinc(); fail(); } catch (Exception e) { verifyException(e); }
-    try { HRef.make("a b").toZinc(); fail(); } catch (Exception e) { verifyException(e); }
-    try { HRef.make("a\n").toZinc(); fail(); } catch (Exception e) { verifyException(e); }
+    verifyEq(HRef.isId(""), false);
+    verifyEq(HRef.isId("%"), false);
+    verifyEq(HRef.isId("a"), true);
+    verifyEq(HRef.isId("a-b:c"), true);
+    verifyEq(HRef.isId("a b"), false);
+    verifyEq(HRef.isId("a\u0129b"), false);
+    try { HRef.make("@a"); fail(); } catch (Exception e) { verifyException(e); }
+    try { HRef.make("a b"); fail(); } catch (Exception e) { verifyException(e); }
+    try { HRef.make("a\n"); fail(); } catch (Exception e) { verifyException(e); }
     try { read("@"); fail(); } catch (Exception e) { verifyException(e); }
   }
 

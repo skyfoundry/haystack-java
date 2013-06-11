@@ -17,7 +17,7 @@ public class HRef extends HVal
   /** Construct for string identifier and optional display */
   public static HRef make(String val, String dis)
   {
-    if (val == null || val.length() == 0) throw new IllegalArgumentException("Invalid id val: \"" + val + "\"");
+    if (val == null || !isId(val)) throw new IllegalArgumentException("Invalid id val: \"" + val + "\"");
     return new HRef(val, dis);
   }
 
@@ -57,18 +57,22 @@ public class HRef extends HVal
   {
     StringBuffer s = new StringBuffer();
     s.append('@');
-    for (int i=0; i<val.length(); ++i)
-    {
-      int c = val.charAt(i);
-      if (!isIdChar(c)) throw new IllegalArgumentException("Invalid ref val'" + val + "', char='" + (char)c + "'");
-      s.append((char)c);
-    }
+    s.append(val);
     if (dis != null)
     {
       s.append(' ');
       HStr.toZinc(s, dis);
     }
     return s.toString();
+  }
+
+  /** Return if the given string is a valid id for a reference */
+  public static boolean isId(String id)
+  {
+    if (id.length() == 0) return false;
+    for (int i=0; i<id.length(); ++i)
+      if (!isIdChar(id.charAt(i))) return false;
+    return true;
   }
 
   /** Is the given character valid in the identifier part */
