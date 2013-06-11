@@ -83,9 +83,13 @@ public class ValTest extends Test
     verifyEq(HNum.make(Double.POSITIVE_INFINITY, "%").toZinc(), "INF");
     verifyEq(HNum.make(Double.NEGATIVE_INFINITY, "%").toZinc(), "-INF");
 
-    // verify bad unit names are caught on encoding
-    try { HNum.make(123.4, "foo bar").toZinc(); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
-    try { HNum.make(123.4, "foo,bar").toZinc(); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
+    // verify bad unit names
+    verifyEq(HNum.isUnitName(null),  true);
+    verifyEq(HNum.isUnitName(""),    false);
+    verifyEq(HNum.isUnitName("x_z"), true);
+    verifyEq(HNum.isUnitName("x z"), false);
+    try { HNum.make(123.4, "foo bar"); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
+    try { HNum.make(123.4, "foo,bar"); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
   }
 
   public void testStr()
