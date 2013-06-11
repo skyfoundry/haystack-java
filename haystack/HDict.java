@@ -134,6 +134,33 @@ public abstract class HDict
 // Encoding
 //////////////////////////////////////////////////////////////////////////
 
+  /**
+   * Return if the given string is a legal tag name.  The
+   * first char must be ASCII lower case letter.  Rest of
+   * chars must be ASCII letter, digit, or underbar.
+   */
+  public static boolean isTagName(String n)
+  {
+    if (n.length() == 0) return false;
+    int first = n.charAt(0);
+    if (first < 'a' || first > 'z') return false;
+    for (int i=0; i<n.length(); ++i)
+    {
+      int c = n.charAt(i);
+      if (c >= 128 || !tagChars[c]) return false;
+    }
+    return true;
+  }
+
+  private static boolean[] tagChars = new boolean[128];
+  static
+  {
+    for (int i='a'; i<='z'; ++i) tagChars[i] = true;
+    for (int i='A'; i<='Z'; ++i) tagChars[i] = true;
+    for (int i='0'; i<='9'; ++i) tagChars[i] = true;
+    tagChars['_'] = true;
+  }
+
   /** Encode value to zinc format */
   public final String toZinc()
   {

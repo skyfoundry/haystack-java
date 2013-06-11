@@ -54,10 +54,10 @@ public class HGridBuilder
     if (dicts.length == 0) return new HGrid(
         meta,
         new HCol[] { new HCol(0, "empty", HDict.EMPTY) },
-        new ArrayList()); 
+        new ArrayList());
 
     HGridBuilder b = new HGridBuilder();
-    b.meta.add(meta); 
+    b.meta.add(meta);
 
     // collect column names
     HashMap colsByName = new HashMap();
@@ -161,6 +161,8 @@ public class HGridBuilder
   {
     if (rows.size() > 0)
       throw new IllegalStateException("Cannot add cols after rows have been added");
+    if (!HDict.isTagName(name))
+      throw new IllegalArgumentException("Invalid column name: " + name);
     BCol col = new BCol(name);
     cols.add(col);
     return col.meta;

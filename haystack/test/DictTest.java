@@ -34,6 +34,19 @@ public class DictTest extends Test
     try { tags.get("foo", true); fail(); } catch (UnknownNameException e) { verify(true); }
   }
 
+  public void testIsTagName()
+  {
+    verifyEq(HDict.isTagName(""), false);
+    verifyEq(HDict.isTagName("A"), false);
+    verifyEq(HDict.isTagName(" "), false);
+    verifyEq(HDict.isTagName("a"), true);
+    verifyEq(HDict.isTagName("a_B_19"), true);
+    verifyEq(HDict.isTagName("a b"), false);
+    verifyEq(HDict.isTagName("a\u0128"), false);
+    verifyEq(HDict.isTagName("a\u0129x"), false);
+    verifyEq(HDict.isTagName("a\uabcdx"), false);
+  }
+
   public void testBasics()
   {
     HDict tags = new HDictBuilder()

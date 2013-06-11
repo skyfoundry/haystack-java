@@ -75,6 +75,8 @@ public class HDictBuilder
   /** Add tag name and value.  Return this. */
   public HDictBuilder add(String name, HVal val)
   {
+    if (!HDict.isTagName(name))
+      throw new IllegalArgumentException("Invalid tag name: " + name);
     if (map == null) map = new HashMap(37);
     map.put(name, val);
     return this;
