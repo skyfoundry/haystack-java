@@ -124,7 +124,7 @@ public abstract class HServer extends HProj
 
   private HFilter.Pather filterPather = new HFilter.Pather()
   {
-    public HDict find(String id) { return find(id); }
+    public HDict find(String id) { return readById(HRef.make(id)); }
   };
 
   /**
