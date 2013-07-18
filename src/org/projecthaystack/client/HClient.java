@@ -363,7 +363,7 @@ public class HClient extends HProj
 //////////////////////////////////////////////////////////////////////////
 
   /**
-    * Write to a given level of a writable point, and return the current status 
+    * Write to a given level of a writable point, and return the current status
     * of a writable point's priority array (see pointWriteArray()).
     *
     * @param id Ref identifier of writable point
@@ -383,8 +383,8 @@ public class HClient extends HProj
     b.addCol("val");
     b.addCol("duration");
 
-    b.addRow(new HVal[] { 
-      id, 
+    b.addRow(new HVal[] {
+      id,
       HNum.make(level),
       HStr.make(who),
       val,
@@ -396,7 +396,7 @@ public class HClient extends HProj
   }
 
   /**
-    * Return the current status 
+    * Return the current status
     * of a point's priority array.
     * The result is returned grid with following columns:
     * <ul>
@@ -559,19 +559,22 @@ public class HClient extends HProj
         c.setInstanceFollowRedirects(false);
         c.connect();
 
-        int respCode = c.getResponseCode();
+        String folioAuthUri = c.getHeaderField("Folio-Auth-Api-Uri");
+        if (folioAuthUri != null)
+        {
+          authenticateFolio(c);
+          return;
+        }
 
+        int respCode = c.getResponseCode();
         switch(respCode)
         {
           case 200:
             return;
-          case 303:
-            authenticateFolio(c);
-            break;
           case 302:
           case 401:
             authenticateBasic(c);
-            break;
+            return;
           default:
             throw new CallAuthException("Unexpected Response Code: " + respCode);
         }
