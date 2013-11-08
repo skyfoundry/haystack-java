@@ -43,7 +43,7 @@ public class HClient extends HProj
   private HClient(String uri, String user, String pass)
   {
     // check uri
-    if (!uri.startsWith("http://")) throw new IllegalArgumentException("Invalid uri format: " + uri);
+    if (!uri.startsWith("http://") && !uri.startsWith("https://")) throw new IllegalArgumentException("Invalid uri format: " + uri);
     if (!uri.endsWith("/")) uri = uri + "/";
 
     // sanity check arguments
