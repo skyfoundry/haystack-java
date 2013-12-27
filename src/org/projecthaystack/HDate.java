@@ -8,6 +8,8 @@
 package org.projecthaystack;
 
 import java.util.Calendar;
+import java.util.GregorianCalendar;
+
 import org.projecthaystack.io.HZincReader;
 
 /**
@@ -160,11 +162,19 @@ public class HDate extends HVal
     return (year % 100 != 0) || (year % 400 == 0);
   }
 
-  /** Return number of days in given year (2xxx) and month (1-12) */
-  private static int daysInMonth(int year, int mon)
+  /** Return number of days in given year (xxxx) and month (1-12) */
+  public static int daysInMonth(int year, int mon)
   {
     return isLeapYear(year) ? daysInMonLeap[mon] : daysInMon[mon];
   }
+
+  /** Return day of week: Sunday is 1, Saturday is 7 */
+  public int weekday()
+  {
+    GregorianCalendar c = new GregorianCalendar(year, month-1, day);
+    return c.get(Calendar.DAY_OF_WEEK);
+  }
+
   private static final int daysInMon[]     = { -1, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
   private static final int daysInMonLeap[] = { -1, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 

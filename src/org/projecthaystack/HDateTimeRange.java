@@ -7,6 +7,9 @@
 //
 package org.projecthaystack;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
 import org.projecthaystack.io.HZincReader;
 
 /**
@@ -79,6 +82,75 @@ public class HDateTimeRange
   {
     if (start.tz != end.tz) throw new IllegalArgumentException("start.tz != end.tz");
     return new HDateTimeRange(start, end);
+  }
+
+  /** Make a range which encompasses the current week.
+      The week is defined as Sunday thru Saturday. */
+  public static HDateTimeRange thisWeek(HTimeZone tz)
+  {
+    HDate today = HDate.today();
+    HDate sun = today.minusDays(today.weekday() - Calendar.SUNDAY);
+    HDate sat = today.plusDays(Calendar.SATURDAY - today.weekday());
+    return HDateTimeRange.make(sun, sat, tz);
+  }
+
+  /** Make a range which encompasses the current month. */
+  public static HDateTimeRange thisMonth(HTimeZone tz)
+  {
+    HDate today = HDate.today();
+    HDate first = HDate.make(today.year, today.month, 1);
+    HDate last  = HDate.make(today.year, today.month, HDate.daysInMonth(today.year, today.month));
+    return HDateTimeRange.make(first, last, tz);
+  }
+
+  /** Make a range which encompasses the current year. */
+  public static HDateTimeRange thisYear(HTimeZone tz)
+  {
+    HDate today = HDate.today();
+    HDate first = HDate.make(today.year, 1, 1);
+    HDate last  = HDate.make(today.year, 12, 31);
+    return HDateTimeRange.make(first, last, tz);
+  }
+
+  /** Make a range which encompasses the previous week.
+      The week is defined as Sunday thru Saturday. */
+  public static HDateTimeRange lastWeek(HTimeZone tz)
+  {
+    HDate today = HDate.today();
+    HDate prev = today.minusDays(7);
+    HDate sun = prev.minusDays(prev.weekday() - Calendar.SUNDAY);
+    HDate sat = prev.plusDays(Calendar.SATURDAY - prev.weekday());
+    return HDateTimeRange.make(sun, sat, tz);
+  }
+
+  /** Make a range which encompasses the previous month. */
+  public static HDateTimeRange lastMonth(HTimeZone tz)
+  {
+    HDate today = HDate.today();
+    int year = today.year;
+    int month = today.month;
+
+    if (month == 1)
+    {
+      year--;
+      month = 12;
+    }
+    else
+    {
+      month--;
+    }
+    HDate first = HDate.make(year, month, 1);
+    HDate last  = HDate.make(year, month, HDate.daysInMonth(year, month));
+    return HDateTimeRange.make(first, last, tz);
+  }
+
+  /** Make a range which encompasses the previous year. */
+  public static HDateTimeRange lastYear(HTimeZone tz)
+  {
+    HDate today = HDate.today();
+    HDate first = HDate.make(today.year-1, 1, 1);
+    HDate last  = HDate.make(today.year-1, 12, 31);
+    return HDateTimeRange.make(first, last, tz);
   }
 
   /** Private constructor */
