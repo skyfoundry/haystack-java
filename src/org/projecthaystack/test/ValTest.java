@@ -212,6 +212,15 @@ public class ValTest extends Test
     try { read("2003-xx-02"); fail(); } catch (Exception e) { verifyException(e); }
     try { read("2003-02"); fail(); } catch (Exception e) { verifyException(e); }
     try { read("2003-02-xx"); fail(); } catch (Exception e) { verifyException(e); }
+
+    // leap year
+    for (int y = 1900; y <= 2100; y++)
+    {
+      if (((y % 4) == 0) && (y != 1900) && (y != 2100))
+        verify(HDate.isLeapYear(y));
+      else
+        verify(!HDate.isLeapYear(y));
+    }
   }
 
   public void testTime()
@@ -430,6 +439,44 @@ public class ValTest extends Test
     verifyEq(r.start, xb);
     verifyEq(r.end.date, today);
     verifyEq(r.end.tz, ny);
+
+    // this week
+    HDate sun = today;
+    HDate sat = today;
+    while (sun.weekday() > Calendar.SUNDAY) sun = sun.minusDays(1);
+    while (sat.weekday() < Calendar.SATURDAY) sat = sat.plusDays(1);
+    verifyRange(HDateTimeRange.thisWeek(ny), sun, sat);
+
+    // this month
+    HDate first = today;
+    HDate last = today;
+    while (first.day > 1)  first = first.minusDays(1);
+    while (last.day < HDate.daysInMonth(today.year, today.month)) last = last.plusDays(1);
+    verifyRange(HDateTimeRange.thisMonth(ny), first, last);
+
+    // this year
+    first = HDate.make(today.year, 1, 1);
+    last = HDate.make(today.year, 12, 31);
+    verifyRange(HDateTimeRange.thisYear(ny), first, last);
+
+    // last week
+    HDate prev = today.minusDays(7);
+    sun = prev;
+    sat = prev;
+    while (sun.weekday() > Calendar.SUNDAY) sun = sun.minusDays(1);
+    while (sat.weekday() < Calendar.SATURDAY) sat = sat.plusDays(1);
+    verifyRange(HDateTimeRange.lastWeek(ny), sun, sat);
+
+    // last month
+    last = today;
+    while (last.month == today.month) last = last.minusDays(1);
+    first = HDate.make(last.year, last.month, 1);
+    verifyRange(HDateTimeRange.lastMonth(ny), first, last);
+
+    // last year
+    first = HDate.make(today.year-1, 1, 1);
+    last = HDate.make(today.year-1, 12, 31);
+    verifyRange(HDateTimeRange.lastYear(ny), first, last);
   }
 
   private void verifyRange(HDateTimeRange r, HDate start, HDate end)
