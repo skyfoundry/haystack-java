@@ -190,10 +190,11 @@ public class ClientTest extends Test
 
   void verifyWatches() throws Exception
   {
+    final String watchDis = "Java Haystack Test " + System.currentTimeMillis();
     // create new watch
-    HWatch w = client.watchOpen("Java Haystack Test");
+    HWatch w = client.watchOpen(watchDis);
     verifyEq(w.id(), null);
-    verifyEq(w.dis(), "Java Haystack Test");
+    verifyEq(w.dis(), watchDis);
 
     // do query to get some recs
     HGrid recs = client.readAll("ahu");
@@ -267,7 +268,7 @@ public class ClientTest extends Test
     verifyEq(poll.row(0).dis(), b.dis());
 
     // close
-    String expr = "folioDebugWatches().findAll(x=>x->dis.contains(\"Java Haystack Test\")).size";
+    String expr = "folioDebugWatches().findAll(x=>x->dis.contains(\"" + watchDis + "\")).size";
     verifyEq(client.eval(expr).row(0).getInt("val"), 1);
     w.close();
     try { poll = w.pollRefresh(); fail(); } catch (Exception e) { verifyException(e); }
