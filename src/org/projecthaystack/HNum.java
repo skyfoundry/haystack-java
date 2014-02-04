@@ -8,6 +8,7 @@
 package org.projecthaystack;
 
 import java.text.*;
+import java.util.Locale;
 
 /**
  * HNum wraps a 64-bit floating point number and optional unit name.
@@ -123,7 +124,7 @@ public class HNum extends HVal
       // don't let fractions
       double abs = val; if (abs < 0) abs = -abs;
       if (abs > 1.0)
-        s.append(new DecimalFormat("#0.####").format(val));
+        s.append(new DecimalFormat("#0.####", new DecimalFormatSymbols(Locale.ENGLISH)).format(val));
       else
         s.append(val);
 

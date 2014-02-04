@@ -8,6 +8,9 @@
 package org.projecthaystack;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
+
 import org.projecthaystack.io.HZincReader;
 
 /**
@@ -101,7 +104,7 @@ public class HCoord extends HVal
     if (ud < 0) { s.append('-'); ud = -ud; }
     if (ud < 1000000.0)
     {
-      s.append(new DecimalFormat("0.0#####").format(ud/1000000.0));
+      s.append(new DecimalFormat("0.0#####", new DecimalFormatSymbols(Locale.ENGLISH)).format(ud/1000000.0));
       return;
     }
     String x = String.valueOf(ud);
