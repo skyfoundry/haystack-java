@@ -31,16 +31,17 @@ public class HClient extends HProj
 //////////////////////////////////////////////////////////////////////////
 
   /**
-   * Open a connection and authenticate to a Haystack HTTP server.
+   * Convenience for construction and call to open().
    */
   public static HClient open(String uri, String user, String pass)
   {
-    HClient client = new HClient(uri, user, pass);
-    client.authenticate();
-    return client;
+    return new HClient(uri, user, pass).open();
   }
 
-  private HClient(String uri, String user, String pass)
+  /**
+   * Constructor with URI to server's API and authentication credentials.
+   */
+  public HClient(String uri, String user, String pass)
   {
     // check uri
     if (!uri.startsWith("http://") && !uri.startsWith("https://")) throw new IllegalArgumentException("Invalid uri format: " + uri);
@@ -48,7 +49,6 @@ public class HClient extends HProj
 
     // sanity check arguments
     if (user.length() == 0) throw new IllegalArgumentException("user cannot be empty string");
-//    if (pass.length() == 0) throw new IllegalArgumentException("password cannot be empty string");
 
     this.uri  = uri;
     this.user = user;
@@ -56,16 +56,31 @@ public class HClient extends HProj
   }
 
 //////////////////////////////////////////////////////////////////////////
-// Identity
+// State
 //////////////////////////////////////////////////////////////////////////
 
   /** Base URI for connection such as "http://host/api/demo/".
       This string always ends with slash. */
   public final String uri;
 
+  /** Timeout in milliseconds for opening the HTTP socket */
+  public int connectTimeout = 60 * 1000;
+
+  /** Timeout in milliseconds for reading from the HTTP socket */
+  public int readTimeout = 60 * 1000;
+
 //////////////////////////////////////////////////////////////////////////
 // Operations
 //////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Authenticate the client and return this.
+   */
+  public HClient open()
+  {
+    authenticate();
+    return this;
+  }
 
   /**
    * Call "about" to query summary info.
@@ -500,11 +515,9 @@ public class HClient extends HProj
     {
       // setup the POST request
       URL url = new URL(uri + op);
-      HttpURLConnection c = (HttpURLConnection)url.openConnection();
+      HttpURLConnection c = openHttpConnection(url, "POST");
       try
       {
-        c.setRequestMethod("POST");
-        c.setInstanceFollowRedirects(false);
         c.setDoOutput(true);
         c.setDoInput(true);
         c.setRequestProperty("Connection", "Close");
@@ -554,9 +567,7 @@ public class HClient extends HProj
       {
         // make request to about to get headers
         URL url = new URL(this.uri + "about");
-        c = (HttpURLConnection)url.openConnection();
-        c.setRequestMethod("GET");
-        c.setInstanceFollowRedirects(false);
+        c = openHttpConnection(url, "GET");
         c.connect();
 
         String folioAuthUri = c.getHeaderField("Folio-Auth-Api-Uri");
@@ -615,9 +626,7 @@ public class HClient extends HProj
     // make request to auth URI to get salt, nonce
     String baseUri = uri.substring(0, uri.indexOf('/', 9));
     URL url = new URL(baseUri + authUri + "?" + user);
-    c = (HttpURLConnection)url.openConnection();
-    c.setRequestMethod("GET");
-    c.setInstanceFollowRedirects(false);
+    c = openHttpConnection(url, "GET");
     c.connect();
 
     // parse response as name:value pairs
@@ -640,8 +649,7 @@ public class HClient extends HProj
 
     // post back nonce/digest to auth URI
     c.disconnect();
-    c = (HttpURLConnection)url.openConnection();
-    c.setRequestMethod("POST");
+    c = openHttpConnection(url, "POST");
     c.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
     c.setDoInput(true);
     c.setDoOutput(true);
@@ -674,6 +682,17 @@ public class HClient extends HProj
       props.put(name, val);
     }
     return props;
+  }
+
+  private HttpURLConnection openHttpConnection(URL url, String method)
+    throws IOException, ProtocolException
+  {
+    HttpURLConnection c = (HttpURLConnection)url.openConnection();
+    c.setRequestMethod(method);
+    c.setInstanceFollowRedirects(false);
+    c.setConnectTimeout(connectTimeout);
+    c.setReadTimeout(readTimeout);
+    return c;
   }
 
 ////////////////////////////////////////////////////////////////
