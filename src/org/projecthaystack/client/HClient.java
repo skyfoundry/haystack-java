@@ -365,6 +365,7 @@ public class HClient extends HProj
     public HGrid pollChanges() { return client.watchPoll(this, false); }
     public HGrid pollRefresh() { return client.watchPoll(this, true); }
     public void close() { client.watchClose(this, true); }
+    public boolean isOpen() { return !closed; }
 
     final HClient client;
     final String dis;
