@@ -70,4 +70,9 @@ public abstract class HWatch
    * Close the watch and free up any state resources.
    */
   public abstract void close();
+
+  /**
+   * Return whether this watch is currently open.
+   */
+  public abstract boolean isOpen();
 }
