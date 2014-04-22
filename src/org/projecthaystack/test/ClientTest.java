@@ -93,9 +93,9 @@ public class ClientTest extends Test
     HGrid g = client.formats();
 
     // verify required columns
-    verify(g.col("mime")  != null);
-    verify(g.col("read") != null);
-    verify(g.col("write") != null);
+    verify(g.col("mime")    != null);
+    verify(g.col("receive") != null);
+    verify(g.col("send")    != null);
 
     // verify required ops
     verifyGridContains(g, "mime", "text/plain");
@@ -191,6 +191,7 @@ public class ClientTest extends Test
   void verifyWatches() throws Exception
   {
     final String watchDis = "Java Haystack Test " + System.currentTimeMillis();
+
     // create new watch
     HWatch w = client.watchOpen(watchDis);
     verifyEq(w.id(), null);
@@ -239,8 +240,8 @@ public class ClientTest extends Test
     HDict newb, newd;
     if (poll.row(0).id().equals(b.id())) { newb = poll.row(0); newd = poll.row(1); }
     else { newb = poll.row(1); newd = poll.row(0); }
-    verifyEq(newb.dis(), b.dis());
-    verifyEq(newd.dis(), d.dis());
+    verifyEq(newb.id(), b.id());
+    verifyEq(newd.id(), d.id());
     verifyEq(newb.get("javaTest"), HNum.make(123));
     verifyEq(newd.get("javaTest"), HNum.make(456));
 
@@ -258,14 +259,14 @@ public class ClientTest extends Test
     client.eval("commit(diff(readById(@" + d.id().val + "), {-javaTest}))");
     poll = w.pollChanges();
     verifyEq(poll.numRows(), 1);
-    verifyEq(poll.row(0).dis(), b.dis());
+    verifyEq(poll.row(0).id(), b.id());
     verifyEq(poll.row(0).has("javaTest"), false);
 
     // remove a and c and poll refresh
     w.unsub(new HRef[] { a.id(), c.id() });
     poll = w.pollRefresh();
     verifyEq(poll.numRows(), 1);
-    verifyEq(poll.row(0).dis(), b.dis());
+    verifyEq(poll.row(0).id(), b.id());
 
     // close
     String expr = "folioDebugWatches().findAll(x=>x->dis.contains(\"" + watchDis + "\")).size";

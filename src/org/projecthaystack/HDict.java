@@ -65,7 +65,7 @@ public abstract class HDict
   {
     HVal v;
     v = get("dis", false); if (v instanceof HStr) return ((HStr)v).val;
-    v = get("id", false); if (v != null) return v.toString();
+    v = get("id", false); if (v != null) return ((HRef)v).dis();
     return "????";
   }
 
