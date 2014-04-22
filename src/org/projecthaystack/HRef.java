@@ -33,7 +33,7 @@ public class HRef extends HVal
   /** String identifier for reference */
   public final String val;
 
-  /** Display name for reference of null */
+  /** Display name for reference or null */
   public final String dis;
 
   /** Hash code is based on val field only */
@@ -44,6 +44,13 @@ public class HRef extends HVal
   {
     if (!(that instanceof HRef)) return false;
     return this.val.equals(((HRef)that).val);
+  }
+
+  /** Return display string which is dis field if non-null, val field otherwise */
+  public String dis()
+  {
+    if (dis != null) return dis;
+    return val;
   }
 
   /** Return the val string */

@@ -115,4 +115,11 @@ public class DictTest extends Test
     verifyEq(x, tags);
   }
 
+  public void testDis()
+  {
+    verifyEq(new HDictBuilder().add("id", HRef.make("a")).toDict().dis(), "a");
+    verifyEq(new HDictBuilder().add("id", HRef.make("a", "b")).toDict().dis(), "b");
+    verifyEq(new HDictBuilder().add("id", HRef.make("a")).add("dis", "d").toDict().dis(), "d");
+  }
+
 }
