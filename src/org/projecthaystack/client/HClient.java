@@ -637,11 +637,9 @@ public class HClient extends HProj
     String salt = (String)props.get("userSalt"); if (salt == null) throw new CallAuthException("auth missing 'userSalt'");
     String nonce = (String)props.get("nonce");   if (nonce == null) throw new CallAuthException("auth missing 'nonce'");
 
-    // compute hmac (note Java doesn't allow empty password)
-    Mac mac = Mac.getInstance("HmacSHA1");
-    SecretKeySpec secret = new SecretKeySpec(pass.getBytes(),"HmacSHA1");
-    mac.init(secret);
-    String hmac = Base64.STANDARD.encodeBytes(mac.doFinal((user + ":" + salt).getBytes()));
+    // compute hmac
+    byte[] hmacBytes = CryptoUtil.hmac("SHA-1", (user + ":" + salt).getBytes(), pass.getBytes());
+    String hmac = Base64.STANDARD.encodeBytes(hmacBytes);
 
     // compute digest with nonce
     MessageDigest md = MessageDigest.getInstance("SHA-1");

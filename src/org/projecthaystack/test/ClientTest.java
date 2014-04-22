@@ -20,6 +20,9 @@ public class ClientTest extends Test
 {
 
   final String uri = "http://localhost/api/demo";
+  final String user = "haystack";
+  final String pass = "testpass";
+
   HClient client;
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,7 +53,7 @@ public class ClientTest extends Test
     try { HClient.open(uri, "haystack", "badpass").about(); fail(); } catch (CallAuthException e) { verifyException(e); }
 
     // create proper client
-    this.client = HClient.open("http://localhost/api/demo", "haystack", "testpass");
+    this.client = HClient.open(uri, user, pass);
   }
 
 //////////////////////////////////////////////////////////////////////////
