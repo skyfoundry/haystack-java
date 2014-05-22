@@ -90,6 +90,12 @@ public class ValTest extends Test
     verifyEq(HNum.isUnitName("x z"), false);
     try { HNum.make(123.4, "foo bar"); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
     try { HNum.make(123.4, "foo,bar"); fail(); } catch (IllegalArgumentException e) { verifyException(e); }
+
+    // verify we format decimal with dot
+    Locale locale = Locale.getDefault();
+    Locale.setDefault(new Locale("fr"));
+    verifyZinc(HNum.make(2.4), "2.4");
+    Locale.setDefault(locale);
   }
 
   public void testStr()
