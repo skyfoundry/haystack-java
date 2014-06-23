@@ -523,8 +523,8 @@ public class HClient extends HProj
         c.setDoInput(true);
         c.setRequestProperty("Connection", "Close");
         c.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
-        if (authProperty != null) c.setRequestProperty(
-            authProperty.key, authProperty.value);
+        if (authProperty   != null) c.setRequestProperty(authProperty.key,   authProperty.value);
+        if (cookieProperty != null) c.setRequestProperty(cookieProperty.key, cookieProperty.value);
         c.connect();
 
         // post expression
@@ -535,6 +535,9 @@ public class HClient extends HProj
         // check for successful request
         if (c.getResponseCode() != 200)
           throw new CallHttpException(c.getResponseCode(), c.getResponseMessage());
+
+        // check for response cookie
+        checkSetCookie(c);
 
         // read response into string
         StringBuilder s = new StringBuilder(1024);
@@ -549,6 +552,23 @@ public class HClient extends HProj
       }
     }
     catch (Exception e) { throw new CallNetworkException(e); }
+  }
+
+  private void checkSetCookie(HttpURLConnection c)
+  {
+    // if auth is already cookie based, we don't want to overwrite it
+    if (authProperty != null && authProperty.key.equals("Cookie")) return;
+
+    // check for Set-Cookie
+    String header = c.getHeaderField("Set-Cookie");
+    if (header == null) return;
+
+    // parse cookie name=value pair
+    int semi = header.indexOf(";");
+    if  (semi > 0) header = header.substring(0, semi);
+
+    // save cookie for future requests
+    cookieProperty = new Property("Cookie", header);
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -698,24 +718,24 @@ public class HClient extends HProj
 // Property
 ////////////////////////////////////////////////////////////////
 
-    static class Property
+  static class Property
+  {
+    Property(String key, String value)
     {
-      Property(String key, String value)
-      {
-        this.key = key;
-        this.value = value;
-      }
-
-      public String toString()
-      {
-        return "[Property " +
-          "key:" + key + ", " +
-          "value:" + value + "]";
-      }
-
-      final String key;
-      final String value;
+      this.key = key;
+      this.value = value;
     }
+
+    public String toString()
+    {
+      return "[Property " +
+        "key:" + key + ", " +
+        "value:" + value + "]";
+    }
+
+    final String key;
+    final String value;
+  }
 
 //////////////////////////////////////////////////////////////////////////
 // Debug Utils
@@ -745,6 +765,8 @@ public class HClient extends HProj
   private final String user;
   private final String pass;
   private Property authProperty;
+  private Property cookieProperty;
+
   private HashMap watches = new HashMap();
 
 }
