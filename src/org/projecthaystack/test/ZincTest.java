@@ -23,6 +23,7 @@ public class ZincTest extends Test
 
   public void test()
   {
+
     verifyGrid(
       "ver:\"2.0\"\n" +
       "fooBar33\n" +
@@ -108,6 +109,7 @@ public class ZincTest extends Test
       "M,R,Bin(image/png),Bin(image/png)\n" +
       "2009-12-31, 23:59:01, 01:02:03.123, 2009-02-03T04:05:06Z\n" +
       "INF, -INF, \"\", NaN\n" +
+      "C(12,-34),C(0.123,-.789),C(84.5,-77.45),C(-90,180)\n" +
       "\n",
       null,
       new Object[] {
@@ -124,6 +126,7 @@ public class ZincTest extends Test
         new HVal[] {HMarker.VAL, HStr.make("_remove_"), HBin.make("image/png"), HBin.make("image/png"), },
         new HVal[] {HDate.make(2009, 12, 31), HTime.make(23, 59, 1, 0), HTime.make(1, 2, 3, 123), HDateTime.make(HDate.make(2009, 2, 3),HTime.make(4, 5, 6, 0),HTimeZone.make("UTC")), },
         new HVal[] {HNum.POS_INF, HNum.NEG_INF, HStr.make(""), HNum.NaN, },
+        new HVal[] {HCoord.make(12.0, -34.0), HCoord.make(0.123, -0.789), HCoord.make(84.5, -77.45), HCoord.make(-90.0, 180.0), },
       }
     );
 
@@ -207,29 +210,29 @@ public class ZincTest extends Test
     );
 
     verifyGrid(
-      "ver:\"2.0\"\n" +
+      "ver:\"2.0\" a: 2009-02-03T04:05:06Z foo b: 2010-02-03T04:05:06Z UTC bar c: 2009-12-03T04:05:06Z London baz\n" +
       "a\n" +
       "3.814697265625E-6\n" +
+      "2010-12-18T14:11:30.924Z\n" +
       "2010-12-18T14:11:30.925Z UTC\n" +
       "2010-12-18T14:11:30.925Z London\n" +
       "45$\n" +
       "33\u00a3\n" +
       "@12cbb08e-0c02ae73\n" +
-      "7.15625E-4kWh/ft\u00b2\n" +
-      "C(33.4,-12.3)\n",
-      null,
+      "7.15625E-4kWh/ft\u00b2\n",
+      new HDictBuilder().add("b", HDateTime.make(HDate.make(2010, 2, 3),HTime.make(4, 5, 6, 0),HTimeZone.make("UTC"))).add("baz", HMarker.VAL).add("c", HDateTime.make(HDate.make(2009, 12, 3),HTime.make(4, 5, 6, 0),HTimeZone.make("London"))).add("a", HDateTime.make(HDate.make(2009, 2, 3),HTime.make(4, 5, 6, 0),HTimeZone.make("UTC"))).add("foo", HMarker.VAL).add("bar", HMarker.VAL).toDict(),
       new Object[] {
          "a", null,
       },
       new HVal[][] {
         new HVal[] {HNum.make(3.814697265625E-6), },
+        new HVal[] {HDateTime.make(HDate.make(2010, 12, 18),HTime.make(14, 11, 30, 924),HTimeZone.make("UTC")), },
         new HVal[] {HDateTime.make(HDate.make(2010, 12, 18),HTime.make(14, 11, 30, 925),HTimeZone.make("UTC")), },
         new HVal[] {HDateTime.make(HDate.make(2010, 12, 18),HTime.make(14, 11, 30, 925),HTimeZone.make("London")), },
         new HVal[] {HNum.make(45.0, "$"), },
         new HVal[] {HNum.make(33.0, "\u00a3"), },
         new HVal[] {HRef.make("12cbb08e-0c02ae73", null), },
         new HVal[] {HNum.make(7.15625E-4, "kWh/ft\u00b2"), },
-        new HVal[] {HCoord.make(33.4, -12.3), },
       }
     );
   }
