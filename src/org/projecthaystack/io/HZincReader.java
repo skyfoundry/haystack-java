@@ -347,11 +347,12 @@ public class HZincReader extends HGridReader
     }
 
     // HDateTime (if we have date and time)
+    boolean zUtc = false;
     if (date != null)
     {
       // timezone offset "Z" or "-/+hh:mm"
       int tzOffset = 0;
-      if (cur == 'Z') consume();
+      if (cur == 'Z') { consume(); zUtc = true; }
       else
       {
         boolean neg = cur == '-';
@@ -369,10 +370,14 @@ public class HZincReader extends HGridReader
       HTimeZone tz;
       if (cur != ' ')
       {
-        if (tzOffset != 0)
+        if (!zUtc)
           throw errChar("Expected space between timezone offset and name");
         else
           tz = HTimeZone.UTC;
+      }
+      else if (zUtc && !('A' <= peek && peek <= 'Z'))
+      {
+        tz = HTimeZone.UTC;
       }
       else
       {
