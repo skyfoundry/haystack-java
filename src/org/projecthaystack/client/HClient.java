@@ -742,19 +742,23 @@ public class HClient extends HProj
 //////////////////////////////////////////////////////////////////////////
 
   /*
-  private void dumpRes(HttpURLConnection c) throws Exception
+  private void dumpRes(HttpURLConnection c, boolean body) throws Exception
   {
     System.out.println("====  " + c.getURL());
     System.out.println("res: " + c.getResponseCode() + " " + c.getResponseMessage() );
-    for (int i=1; c.getHeaderFieldKey(i) != null; ++i)
+    for (Iterator it = c.getHeaderFields().keySet().iterator(); it.hasNext(); )
     {
-      System.out.println(c.getHeaderFieldKey(i) + ": " + c.getHeaderField(i));
-      i++;
+      String key = (String)it.next();
+      String val = c.getHeaderField(key);
+      System.out.println(key + ": " + val);
     }
     System.out.println();
-    InputStream in = c.getInputStream();
-    int n;
-    while ((n = in.read()) > 0) System.out.print((char)n);
+    if (body)
+    {
+      InputStream in = c.getInputStream();
+      int n;
+      while ((n = in.read()) > 0) System.out.print((char)n);
+    }
   }
   */
 
