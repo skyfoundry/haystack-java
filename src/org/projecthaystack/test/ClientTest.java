@@ -13,13 +13,13 @@ import org.projecthaystack.client.*;
 
 /**
  * ClientTest -- this test requires an instance of SkySpark
- * running localhost port 80 with the standard demo project
+ * running localhost port 8080 with the standard demo project
  * and a user account "haystack/testpass".
  */
 public class ClientTest extends Test
 {
 
-  final String uri = "http://localhost/api/demo";
+  final String uri = "http://localhost:8080/api/demo";
   final String user = "haystack";
   final String pass = "testpass";
 
@@ -287,7 +287,7 @@ public class ClientTest extends Test
 
   void verifyHisRead() throws Exception
   {
-    HDict kw = client.read("kw and siteMeter");
+    HDict kw = client.read("power and siteMeter");
     HGrid his = client.hisRead(kw.id(), "yesterday");
     verifyEq(his.meta().id(), kw.id());
     verifyEq(ts(his.meta(), "hisStart").date, HDate.today().minusDays(1));
@@ -312,7 +312,7 @@ public class ClientTest extends Test
   void verifyHisWrite() throws Exception
   {
     // setup test
-    HDict kw = client.read("kw and not siteMeter");
+    HDict kw = client.read("power and not siteMeter");
     clearHisWrite(kw);
 
     // create some items
