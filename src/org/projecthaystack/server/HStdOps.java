@@ -200,9 +200,14 @@ class WatchSubOp extends HOp
     else
       watchDis = req.meta().getStr("watchDis");
 
+    // check for desired lease
+    HNum lease = null;
+    if (req.meta().has("lease"))
+      lease = (HNum)req.meta().get("lease");
+
     // open or lookup watch
     HWatch watch = watchId == null ?
-                   db.watchOpen(watchDis) :
+                   db.watchOpen(watchDis, lease) :
                    db.watch(watchId);
 
     // map grid to ids

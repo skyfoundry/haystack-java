@@ -177,12 +177,13 @@ public abstract class HServer extends HProj
   /**
    * Create a new watch with an empty subscriber list.  The dis
    * string is a debug string to keep track of who created the watch.
+   * The lease is the requested lease time or null if not specified.
    */
-  public final HWatch watchOpen(String dis)
+  public final HWatch watchOpen(String dis, HNum lease)
   {
     dis = dis.trim();
     if (dis.length() == 0) throw new IllegalArgumentException("dis is empty");
-    return onWatchOpen(dis);
+    return onWatchOpen(dis, lease);
   }
 
   /**
@@ -207,8 +208,11 @@ public abstract class HServer extends HProj
 
   /**
    * Implementation hook for watchOpen.
+   * If the client requested a specific lease time it is provided, otherwise
+   * it is null if a default should be used.  The actual lease time in
+   * effect should be reflected via HWatch.lease.
    */
-  protected abstract HWatch onWatchOpen(String dis);
+  protected abstract HWatch onWatchOpen(String dis, HNum lease);
 
   /**
    * Implementation hook for watches.

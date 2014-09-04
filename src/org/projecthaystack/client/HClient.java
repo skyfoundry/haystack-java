@@ -210,9 +210,9 @@ public class HClient extends HProj
    * Create a new watch with an empty subscriber list.  The dis
    * string is a debug string to keep track of who created the watch.
    */
-  public HWatch watchOpen(String dis)
+  public HWatch watchOpen(String dis, HNum lease)
   {
-    return new HClientWatch(this, dis);
+    return new HClientWatch(this, dis, lease);
   }
 
   /**
@@ -246,6 +246,7 @@ public class HClient extends HProj
     // grid meta
     HGridBuilder b = new HGridBuilder();
     if (w.id != null) b.meta().add("watchId", w.id);
+    if (w.desiredLease != null) b.meta().add("lease", w.desiredLease);
     b.meta().add("watchDis", w.dis);
 
     // grid rows
@@ -356,7 +357,7 @@ public class HClient extends HProj
 
   static class HClientWatch extends HWatch
   {
-    HClientWatch(HClient c, String d) { client = c; dis = d; }
+    HClientWatch(HClient c, String d, HNum l) { client = c; dis = d; desiredLease = l; }
     public String id() { return id; }
     public HNum lease() { return lease; }
     public String dis() { return dis; }
@@ -369,6 +370,7 @@ public class HClient extends HProj
 
     final HClient client;
     final String dis;
+    final HNum desiredLease;
     String id;
     HNum lease;
     boolean closed;
