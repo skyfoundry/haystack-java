@@ -196,9 +196,10 @@ public class ClientTest extends Test
     final String watchDis = "Java Haystack Test " + System.currentTimeMillis();
 
     // create new watch
-    HWatch w = client.watchOpen(watchDis);
+    HWatch w = client.watchOpen(watchDis, HNum.make(3, "min"));
     verifyEq(w.id(), null);
     verifyEq(w.dis(), watchDis);
+    verifyEq(w.lease(), null);
 
     // do query to get some recs
     HGrid recs = client.readAll("ahu");
@@ -227,7 +228,7 @@ public class ClientTest extends Test
     verify(client.watch(w.id()) == w);
     verifyEq(client.watches().length, 1);
     verify(client.watches()[0] == w);
-    verifyEq(w.lease().millis(), 60000L);
+    verifyEq(w.lease().millis(), 180000L);
 
     // poll for changes (should be none yet)
     HGrid poll = w.pollChanges();

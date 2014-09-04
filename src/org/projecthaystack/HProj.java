@@ -153,8 +153,9 @@ public abstract class HProj
   /**
    * Create a new watch with an empty subscriber list.  The dis
    * string is a debug string to keep track of who created the watch.
+   * Pass the desired lease time or null to use default.
    */
-  public abstract HWatch watchOpen(String dis);
+  public abstract HWatch watchOpen(String dis, HNum lease);
 
   /**
    * List the open watches.

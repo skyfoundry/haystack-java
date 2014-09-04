@@ -45,7 +45,7 @@ public abstract class HWatch
    * not resolved.  If checked is false, then each id not found has a
    * row where every cell is null.
    * <p>
-   * The HGrid that is returned must contain metadata entries 
+   * The HGrid that is returned must contain metadata entries
    * for 'watchId' and 'lease'.
    */
   public abstract HGrid sub(HRef[] ids, boolean checked);

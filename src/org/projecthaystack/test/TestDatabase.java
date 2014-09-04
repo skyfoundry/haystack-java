@@ -182,7 +182,7 @@ public class TestDatabase extends HServer
 // Watches
 //////////////////////////////////////////////////////////////////////////
 
-  protected HWatch onWatchOpen(String dis)
+  protected HWatch onWatchOpen(String dis, HNum lease)
   {
     throw new UnsupportedOperationException();
   }
