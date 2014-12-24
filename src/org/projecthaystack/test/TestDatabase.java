@@ -222,7 +222,7 @@ public class TestDatabase extends HServer
     return b.toGrid();
   }
 
-  protected void onPointWrite(HDict rec, int level, HVal val, String who, HNum dur)
+  protected void onPointWrite(HDict rec, int level, HVal val, String who, HNum dur, HDict opts)
   {
     System.out.println("onPointWrite: " + rec.dis() + "  " + val + " @ " + level + " [" + who + "]");
     WriteArray array = (WriteArray)writeArrays.get(rec.id());
