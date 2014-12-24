@@ -331,6 +331,22 @@ public class ValTest extends Test
     verifyZinc(HDateTime.make(HDate.make(2011, 6, 8), HTime.make(4, 7, 33, 771), HTimeZone.make("GMT-7"), 25200),
              "2011-06-08T04:07:33.771+07:00 GMT-7");
 
+    // verify millis()
+    HDate date = HDate.make(2014, 12, 24);
+    HTime time = HTime.make(11, 12, 13, 456);
+    HTimeZone newYork = HTimeZone.make("New_York");
+    long utcMillis = 1419437533456L;
+
+    HDateTime a = HDateTime.make(date, time, newYork);
+    HDateTime b = HDateTime.make(date, time, newYork, a.tzOffset);
+    HDateTime c = HDateTime.make(utcMillis,  newYork);
+    HDateTime d = (HDateTime) new HZincReader("2014-12-24T11:12:13.456-05:00 New_York").readScalar();
+
+    verifyEq(a.millis(), utcMillis);
+    verifyEq(b.millis(), utcMillis);
+    verifyEq(c.millis(), utcMillis);
+    verifyEq(d.millis(), utcMillis);
+
     // errors
     try { read("2000-02-02T03:04:00-0x:00 New_York"); fail(); } catch (Exception e) { verifyException(e); }
     try { read("2000-02-02T03:04:00-05 New_York"); fail(); } catch (Exception e) { verifyException(e); }

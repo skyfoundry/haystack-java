@@ -30,6 +30,7 @@ public class HDateTime extends HVal
   {
     // use calendar to decode millis to fields
     GregorianCalendar c = new GregorianCalendar(date.year, date.month-1, date.day, time.hour, time.min, time.sec);
+    if (time.ms != 0) c.set(Calendar.MILLISECOND, time.ms);
     c.setTimeZone(tz.java);
 
     // tzOffset
