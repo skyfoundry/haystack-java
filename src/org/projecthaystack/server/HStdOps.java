@@ -290,7 +290,7 @@ class PointWriteOp extends HOp
       String who = row.getStr("who"); // be nice to have user fallback
       HVal val   = row.get("val", false);
       HNum dur   = (HNum)row.get("duration", false);
-      db.pointWrite(id, level, val, who, dur);
+      db.pointWrite(id, level, val, who, dur, row);
     }
 
     return db.pointWriteArray(id);
