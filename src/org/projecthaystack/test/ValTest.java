@@ -340,7 +340,7 @@ public class ValTest extends Test
     HDateTime a = HDateTime.make(date, time, newYork);
     HDateTime b = HDateTime.make(date, time, newYork, a.tzOffset);
     HDateTime c = HDateTime.make(utcMillis,  newYork);
-    HDateTime d = (HDateTime) new HZincReader("2014-12-24T11:12:13.456-05:00 New_York").readScalar();
+    HDateTime d = HDateTime.make("2014-12-24T11:12:13.456-05:00 New_York");
 
     verifyEq(a.millis(), utcMillis);
     verifyEq(b.millis(), utcMillis);

@@ -11,6 +11,8 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+import org.projecthaystack.io.HZincReader;
+
 /**
  * HDateTime models a timestamp with a specific timezone.
  *
@@ -75,6 +77,16 @@ public class HDateTime extends HVal
     HDateTime ts = new HDateTime(HDate.make(c), HTime.make(c), tz, tzOffset);
     ts.millis = millis;
     return ts;
+  }
+
+  /** Parse from string fomat "YYYY-MM-DD'T'hh:mm:ss.FFFz zzzz" 
+    * or raise ParseException 
+    */
+  public static HDateTime make(String s)
+  {
+    HVal val = new HZincReader(s).readScalar();
+    if (val instanceof HDateTime) return (HDateTime)val;
+    throw new ParseException(s);
   }
 
   /** Get HDateTime for current time in default timezone */
