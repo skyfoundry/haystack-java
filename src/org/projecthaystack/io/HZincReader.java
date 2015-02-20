@@ -218,7 +218,7 @@ public class HZincReader extends HGridReader
     {
       if (word.equals("N"))   return null;
       if (word.equals("M"))   return HMarker.VAL;
-      if (word.equals("R"))   return HStr.make("_remove_");
+      if (word.equals("R"))   return HRemove.VAL;
       if (word.equals("T"))   return HBool.TRUE;
       if (word.equals("F"))   return HBool.FALSE;
       if (word.equals("Bin")) return readBinVal();
