@@ -123,7 +123,7 @@ public class ZincTest extends Test
         new HVal[] {HNum.make(2.3), HNum.make(-5.0E-10), HNum.make(2.4E20), HNum.make(1.23E-8), },
         new HVal[] {HStr.make(""), HStr.make("a"), HStr.make("\" \\ \t \n \r"), HStr.make("\uabcd"), },
         new HVal[] {HUri.make("path"), HRef.make("12cbb082-0c02ae73", null), HNum.make(4.0, "s"), HNum.make(-2.5, "min"), },
-        new HVal[] {HMarker.VAL, HStr.make("_remove_"), HBin.make("image/png"), HBin.make("image/png"), },
+        new HVal[] {HMarker.VAL, HRemove.VAL, HBin.make("image/png"), HBin.make("image/png"), },
         new HVal[] {HDate.make(2009, 12, 31), HTime.make(23, 59, 1, 0), HTime.make(1, 2, 3, 123), HDateTime.make(HDate.make(2009, 2, 3),HTime.make(4, 5, 6, 0),HTimeZone.make("UTC")), },
         new HVal[] {HNum.POS_INF, HNum.NEG_INF, HStr.make(""), HNum.NaN, },
         new HVal[] {HCoord.make(12.0, -34.0), HCoord.make(0.123, -0.789), HCoord.make(84.5, -77.45), HCoord.make(-90.0, 180.0), },
