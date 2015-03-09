@@ -25,7 +25,7 @@ public class HRemove extends HVal
   /** Equals is based on reference */
   public boolean equals(Object that) { return this == that; }
 
-  /** Encode as "marker" */
+  /** Encode as "remove" */
   public String toString() { return "remove"; }
 
   /** Encode as "R" */
