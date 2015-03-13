@@ -7,7 +7,7 @@
 //
 package org.projecthaystack.util;
 
-import java.io.*;
+import java.io.UnsupportedEncodingException;
 
 /**
   * Base64 handles various methods of encoding and decoding
