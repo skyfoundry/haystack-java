@@ -17,6 +17,7 @@ import java.security.*;
 import org.projecthaystack.*;
 import org.projecthaystack.io.*;
 import org.projecthaystack.util.*;
+import org.projecthaystack.util.Base64;
 
 /**
  * HClient manages a logical connection to a HTTP REST haystack server.
