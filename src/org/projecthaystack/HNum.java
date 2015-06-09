@@ -112,16 +112,31 @@ public class HNum extends HVal
     return 1;
   }
 
+  /** Encode as "n:<float> [unit]" */
+  public String toJson()
+  {
+    StringBuffer s = new StringBuffer();
+    s.append("n:");
+    encode(s, true);
+    return s.toString();
+  }
+
   /** Encode as floating value followed by optional unit string */
   public String toZinc()
   {
     StringBuffer s = new StringBuffer();
+    encode(s, false);
+    return s.toString();
+  }
+
+  private void encode(StringBuffer s, boolean spaceBeforeUnit)
+  {
     if (val == Double.POSITIVE_INFINITY) s.append("INF");
     else if (val == Double.NEGATIVE_INFINITY) s.append("-INF");
     else if (Double.isNaN(val)) s.append("NaN");
     else
     {
-      // don't let fractions
+      // don't encode huge set of decimals if over 1.0
       double abs = val; if (abs < 0) abs = -abs;
       if (abs > 1.0)
         s.append(new DecimalFormat("#0.####", new DecimalFormatSymbols(Locale.ENGLISH)).format(val));
@@ -130,11 +145,11 @@ public class HNum extends HVal
 
       if (unit != null)
       {
+        if (spaceBeforeUnit) s.append(' ');
         for (int i=0; i<unit.length(); ++i)
           s.append(unit.charAt(i));
       }
     }
-    return s.toString();
   }
 
   /**

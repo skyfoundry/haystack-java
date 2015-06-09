@@ -46,6 +46,12 @@ public class HUri extends HVal
     return val;
   }
 
+  /** Encode as "u:<val>" */
+  public String toJson()
+  {
+    return "u:" + val;
+  }
+
   /** Encode using "`" back ticks */
   public String toZinc()
   {

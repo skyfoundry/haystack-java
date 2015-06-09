@@ -91,16 +91,25 @@ public class HDate extends HVal
   /** Day of month as 1-31 */
   public final int day;
 
+  /** Encode as "d:YYYY-MM-DD" */
+  public String toJson()
+  {
+    StringBuffer s = new StringBuffer();
+    s.append("d:");
+    encode(s);
+    return s.toString();
+  }
+
   /** Encode as "YYYY-MM-DD" */
   public String toZinc()
   {
     StringBuffer s = new StringBuffer();
-    toZinc(s);
+    encode(s);
     return s.toString();
   }
 
   /** Package private implementation shared with HDateTime */
-  void toZinc(StringBuffer s)
+  void encode(StringBuffer s)
   {
     s.append(year).append('-');
     if (month < 10) s.append('0'); s.append(month).append('-');

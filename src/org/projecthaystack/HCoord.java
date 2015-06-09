@@ -87,6 +87,17 @@ public class HCoord extends HVal
     return ulat == x.ulat && ulng == x.ulng;
   }
 
+  /** Return "c:lat,lng" */
+  public String toJson()
+  {
+    StringBuffer s = new StringBuffer();
+    s.append("c:");
+    uToStr(s, ulat);
+    s.append(',');
+    uToStr(s, ulng);
+    return s.toString();
+  }
+
   /** Represented as "C(lat,lng)" */
   public String toZinc()
   {

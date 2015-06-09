@@ -56,14 +56,14 @@ table { padding-left: 3em; }
 
 <!-- Title Block -->
 <h1 class='title'>Haystack Java Toolkit</h1>
-<h2 id='overview'>Overview </h2>
+<h2 id='overview'>Overview</h2>
 
 <p><a href='http://project-haystack.org/'>Project Haystack</a> defines a tagging model and REST API for sensor systems such as HVAC, lighting, and energy equipment. This toolkit provides a simple, small Java API for working with haystack:</p>
 
 <ul>
 <li><strong>Modeling</strong>: APIs for modeling tags values and grids</li>
 
-<li><strong>Formats</strong>: encoding and decoding of grids using Zinc, CSV, etc</li>
+<li><strong>Formats</strong>: encoding and decoding of grids using Zinc, JSON, CSV, etc</li>
 
 <li><strong>Filter</strong>: Haystack query language AST and parser</li>
 
@@ -74,7 +74,7 @@ table { padding-left: 3em; }
 
 <p>All code is written to work with Java 1.4 and J2ME (no use of newer Java features such as generics).  This code is all open sourced under the Academic Free License version 3.0 (same license used as Project Haystack).</p>
 
-<h2 id='vals'>HVal APIs </h2>
+<h2 id='vals'>HVal APIs</h2>
 
 <p>The <code>HVal</code> class is the common base class for classes used to model the scalar values of <a href='http://project-haystack.org/doc/TagModel#tagKinds'>tag kinds</a>:</p>
 
@@ -98,11 +98,13 @@ table { padding-left: 3em; }
 <li><code>HDateTime</code>: date time with timezone offset and timezone name</li>
 
 <li><code>HBin</code>: MIME typed binary blob</li>
+
+<li><code>HCoord</code>: geographic coordinate as latitude and longitute</li>
 </ul>
 
 <p>All <code>HVal</code> classes are immutable, once created they cannot be modified.</p>
 
-<h2 id='dict'>HDict API </h2>
+<h2 id='dict'>HDict API</h2>
 
 <p>The <code>HDict</code> class models a set of tag name/value pairs.  The tag names are modeled as <code>String</code> and values as <code>HVal</code>.  The <code>HDict</code> class is immutable, once an instance is created it cannot be modified.  Use <code>HDictBuilder</code> to build an immutable <code>HDict</code> instance:</p>
 
@@ -128,7 +130,7 @@ for (Iterator it = tags.iterator(); it.hasNext(); )
   HVal val    = (HVal)e.getValue();
 }</pre>
 
-<h2 id='grid'>HGrid API </h2>
+<h2 id='grid'>HGrid API</h2>
 
 <p>The <code>HGrid</code> class models a <a href='http://project-haystack.org/doc/Grids'>Haystack grid</a>. A grid is composed</p>
 
@@ -172,7 +174,7 @@ for (int i=0; i&lt;grid.numRows(); ++i)
   HRow row = grid.row(i);
 }</pre>
 
-<h2 id='client'>HClient API </h2>
+<h2 id='client'>HClient API</h2>
 
 <p>The <code>HClient</code> class is used to communicate over HTTP to a Haystack server via the <a href='http://project-haystack.org/doc/Rest'>REST API</a>.</p>
 
@@ -185,7 +187,7 @@ client.about();
 // read all records that have "site" tag
 HGrid sites = client.readAll("site");</pre>
 
-<h2 id='server'>HServer API </h2>
+<h2 id='server'>HServer API</h2>
 
 <p>The <code>HServer</code> class provides infrastructure to add server side support for the <a href='http://project-haystack.org/doc/Rest'>Haystack REST API</a>.</p>
 

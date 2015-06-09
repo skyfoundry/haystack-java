@@ -28,6 +28,9 @@ public class HMarker extends HVal
   /** Encode as "marker" */
   public String toString() { return "marker"; }
 
+  /** Encode as "m:" */
+  public String toJson() { return "m:"; }
+
   /** Encode as "M" */
   public String toZinc() { return "M"; }
 

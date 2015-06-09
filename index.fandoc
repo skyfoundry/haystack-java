@@ -13,7 +13,7 @@ and REST API for sensor systems such as HVAC, lighting, and energy equipment.
 This toolkit provides a simple, small Java API for working with haystack:
 
  - **Modeling**: APIs for modeling tags values and grids
- - **Formats**: encoding and decoding of grids using Zinc, CSV, etc
+ - **Formats**: encoding and decoding of grids using Zinc, JSON, CSV, etc
  - **Filter**: Haystack query language AST and parser
  - **Client**: full client side implementation of HTTP REST API
  - **Server**: servlet and server side implementation of HTTP REST API
@@ -38,6 +38,7 @@ the scalar values of [tag kinds]`http://project-haystack.org/doc/TagModel#tagKin
  - 'HTime': time as hour, minute, second, milliseconds
  - 'HDateTime': date time with timezone offset and timezone name
  - 'HBin': MIME typed binary blob
+ - 'HCoord': geographic coordinate as latitude and longitute
 
 All 'HVal' classes are immutable, once created they cannot be modified.
 

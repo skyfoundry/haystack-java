@@ -106,16 +106,25 @@ public class HTime extends HVal
     return 0;
   }
 
+  /** Encode as "h:hh:mm:ss.FFF" */
+  public String toJson()
+  {
+    StringBuffer s = new StringBuffer();
+    s.append("h:");
+    encode(s);
+    return s.toString();
+  }
+
   /** Encode as "hh:mm:ss.FFF" */
   public String toZinc()
   {
     StringBuffer s = new StringBuffer();
-    toZinc(s);
+    encode(s);
     return s.toString();
   }
 
   /** Package private implementation shared with HDateTime */
-  void toZinc(StringBuffer s)
+  void encode(StringBuffer s)
   {
     if (hour < 10) s.append('0'); s.append(hour).append(':');
     if (min  < 10) s.append('0'); s.append(min).append(':');

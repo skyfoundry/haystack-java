@@ -39,6 +39,16 @@ public class HJsonWriter extends HGridWriter
     }
   }
 
+  /** Write a grid to an in-memory a string */
+  public static String gridToString(HGrid grid)
+  {
+    StringWriter out = new StringWriter(grid.numCols() * grid.numRows() * 32);
+    new HJsonWriter(out).writeGrid(grid);
+    return out.toString();
+  }
+
+  private HJsonWriter(StringWriter out) { this.out = new PrintWriter(out); }
+
 //////////////////////////////////////////////////////////////////////////
 // HGridWriter
 //////////////////////////////////////////////////////////////////////////
@@ -105,18 +115,8 @@ public class HJsonWriter extends HGridWriter
   private void writeVal(HVal val)
   {
     if (val == null) out.print("null");
-    else if (val instanceof HMarker) out.print("\"\u2713\"");
     else if (val instanceof HBool) out.print(val);
-    else if (val instanceof HNum) out.print(((HNum)val).val);
-    else if (val instanceof HRef)
-    {
-      HRef ref = (HRef)val;
-      StringBuilder s = new StringBuilder();
-      s.append("@").append(ref.val);
-      if (ref.dis != null) s.append(" ").append(ref.dis);
-      out.print(HStr.toCode(s.toString()));
-    }
-    else out.print(HStr.toCode(val.toString()));
+    else out.print(HStr.toCode(val.toJson()));
   }
 
   /** Flush underlying output stream */

@@ -38,19 +38,33 @@ public class HBin extends HVal
     return this.mime.equals(((HBin)that).mime);
   }
 
+  /** Encode as "b:<mime>" */
+  public String toJson()
+  {
+    StringBuffer s = new StringBuffer();
+    s.append("b:");
+    encodeMime(s);
+    return s.toString();
+  }
+
   /** Encode as "Bin(<mime>)" */
   public String toZinc()
   {
     StringBuffer s = new StringBuffer();
     s.append("Bin(");
+    encodeMime(s);
+    s.append(')');
+    return s.toString();
+  }
+
+  private void encodeMime(StringBuffer s)
+  {
     for (int i=0; i<mime.length(); ++i)
     {
       int c = mime.charAt(i);
       if (c > 127 || c == ')') throw new IllegalArgumentException("Invalid mime, char='" + (char)c + "'");
       s.append((char)c);
     }
-    s.append(')');
-    return s.toString();
   }
 
 }
