@@ -24,6 +24,9 @@ public abstract class HVal implements Comparable
   /** Encode value to zinc format */
   public abstract String toZinc();
 
+  /** Encode to JSON string value */
+  public abstract String toJson();
+
   /** Hash code is value based */
   public abstract int hashCode();
 

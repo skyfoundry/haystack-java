@@ -28,6 +28,7 @@ public abstract class Test
     "org.projecthaystack.test.FilterTest",
     "org.projecthaystack.test.GridTest",
     "org.projecthaystack.test.ZincTest",
+    "org.projecthaystack.test.JsonTest",
     "org.projecthaystack.test.UtilTest",
     "org.projecthaystack.test.ClientTest",
   };

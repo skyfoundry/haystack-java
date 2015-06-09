@@ -28,6 +28,9 @@ public class HRemove extends HVal
   /** Encode as "remove" */
   public String toString() { return "remove"; }
 
+  /** Encode as "x:" */
+  public String toJson() { return "x:"; }
+
   /** Encode as "R" */
   public String toZinc() { return "R"; }
 

@@ -38,6 +38,9 @@ public class HBool extends HVal
   /** Encode as "true" or "false" */
   public String toString() { return val ? "true" : "false"; }
 
+  /** Raise UnsupportedOperationException */
+  public String toJson() { throw new UnsupportedOperationException(); }
+
   /** Encode as "T" or "F" */
   public String toZinc() { return val ? "T" : "F"; }
 

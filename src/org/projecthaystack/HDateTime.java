@@ -79,8 +79,8 @@ public class HDateTime extends HVal
     return ts;
   }
 
-  /** Parse from string fomat "YYYY-MM-DD'T'hh:mm:ss.FFFz zzzz" 
-    * or raise ParseException 
+  /** Parse from string fomat "YYYY-MM-DD'T'hh:mm:ss.FFFz zzzz"
+    * or raise ParseException
     */
   public static HDateTime make(String s)
   {
@@ -162,13 +162,28 @@ public class HDateTime extends HVal
     return 0;
   }
 
+  /** Encode as "t:YYYY-MM-DD'T'hh:mm:ss.FFFz zzzz" */
+  public String toJson()
+  {
+    StringBuffer s = new StringBuffer();
+    s.append("t:");
+    encode(s);
+    return s.toString();
+  }
+
   /** Encode as "YYYY-MM-DD'T'hh:mm:ss.FFFz zzzz" */
   public String toZinc()
   {
     StringBuffer s = new StringBuffer();
-    date.toZinc(s);
+    encode(s);
+    return s.toString();
+  }
+
+  private void encode(StringBuffer s)
+  {
+    date.encode(s);
     s.append('T');
-    time.toZinc(s);
+    time.encode(s);
     if (tzOffset == 0) s.append('Z');
     else
     {
@@ -181,7 +196,6 @@ public class HDateTime extends HVal
       if (zm < 10) s.append('0'); s.append(zm);
     }
     s.append(' ').append(tz);
-    return s.toString();
   }
 
   private static final TimeZone utc = TimeZone.getTimeZone("Etc/UTC");

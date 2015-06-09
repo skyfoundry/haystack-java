@@ -49,6 +49,12 @@ public class HStr extends HVal
     return val;
   }
 
+  /** Encode as "s:" if string contains a colon */
+  public String toJson()
+  {
+    return val.indexOf(':') < 0 ? val : "s:"+val;
+  }
+
   /** Encode using double quotes and back slash escapes */
   public String toZinc()
   {
