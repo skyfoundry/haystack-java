@@ -530,10 +530,7 @@ public class HClient extends HProj
         c.setDoOutput(true);
         c.setDoInput(true);
         c.setRequestProperty("Connection", "Close");
-        c.setRequestProperty("Content-Type", 
-            (mimeType == null) ?
-                "text/plain; charset=utf-8":
-                mimeType);
+        c.setRequestProperty("Content-Type", mimeType == null ? "text/plain; charset=utf-8": mimeType);
         if (authProperty   != null) c.setRequestProperty(authProperty.key,   authProperty.value);
         if (cookieProperty != null) c.setRequestProperty(cookieProperty.key, cookieProperty.value);
         c.connect();
@@ -592,11 +589,13 @@ public class HClient extends HProj
    */
   private void authenticate()
   {
+
     try
     {
       HttpURLConnection c = null;
       try
       {
+
         // make request to about to get headers
         URL url = new URL(this.uri + "about");
         c = openHttpConnection(url, "GET");
@@ -606,11 +605,9 @@ public class HClient extends HProj
         int respCode = c.getResponseCode();
         if (respCode == 200) return;
 
-        String wwwAuth = c.getHeaderField("WWW-Authenticate");
-        wwwAuth = (wwwAuth == null) ? "" : wwwAuth.toLowerCase();
-
-        String server  = c.getHeaderField("Server");
-        server = (server == null) ? "" : server.toLowerCase();
+        // Get normalized headers headers
+        String wwwAuth = getHeaderToLower(c, "WWW-Authenticate");
+        String server  = getHeaderToLower(c, "Server");
 
         // if Folio-Auth-Api-Uri then this must be folio
         String folioAuthUri = c.getHeaderField("Folio-Auth-Api-Uri");
@@ -621,30 +618,31 @@ public class HClient extends HProj
         }
 
         // if 401 with WWW-Authenticate Basic header
-        if (respCode == 401 && wwwAuth.startsWith("basic")) {
-            authenticateBasic(c);
-            return;
+        if (respCode == 401 && wwwAuth.startsWith("basic"))
+        {
+          authenticateBasic(c);
+          return;
         }
 
         // 302 from Niagara AX, switch to Basic
-        if (respCode == 302 && server.startsWith("niagara")) {
-            authenticateBasic(c);
-            return;
+        if (respCode == 302 && server.startsWith("niagara"))
+        {
+          authenticateBasic(c);
+          return;
         }
 
         // 302 from Niagara 4 (TODO: we need better info in headers)
-        if (respCode == 302 && server.startsWith("jetty")) {
-            authenticateNiagaraScram(c);
-            return;
+        if (respCode == 302 && server.startsWith("jetty"))
+        {
+          authenticateNiagaraScram(c);
+          return;
         }
 
         // 4xx or 5xx
-        if (respCode / 100 >= 4) 
-            throw new CallHttpException(respCode, "HTTP error");
+        if (respCode / 100 >= 4) throw new CallHttpException(respCode, "HTTP error");
 
         // give up
-        throw new CallAuthException(
-            "No suitable auth algorithm for: " + respCode + " " + server);
+        throw new CallAuthException("No suitable auth algorithm for: " + respCode + " " + server);
       }
       finally
       {
@@ -728,7 +726,7 @@ public class HClient extends HProj
 ////////////////////////////////////////////////////////////////
 
   /**
-   * Authenticate using Niagara's implementation of 
+   * Authenticate using Niagara's implementation of
    * Salted Challenge Response (SCRAM) HTTP Authentication Mechanism
    *
    * https://www.ietf.org/archive/id/draft-melnikov-httpbis-scram-auth-01.txt
@@ -748,199 +746,185 @@ public class HClient extends HProj
     (new NiagaraScram(authUri, clientNonce)).authenticate();
   }
 
-  /**
-    * NiagaraScram
-    */
-  class NiagaraScram 
+  class NiagaraScram
   {
-      NiagaraScram(String authUri, String clientNonce) throws Exception
+    NiagaraScram(String authUri, String clientNonce) throws Exception
+    {
+      this.authUri = authUri;
+      this.clientNonce = clientNonce;
+    }
+
+    void authenticate() throws Exception
+    {
+      firstMsg();
+      finalMsg();
+      upgradeInsecureReqs();
+    }
+
+    private void firstMsg() throws Exception
+    {
+      // create first message
+      this.firstMsgBare = "n=" + user + ",r=" + clientNonce;
+
+      // create request content
+      String content = encodePost("sendClientFirstMessage",
+        "clientFirstMessage", "n,," + firstMsgBare);
+
+      // set cookie
+      cookieProperty = new Property("Cookie", "niagara_userid=" + user);
+
+      // post
+      String res = postString(authUri, content, MIME_TYPE);
+
+      // save the resulting sessionId
+      String cookie = cookieProperty.value;
+      int a = cookie.indexOf("JSESSIONID=");
+      int b = cookie.indexOf(";", a);
+      sessionId = (b == -1) ?
+          cookie.substring(a + "JSESSIONID=".length()) :
+          cookie.substring(a + "JSESSIONID=".length(), b);
+
+      // store response
+      this.firstMsgResult = res;
+    }
+
+    private void finalMsg() throws Exception
+    {
+      // parse first msg response
+      Map firstMsg = decodeMsg(firstMsgResult);
+      String nonce = (String) firstMsg.get("r");
+      int iterations = Integer.parseInt((String) firstMsg.get("i"));
+      String salt = (String) firstMsg.get("s");
+
+      // check client nonce
+      if (!clientNonce.equals(nonce.substring(0, clientNonce.length())))
+        throw new CallAuthException("Authentication failed");
+
+      // create salted password
+      byte[] saltedPassword = CryptoUtil.pbk(
+          "PBKDF2WithHmacSHA256",
+          strBytes(pass),
+          Base64.STANDARD.decodeBytes(salt),
+          iterations, 32);
+
+      // create final message
+      String finalMsgWithoutProof = "c=biws,r=" + nonce;
+      String authMsg = firstMsgBare + "," + firstMsgResult + "," + finalMsgWithoutProof;
+      String clientProof = createClientProof(saltedPassword, strBytes(authMsg));
+      String clientFinalMsg = finalMsgWithoutProof + ",p=" + clientProof;
+
+      // create request content
+      String content = encodePost("sendClientFinalMessage",
+        "clientFinalMessage", clientFinalMsg);
+
+      // set cookie
+      cookieProperty = new Property("Cookie",
+          "JSESSIONID=" + sessionId + "; " +
+          "niagara_userid=" + user);
+
+      // post
+      postString(authUri, content, MIME_TYPE);
+    }
+
+    private void upgradeInsecureReqs()
+    {
+      try
       {
-        this.authUri = authUri;
-        this.clientNonce = clientNonce;
-      }
-
-      void authenticate() throws Exception
-      {
-        firstMsg();
-        finalMsg();
-        upgradeInsecureReqs();
-      }
-
-      private void firstMsg() throws Exception
-      {
-        // create first message
-        this.firstMsgBare = "n=" + user + ",r=" + clientNonce;
-
-        // create request content
-        String content = encodePost("sendClientFirstMessage",
-          "clientFirstMessage", "n,," + firstMsgBare);
-
-        // set cookie
-        cookieProperty = new Property("Cookie", "niagara_userid=" + user);
-
-        // post
-        String res = postString(authUri, content, MIME_TYPE);
-
-        // save the resulting sessionId
-        String cookie = cookieProperty.value;
-        int a = cookie.indexOf("JSESSIONID=");
-        int b = cookie.indexOf(";", a);
-        sessionId = (b == -1) ? 
-            cookie.substring(a + "JSESSIONID=".length()) :
-            cookie.substring(a + "JSESSIONID=".length(), b);
-
-        // store response
-        this.firstMsgResult = res;
-      }
-
-      private void finalMsg() throws Exception
-      {
-        // parse first msg response
-        Map firstMsg = decodeMsg(firstMsgResult);
-        String nonce = (String) firstMsg.get("r");
-        int iterations = Integer.parseInt((String) firstMsg.get("i"));
-        String salt = (String) firstMsg.get("s");
-
-        // check client nonce
-        if (!clientNonce.equals(nonce.substring(0, clientNonce.length())))
-          throw new CallAuthException("Authentication failed");
-
-        // create salted password
-        byte[] saltedPassword = CryptoUtil.pbk(
-            "PBKDF2WithHmacSHA256", 
-            strBytes(pass),
-            Base64.STANDARD.decodeBytes(salt),
-            iterations, 32);
-
-        // create final message
-        String finalMsgWithoutProof = "c=biws,r=" + nonce;
-        String authMsg = firstMsgBare + "," + firstMsgResult + "," + finalMsgWithoutProof;
-        String clientProof = createClientProof(saltedPassword, strBytes(authMsg));
-        String clientFinalMsg = finalMsgWithoutProof + ",p=" + clientProof;
-
-        // create request content
-        String content = encodePost("sendClientFinalMessage",
-          "clientFinalMessage", clientFinalMsg);
-
-        // set cookie
-        cookieProperty = new Property("Cookie", 
-            "JSESSIONID=" + sessionId + "; " + 
-            "niagara_userid=" + user);
-
-        // post
-        postString(authUri, content, MIME_TYPE);
-      }
-
-      /**
-        * upgradeInsecureReqs
-        */
-      private void upgradeInsecureReqs()
-      {
+        URL url = new URL(authUri);
+        HttpURLConnection c = openHttpConnection(url, "GET");
         try
         {
-          URL url = new URL(authUri);
-          HttpURLConnection c = openHttpConnection(url, "GET");
-          try
-          {
-            c.setRequestProperty("Connection", "Close");
-            c.setRequestProperty("Content-Type", "text/plain");
-            c.setRequestProperty("Upgrade-Insecure-Requests", "1");
-            c.setRequestProperty(cookieProperty.key, cookieProperty.value);
+          c.setRequestProperty("Connection", "Close");
+          c.setRequestProperty("Content-Type", "text/plain");
+          c.setRequestProperty("Upgrade-Insecure-Requests", "1");
+          c.setRequestProperty(cookieProperty.key, cookieProperty.value);
 
-            c.connect();
+          c.connect();
 
-            // check for 302
-            if (c.getResponseCode() != 302)
-              throw new CallHttpException(c.getResponseCode(), c.getResponseMessage());
+          // check for 302
+          if (c.getResponseCode() != 302)
+            throw new CallHttpException(c.getResponseCode(), c.getResponseMessage());
 
-            // discard response
-            Reader r = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"));
-            int n;
-            while ((n = r.read()) > 0);
-          }
-          finally
-          {
-            try { c.disconnect(); } catch(Exception e) {}
-          }
+          // discard response
+          Reader r = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"));
+          int n;
+          while ((n = r.read()) > 0);
         }
-        catch (Exception e) { throw new CallNetworkException(e); }
-      }
-
-      /**
-        * createClientProof
-        */
-      private String createClientProof(byte[] saltedPassword, byte[] authMsg) throws Exception
-      {
-        byte[] clientKey = CryptoUtil.hmac("SHA-256", strBytes("Client Key"), saltedPassword);
-        byte[] storedKey = MessageDigest.getInstance("SHA-256").digest(clientKey);
-        byte[] clientSig = CryptoUtil.hmac("SHA-256", authMsg, storedKey);
-
-        byte[] clientProof = new byte[clientKey.length];
-        for (int i = 0; i < clientKey.length; i++)
-            clientProof[i] = (byte) (clientKey[i] ^ clientSig[i]);
-
-        return Base64.STANDARD.encodeBytes(clientProof);
-      }
-
-      /**
-        * the message is a comma-delimited sequence of properties
-        * of the form "<key>=<value>"
-        */
-      private Map decodeMsg(String str)
-      {
-        Map map = new HashMap();
-        int a = 0;
-        int b = 1;
-        while (b < str.length())
+        finally
         {
-          if (str.charAt(b) == ',') {
-            String entry = str.substring(a,b);
-            int n = entry.indexOf("=");
-            map.put(entry.substring(0,n), entry.substring(n+1));
-            a = b+1;
-            b = a+1;
-          }
-          else {
-            b++;
-          }
+          try { c.disconnect(); } catch(Exception e) {}
         }
-        String entry = str.substring(a);
-        int n = entry.indexOf("=");
-        map.put(entry.substring(0,n), entry.substring(n+1));
-        return map;
       }
+      catch (Exception e) { throw new CallNetworkException(e); }
+    }
 
-      /**
-        * encodePost
-        */
-      private String encodePost(String action, String msgKey, String msgVal)
+    private String createClientProof(byte[] saltedPassword, byte[] authMsg) throws Exception
+    {
+      byte[] clientKey = CryptoUtil.hmac("SHA-256", strBytes("Client Key"), saltedPassword);
+      byte[] storedKey = MessageDigest.getInstance("SHA-256").digest(clientKey);
+      byte[] clientSig = CryptoUtil.hmac("SHA-256", authMsg, storedKey);
+
+      byte[] clientProof = new byte[clientKey.length];
+      for (int i = 0; i < clientKey.length; i++)
+          clientProof[i] = (byte) (clientKey[i] ^ clientSig[i]);
+
+      return Base64.STANDARD.encodeBytes(clientProof);
+    }
+
+    private Map decodeMsg(String str)
+    {
+      // parse comma-delimited sequence of props formatted "<key>=<value>"
+      Map map = new HashMap();
+      int a = 0;
+      int b = 1;
+      while (b < str.length())
       {
-        return "action=" + action + "&" + msgKey + "=" + msgVal;
+        if (str.charAt(b) == ',') {
+          String entry = str.substring(a,b);
+          int n = entry.indexOf("=");
+          map.put(entry.substring(0,n), entry.substring(n+1));
+          a = b+1;
+          b = a+1;
+        }
+        else {
+          b++;
+        }
       }
+      String entry = str.substring(a);
+      int n = entry.indexOf("=");
+      map.put(entry.substring(0,n), entry.substring(n+1));
+      return map;
+    }
 
-      /**
-        * strBytes
-        */
-      private byte[] strBytes(String text) throws Exception
-      {
-        return text.getBytes("UTF-8");
-      }
+    private String encodePost(String action, String msgKey, String msgVal)
+    {
+      return "action=" + action + "&" + msgKey + "=" + msgVal;
+    }
 
-      ////////////////////////////////////////////////////////////////
-      // attribs
+    private byte[] strBytes(String text) throws Exception
+    {
+      return text.getBytes("UTF-8");
+    }
 
-      private static final String MIME_TYPE = "application/x-niagara-login-support; charset=UTF-8";
+    private static final String MIME_TYPE = "application/x-niagara-login-support; charset=UTF-8";
 
-      private final String authUri;
-      private final String clientNonce;
-      private String firstMsgBare;
-      private String firstMsgResult;
-      private String sessionId;
+    private final String authUri;
+    private final String clientNonce;
+    private String firstMsgBare;
+    private String firstMsgResult;
+    private String sessionId;
   }
 
 ////////////////////////////////////////////////////////////////
-// util
+// Utils
 ////////////////////////////////////////////////////////////////
+
+  private String getHeaderToLower(HttpURLConnection c, String key)
+  {
+    String val = c.getHeaderField("WWW-Authenticate");
+    if (val == null) return "";
+    return val.toLowerCase();
+  }
 
   private HashMap parseResProps(InputStream in) throws Exception
   {
@@ -1023,13 +1007,13 @@ public class HClient extends HProj
   static HClient makeClient(String uri, String user, String pass) throws Exception
   {
     // get bad credentials
-    try { 
-      HClient.open(uri, "baduser", "badpass").about(); 
+    try {
+      HClient.open(uri, "baduser", "badpass").about();
       throw new IllegalStateException();
     } catch (CallException e) { }
 
-    try { 
-        HClient.open(uri, "haystack", "badpass").about();  
+    try {
+        HClient.open(uri, "haystack", "badpass").about();
         throw new IllegalStateException();
     } catch (CallException e) {  }
 
