@@ -57,4 +57,18 @@
 
   </target> 
 
+  <!--========== client ==========-->
+  <target name="client" depends="make">
+
+    <java classname="org.projecthaystack.client.HClient">
+      <classpath>
+        <pathelement location="dist/haystack.jar"/>
+      </classpath>
+      <arg value="${arg0}"/>
+      <arg value="${arg1}"/>
+      <arg value="${arg2}"/>
+    </java>
+
+  </target> 
+
 </project>
