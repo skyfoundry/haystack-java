@@ -49,7 +49,7 @@
   <!--========== test ==========-->
   <target name="test" depends="make">
 
-    <java classname="haystack.test.Test">
+    <java classname="org.projecthaystack.test.Test">
       <classpath>
         <pathelement location="dist/haystack.jar"/>
       </classpath>
