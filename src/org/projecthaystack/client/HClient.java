@@ -193,7 +193,7 @@ public class HClient extends HProj
   public HGrid[] evalAll(HGrid req, boolean checked)
   {
     String reqStr = HZincWriter.gridToString(req);
-    String resStr = postString("evalAll", reqStr);
+    String resStr = postString(uri + "evalAll", reqStr);
     HGrid[] res = new HZincReader(resStr).readGrids();
     if (checked)
     {
@@ -509,23 +509,31 @@ public class HClient extends HProj
   private HGrid postGrid(String op, HGrid req)
   {
     String reqStr = HZincWriter.gridToString(req);
-    String resStr = postString(op, reqStr);
+    String resStr = postString(uri + op, reqStr);
     return new HZincReader(resStr).readGrid();
   }
 
-  private String postString(String op, String req)
+  private String postString(String uriStr, String req)
+  {
+    return postString(uriStr, req, null);
+  }
+
+  private String postString(String uriStr, String req, String mimeType)
   {
     try
     {
       // setup the POST request
-      URL url = new URL(uri + op);
+      URL url = new URL(uriStr);
       HttpURLConnection c = openHttpConnection(url, "POST");
       try
       {
         c.setDoOutput(true);
         c.setDoInput(true);
         c.setRequestProperty("Connection", "Close");
-        c.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
+        c.setRequestProperty("Content-Type", 
+            (mimeType == null) ?
+                "text/plain; charset=utf-8":
+                mimeType);
         if (authProperty   != null) c.setRequestProperty(authProperty.key,   authProperty.value);
         if (cookieProperty != null) c.setRequestProperty(cookieProperty.key, cookieProperty.value);
         c.connect();
@@ -594,6 +602,17 @@ public class HClient extends HProj
         c = openHttpConnection(url, "GET");
         c.connect();
 
+        // if client returned 200, then it is not running without security
+        int respCode = c.getResponseCode();
+        if (respCode == 200) return;
+
+        String wwwAuth = c.getHeaderField("WWW-Authenticate");
+        wwwAuth = (wwwAuth == null) ? "" : wwwAuth.toLowerCase();
+
+        String server  = c.getHeaderField("Server");
+        server = (server == null) ? "" : server.toLowerCase();
+
+        // if Folio-Auth-Api-Uri then this must be folio
         String folioAuthUri = c.getHeaderField("Folio-Auth-Api-Uri");
         if (folioAuthUri != null)
         {
@@ -601,18 +620,31 @@ public class HClient extends HProj
           return;
         }
 
-        int respCode = c.getResponseCode();
-        switch(respCode)
-        {
-          case 200:
-            return;
-          case 302:
-          case 401:
+        // if 401 with WWW-Authenticate Basic header
+        if (respCode == 401 && wwwAuth.startsWith("basic")) {
             authenticateBasic(c);
             return;
-          default:
-            throw new CallAuthException("Unexpected Response Code: " + respCode);
         }
+
+        // 302 from Niagara AX, switch to Basic
+        if (respCode == 302 && server.startsWith("niagara")) {
+            authenticateBasic(c);
+            return;
+        }
+
+        // 302 from Niagara 4 (TODO: we need better info in headers)
+        if (respCode == 302 && server.startsWith("jetty")) {
+            authenticateNiagaraScram(c);
+            return;
+        }
+
+        // 4xx or 5xx
+        if (respCode / 100 >= 4) 
+            throw new CallHttpException(respCode, "HTTP error");
+
+        // give up
+        throw new CallAuthException(
+            "No suitable auth algorithm for: " + respCode + " " + server);
       }
       finally
       {
@@ -691,6 +723,225 @@ public class HClient extends HProj
     this.authProperty = new Property("Cookie", cookie);
   }
 
+////////////////////////////////////////////////////////////////
+// niagara SCRAM
+////////////////////////////////////////////////////////////////
+
+  /**
+   * Authenticate using Niagara's implementation of 
+   * Salted Challenge Response (SCRAM) HTTP Authentication Mechanism
+   *
+   * https://www.ietf.org/archive/id/draft-melnikov-httpbis-scram-auth-01.txt
+   */
+  private void authenticateNiagaraScram(HttpURLConnection c) throws Exception
+  {
+    // authentication uri
+    URI uri = new URI(c.getURL().toString());
+    String authUri = uri.getScheme() + "://" + uri.getAuthority() + "/j_security_check/";
+
+    // nonce
+    byte[] bytes = new byte[16];
+    (new Random()).nextBytes(bytes);
+    String clientNonce = Base64.STANDARD.encodeBytes(bytes);
+
+    c.disconnect();
+    (new NiagaraScram(authUri, clientNonce)).authenticate();
+  }
+
+  /**
+    * NiagaraScram
+    */
+  class NiagaraScram 
+  {
+      NiagaraScram(String authUri, String clientNonce) throws Exception
+      {
+        this.authUri = authUri;
+        this.clientNonce = clientNonce;
+      }
+
+      void authenticate() throws Exception
+      {
+        firstMsg();
+        finalMsg();
+        upgradeInsecureReqs();
+      }
+
+      private void firstMsg() throws Exception
+      {
+        // create first message
+        this.firstMsgBare = "n=" + user + ",r=" + clientNonce;
+
+        // create request content
+        String content = encodePost("sendClientFirstMessage",
+          "clientFirstMessage", "n,," + firstMsgBare);
+
+        // set cookie
+        cookieProperty = new Property("Cookie", "niagara_userid=" + user);
+
+        // post
+        String res = postString(authUri, content, MIME_TYPE);
+
+        // save the resulting sessionId
+        String cookie = cookieProperty.value;
+        int a = cookie.indexOf("JSESSIONID=");
+        int b = cookie.indexOf(";", a);
+        sessionId = (b == -1) ? 
+            cookie.substring(a + "JSESSIONID=".length()) :
+            cookie.substring(a + "JSESSIONID=".length(), b);
+
+        // store response
+        this.firstMsgResult = res;
+      }
+
+      private void finalMsg() throws Exception
+      {
+        // parse first msg response
+        Map firstMsg = decodeMsg(firstMsgResult);
+        String nonce = (String) firstMsg.get("r");
+        int iterations = Integer.parseInt((String) firstMsg.get("i"));
+        String salt = (String) firstMsg.get("s");
+
+        // check client nonce
+        if (!clientNonce.equals(nonce.substring(0, clientNonce.length())))
+          throw new CallAuthException("Authentication failed");
+
+        // create salted password
+        byte[] saltedPassword = CryptoUtil.pbk(
+            "PBKDF2WithHmacSHA256", 
+            strBytes(pass),
+            Base64.STANDARD.decodeBytes(salt),
+            iterations, 32);
+
+        // create final message
+        String finalMsgWithoutProof = "c=biws,r=" + nonce;
+        String authMsg = firstMsgBare + "," + firstMsgResult + "," + finalMsgWithoutProof;
+        String clientProof = createClientProof(saltedPassword, strBytes(authMsg));
+        String clientFinalMsg = finalMsgWithoutProof + ",p=" + clientProof;
+
+        // create request content
+        String content = encodePost("sendClientFinalMessage",
+          "clientFinalMessage", clientFinalMsg);
+
+        // set cookie
+        cookieProperty = new Property("Cookie", 
+            "JSESSIONID=" + sessionId + "; " + 
+            "niagara_userid=" + user);
+
+        // post
+        postString(authUri, content, MIME_TYPE);
+      }
+
+      /**
+        * upgradeInsecureReqs
+        */
+      private void upgradeInsecureReqs()
+      {
+        try
+        {
+          URL url = new URL(authUri);
+          HttpURLConnection c = openHttpConnection(url, "GET");
+          try
+          {
+            c.setRequestProperty("Connection", "Close");
+            c.setRequestProperty("Content-Type", "text/plain");
+            c.setRequestProperty("Upgrade-Insecure-Requests", "1");
+            c.setRequestProperty(cookieProperty.key, cookieProperty.value);
+
+            c.connect();
+
+            // check for 302
+            if (c.getResponseCode() != 302)
+              throw new CallHttpException(c.getResponseCode(), c.getResponseMessage());
+
+            // discard response
+            Reader r = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"));
+            int n;
+            while ((n = r.read()) > 0);
+          }
+          finally
+          {
+            try { c.disconnect(); } catch(Exception e) {}
+          }
+        }
+        catch (Exception e) { throw new CallNetworkException(e); }
+      }
+
+      /**
+        * createClientProof
+        */
+      private String createClientProof(byte[] saltedPassword, byte[] authMsg) throws Exception
+      {
+        byte[] clientKey = CryptoUtil.hmac("SHA-256", strBytes("Client Key"), saltedPassword);
+        byte[] storedKey = MessageDigest.getInstance("SHA-256").digest(clientKey);
+        byte[] clientSig = CryptoUtil.hmac("SHA-256", authMsg, storedKey);
+
+        byte[] clientProof = new byte[clientKey.length];
+        for (int i = 0; i < clientKey.length; i++)
+            clientProof[i] = (byte) (clientKey[i] ^ clientSig[i]);
+
+        return Base64.STANDARD.encodeBytes(clientProof);
+      }
+
+      /**
+        * the message is a comma-delimited sequence of properties
+        * of the form "<key>=<value>"
+        */
+      private Map decodeMsg(String str)
+      {
+        Map map = new HashMap();
+        int a = 0;
+        int b = 1;
+        while (b < str.length())
+        {
+          if (str.charAt(b) == ',') {
+            String entry = str.substring(a,b);
+            int n = entry.indexOf("=");
+            map.put(entry.substring(0,n), entry.substring(n+1));
+            a = b+1;
+            b = a+1;
+          }
+          else {
+            b++;
+          }
+        }
+        String entry = str.substring(a);
+        int n = entry.indexOf("=");
+        map.put(entry.substring(0,n), entry.substring(n+1));
+        return map;
+      }
+
+      /**
+        * encodePost
+        */
+      private String encodePost(String action, String msgKey, String msgVal)
+      {
+        return "action=" + action + "&" + msgKey + "=" + msgVal;
+      }
+
+      /**
+        * strBytes
+        */
+      private byte[] strBytes(String text) throws Exception
+      {
+        return text.getBytes("UTF-8");
+      }
+
+      ////////////////////////////////////////////////////////////////
+      // attribs
+
+      private static final String MIME_TYPE = "application/x-niagara-login-support; charset=UTF-8";
+
+      private final String authUri;
+      private final String clientNonce;
+      private String firstMsgBare;
+      private String firstMsgResult;
+      private String sessionId;
+  }
+
+////////////////////////////////////////////////////////////////
+// util
+////////////////////////////////////////////////////////////////
+
   private HashMap parseResProps(InputStream in) throws Exception
   {
     // parse response as name:value pairs
@@ -764,6 +1015,38 @@ public class HClient extends HProj
     }
   }
   */
+
+////////////////////////////////////////////////////////////////
+// main
+////////////////////////////////////////////////////////////////
+
+  static HClient makeClient(String uri, String user, String pass) throws Exception
+  {
+    // get bad credentials
+    try { 
+      HClient.open(uri, "baduser", "badpass").about(); 
+      throw new IllegalStateException();
+    } catch (CallException e) { }
+
+    try { 
+        HClient.open(uri, "haystack", "badpass").about();  
+        throw new IllegalStateException();
+    } catch (CallException e) {  }
+
+    // create proper client
+    return HClient.open(uri, user, pass);
+  }
+
+  public static void main(String[] args) throws Exception
+  {
+    if (args.length != 3) {
+        System.out.println("usage: HClient <uri> <user> <pass>");
+        System.exit(0);
+    }
+
+    HClient client = makeClient(args[0], args[1], args[2]);
+    System.out.println(client.about());
+  }
 
 //////////////////////////////////////////////////////////////////////////
 // Fields
