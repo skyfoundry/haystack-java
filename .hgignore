@@ -6,8 +6,10 @@ syntax: glob
 Thumbs.db
 temp/
 doc/
+staging/
 haystack.jar
 
 # IDEA
 .idea/
+out/
 *.iml
