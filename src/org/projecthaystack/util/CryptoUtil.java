@@ -70,6 +70,13 @@ public class CryptoUtil
     return md.digest();
   }
 
+  public static byte[] digest(String algorithm, byte[] data) throws NoSuchAlgorithmException
+  {
+    MessageDigest md = MessageDigest.getInstance(algorithm);
+    md.update(data);
+    return md.digest();
+  }
+
   /**
     * Derive a Password-Based Key.  The only currently supported algorithm
     * is "PBKDF2WithHmacSHA256".
