@@ -120,6 +120,17 @@ public class UtilTest extends Test
     return new String(hexChars);
   }
 
+  public void testIsToken()
+  {
+    verifyEq(WebUtil.isToken(""), false);
+    verifyEq(WebUtil.isToken("x"), true);
+    verifyEq(WebUtil.isToken("x y"), false);
+    verifyEq(WebUtil.isToken("5a-3dd_33*&^%22!~"), true);
+    verifyEq(WebUtil.isToken("(foo)"), false);
+    verifyEq(WebUtil.isToken("foo;bar"), false);
+    verifyEq(WebUtil.isToken("base64+/"), false);
+  }
+
 ////////////////////////////////////////////////////////////////
 // attribs
 ////////////////////////////////////////////////////////////////

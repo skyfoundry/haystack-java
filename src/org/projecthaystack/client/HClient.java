@@ -11,13 +11,9 @@ package org.projecthaystack.client;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import javax.crypto.*;
-import javax.crypto.spec.*;
-import java.security.*;
 import org.projecthaystack.*;
+import org.projecthaystack.auth.AuthClientContext;
 import org.projecthaystack.io.*;
-import org.projecthaystack.util.*;
-import org.projecthaystack.util.Base64;
 
 /**
  * HClient manages a logical connection to a HTTP REST haystack server.
@@ -52,8 +48,7 @@ public class HClient extends HProj
     if (user.length() == 0) throw new IllegalArgumentException("user cannot be empty string");
 
     this.uri  = uri;
-    this.user = user;
-    this.pass = pass;
+    this.auth = new AuthClientContext(uri + "about", user, pass);
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -79,7 +74,9 @@ public class HClient extends HProj
    */
   public HClient open()
   {
-    authenticate();
+    auth.connectTimeout = this.connectTimeout;
+    auth.readTimeout    = this.readTimeout;
+    auth.open();
     return this;
   }
 
@@ -389,7 +386,7 @@ public class HClient extends HProj
     * @param level Number from 1-17 for level to write
     * @param val value to write or null to auto the level
     * @param who optional username performing the write, otherwise user dis is used
-    * @param duration Number with duration unit if setting level 8
+    * @param dur Number with duration unit if setting level 8
     */
   public HGrid pointWrite(
     HRef id, int level, String who,
@@ -525,14 +522,13 @@ public class HClient extends HProj
       // setup the POST request
       URL url = new URL(uriStr);
       HttpURLConnection c = openHttpConnection(url, "POST");
+      c = auth.prepare(c);
       try
       {
         c.setDoOutput(true);
         c.setDoInput(true);
         c.setRequestProperty("Connection", "Close");
         c.setRequestProperty("Content-Type", mimeType == null ? "text/plain; charset=utf-8": mimeType);
-        if (authProperty   != null) c.setRequestProperty(authProperty.key,   authProperty.value);
-        if (cookieProperty != null) c.setRequestProperty(cookieProperty.key, cookieProperty.value);
         c.connect();
 
         // post expression
@@ -543,9 +539,6 @@ public class HClient extends HProj
         // check for successful request
         if (c.getResponseCode() != 200)
           throw new CallHttpException(c.getResponseCode(), c.getResponseMessage());
-
-        // check for response cookie
-        checkSetCookie(c);
 
         // read response into string
         StringBuilder s = new StringBuilder(1024);
@@ -562,387 +555,18 @@ public class HClient extends HProj
     catch (Exception e) { throw new CallNetworkException(e); }
   }
 
-  private void checkSetCookie(HttpURLConnection c)
-  {
-    // if auth is already cookie based, we don't want to overwrite it
-    if (authProperty != null && authProperty.key.equals("Cookie")) return;
-
-    // check for Set-Cookie
-    String header = c.getHeaderField("Set-Cookie");
-    if (header == null) return;
-
-    // parse cookie name=value pair
-    int semi = header.indexOf(";");
-    if  (semi > 0) header = header.substring(0, semi);
-
-    // save cookie for future requests
-    cookieProperty = new Property("Cookie", header);
-  }
-
-//////////////////////////////////////////////////////////////////////////
-// Authentication
-//////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Authenticate with the server.  Currently we just support
-   * SkySpark nonce based HMAC SHA-1 mechanism.
-   */
-  private void authenticate()
-  {
-
-    try
-    {
-      HttpURLConnection c = null;
-      try
-      {
-
-        // make request to about to get headers
-        URL url = new URL(this.uri + "about");
-        c = openHttpConnection(url, "GET");
-        c.connect();
-
-        // if client returned 200, then it is not running without security
-        int respCode = c.getResponseCode();
-        if (respCode == 200) return;
-
-        // Get normalized headers headers
-        String wwwAuth = getHeaderToLower(c, "WWW-Authenticate");
-        String server  = getHeaderToLower(c, "Server");
-
-        // if Folio-Auth-Api-Uri then this must be folio
-        String folioAuthUri = c.getHeaderField("Folio-Auth-Api-Uri");
-        if (folioAuthUri != null)
-        {
-          authenticateFolio(c);
-          return;
-        }
-
-        // if 401 with WWW-Authenticate Basic header
-        if (respCode == 401 && wwwAuth.startsWith("basic"))
-        {
-          authenticateBasic(c);
-          return;
-        }
-
-        // 302 from Niagara AX, switch to Basic
-        if (respCode == 302 && server.startsWith("niagara"))
-        {
-          authenticateBasic(c);
-          return;
-        }
-
-        // 302 from Niagara 4 (TODO: we need better info in headers)
-        if (respCode == 302 && server.startsWith("jetty"))
-        {
-          authenticateNiagaraScram(c);
-          return;
-        }
-
-        // 4xx or 5xx
-        if (respCode / 100 >= 4) throw new CallHttpException(respCode, "HTTP error");
-
-        // give up
-        throw new CallAuthException("No suitable auth algorithm for: " + respCode + " " + server);
-      }
-      finally
-      {
-        try { if (c != null) c.disconnect(); } catch(Exception e) {}
-      }
-    }
-    catch (CallException e) { throw e; }
-    catch (Exception e) { throw new CallNetworkException(e); }
-  }
-
-  /**
-   * Authenticate using Basic HTTP
-   */
-  private void authenticateBasic(HttpURLConnection c) throws Exception
-  {
-    // According to http://en.wikipedia.org/wiki/Basic_access_authentication,
-    // we are supposed to get a "WWW-Authenticate" header, that has the 'realm' in it.
-    // We don't get it, but it doesn't matter.  Just set up a Property
-    // to send back Basic Authorization on subsequent requests.
-
-    this.authProperty = new Property(
-      "Authorization",
-      "Basic " + Base64.STANDARD.encode(user + ":" + pass));
-  }
-
-  /**
-   * Authenticate with SkySpark nonce based HMAC SHA-1 mechanism.
-   */
-  private void authenticateFolio(HttpURLConnection c) throws Exception
-  {
-    String authUri = c.getHeaderField("Folio-Auth-Api-Uri");
-    c.disconnect();
-    if (authUri == null) throw new CallAuthException("Missing 'Folio-Auth-Api-Uri' header");
-
-    // make request to auth URI to get salt, nonce
-    String baseUri = uri.substring(0, uri.indexOf('/', 9));
-    URL url = new URL(baseUri + authUri + "?" + user);
-    c = openHttpConnection(url, "GET");
-    c.connect();
-
-    // parse response as name:value pairs
-    HashMap props = parseResProps(c.getInputStream());
-
-    // get salt and nonce values
-    String salt = (String)props.get("userSalt"); if (salt == null) throw new CallAuthException("auth missing 'userSalt'");
-    String nonce = (String)props.get("nonce");   if (nonce == null) throw new CallAuthException("auth missing 'nonce'");
-
-    // compute hmac
-    byte[] hmacBytes = CryptoUtil.hmac("SHA-1", (user + ":" + salt).getBytes(), pass.getBytes());
-    String hmac = Base64.STANDARD.encodeBytes(hmacBytes);
-
-    // compute digest with nonce
-    MessageDigest md = MessageDigest.getInstance("SHA-1");
-    md.update((hmac+":"+nonce).getBytes());
-    String digest = Base64.STANDARD.encodeBytes(md.digest());
-
-    // post back nonce/digest to auth URI
-    c.disconnect();
-    c = openHttpConnection(url, "POST");
-    c.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
-    c.setDoInput(true);
-    c.setDoOutput(true);
-    c.setInstanceFollowRedirects(false);
-    Writer cout = new OutputStreamWriter(c.getOutputStream(), "UTF-8");
-    cout.write("nonce:" + nonce + "\n");
-    cout.write("digest:" + digest + "\n");
-    cout.close();
-    c.connect();
-    if (c.getResponseCode() != 200) throw new CallAuthException("Invalid username/password [" + c.getResponseCode() + "]");
-
-    // parse successful authentication to get cookie value
-    props = parseResProps(c.getInputStream());
-    String cookie = (String)props.get("cookie");
-    if (cookie == null) throw new CallAuthException("auth missing 'cookie'");
-
-    this.authProperty = new Property("Cookie", cookie);
-  }
-
-////////////////////////////////////////////////////////////////
-// niagara SCRAM
-////////////////////////////////////////////////////////////////
-
-  /**
-   * Authenticate using Niagara's implementation of
-   * Salted Challenge Response (SCRAM) HTTP Authentication Mechanism
-   *
-   * https://www.ietf.org/archive/id/draft-melnikov-httpbis-scram-auth-01.txt
-   */
-  private void authenticateNiagaraScram(HttpURLConnection c) throws Exception
-  {
-    // authentication uri
-    URI uri = new URI(c.getURL().toString());
-    String authUri = uri.getScheme() + "://" + uri.getAuthority() + "/j_security_check/";
-
-    // nonce
-    byte[] bytes = new byte[16];
-    (new Random()).nextBytes(bytes);
-    String clientNonce = Base64.STANDARD.encodeBytes(bytes);
-
-    c.disconnect();
-    (new NiagaraScram(authUri, clientNonce)).authenticate();
-  }
-
-  class NiagaraScram
-  {
-    NiagaraScram(String authUri, String clientNonce) throws Exception
-    {
-      this.authUri = authUri;
-      this.clientNonce = clientNonce;
-    }
-
-    void authenticate() throws Exception
-    {
-      firstMsg();
-      finalMsg();
-      upgradeInsecureReqs();
-    }
-
-    private void firstMsg() throws Exception
-    {
-      // create first message
-      this.firstMsgBare = "n=" + user + ",r=" + clientNonce;
-
-      // create request content
-      String content = encodePost("sendClientFirstMessage",
-        "clientFirstMessage", "n,," + firstMsgBare);
-
-      // set cookie
-      cookieProperty = new Property("Cookie", "niagara_userid=" + user);
-
-      // post
-      String res = postString(authUri, content, MIME_TYPE);
-
-      // save the resulting sessionId
-      String cookie = cookieProperty.value;
-      int a = cookie.indexOf("JSESSIONID=");
-      int b = cookie.indexOf(";", a);
-      sessionId = (b == -1) ?
-          cookie.substring(a + "JSESSIONID=".length()) :
-          cookie.substring(a + "JSESSIONID=".length(), b);
-
-      // store response
-      this.firstMsgResult = res;
-    }
-
-    private void finalMsg() throws Exception
-    {
-      // parse first msg response
-      Map firstMsg = decodeMsg(firstMsgResult);
-      String nonce = (String) firstMsg.get("r");
-      int iterations = Integer.parseInt((String) firstMsg.get("i"));
-      String salt = (String) firstMsg.get("s");
-
-      // check client nonce
-      if (!clientNonce.equals(nonce.substring(0, clientNonce.length())))
-        throw new CallAuthException("Authentication failed");
-
-      // create salted password
-      byte[] saltedPassword = CryptoUtil.pbk(
-          "PBKDF2WithHmacSHA256",
-          strBytes(pass),
-          Base64.STANDARD.decodeBytes(salt),
-          iterations, 32);
-
-      // create final message
-      String finalMsgWithoutProof = "c=biws,r=" + nonce;
-      String authMsg = firstMsgBare + "," + firstMsgResult + "," + finalMsgWithoutProof;
-      String clientProof = createClientProof(saltedPassword, strBytes(authMsg));
-      String clientFinalMsg = finalMsgWithoutProof + ",p=" + clientProof;
-
-      // create request content
-      String content = encodePost("sendClientFinalMessage",
-        "clientFinalMessage", clientFinalMsg);
-
-      // set cookie
-      cookieProperty = new Property("Cookie",
-          "JSESSIONID=" + sessionId + "; " +
-          "niagara_userid=" + user);
-
-      // post
-      postString(authUri, content, MIME_TYPE);
-    }
-
-    private void upgradeInsecureReqs()
-    {
-      try
-      {
-        URL url = new URL(authUri);
-        HttpURLConnection c = openHttpConnection(url, "GET");
-        try
-        {
-          c.setRequestProperty("Connection", "Close");
-          c.setRequestProperty("Content-Type", "text/plain");
-          c.setRequestProperty("Upgrade-Insecure-Requests", "1");
-          c.setRequestProperty(cookieProperty.key, cookieProperty.value);
-
-          c.connect();
-
-          // check for 302
-          if (c.getResponseCode() != 302)
-            throw new CallHttpException(c.getResponseCode(), c.getResponseMessage());
-
-          // discard response
-          Reader r = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"));
-          int n;
-          while ((n = r.read()) > 0);
-        }
-        finally
-        {
-          try { c.disconnect(); } catch(Exception e) {}
-        }
-      }
-      catch (Exception e) { throw new CallNetworkException(e); }
-    }
-
-    private String createClientProof(byte[] saltedPassword, byte[] authMsg) throws Exception
-    {
-      byte[] clientKey = CryptoUtil.hmac("SHA-256", strBytes("Client Key"), saltedPassword);
-      byte[] storedKey = MessageDigest.getInstance("SHA-256").digest(clientKey);
-      byte[] clientSig = CryptoUtil.hmac("SHA-256", authMsg, storedKey);
-
-      byte[] clientProof = new byte[clientKey.length];
-      for (int i = 0; i < clientKey.length; i++)
-          clientProof[i] = (byte) (clientKey[i] ^ clientSig[i]);
-
-      return Base64.STANDARD.encodeBytes(clientProof);
-    }
-
-    private Map decodeMsg(String str)
-    {
-      // parse comma-delimited sequence of props formatted "<key>=<value>"
-      Map map = new HashMap();
-      int a = 0;
-      int b = 1;
-      while (b < str.length())
-      {
-        if (str.charAt(b) == ',') {
-          String entry = str.substring(a,b);
-          int n = entry.indexOf("=");
-          map.put(entry.substring(0,n), entry.substring(n+1));
-          a = b+1;
-          b = a+1;
-        }
-        else {
-          b++;
-        }
-      }
-      String entry = str.substring(a);
-      int n = entry.indexOf("=");
-      map.put(entry.substring(0,n), entry.substring(n+1));
-      return map;
-    }
-
-    private String encodePost(String action, String msgKey, String msgVal)
-    {
-      return "action=" + action + "&" + msgKey + "=" + msgVal;
-    }
-
-    private byte[] strBytes(String text) throws Exception
-    {
-      return text.getBytes("UTF-8");
-    }
-
-    private static final String MIME_TYPE = "application/x-niagara-login-support; charset=UTF-8";
-
-    private final String authUri;
-    private final String clientNonce;
-    private String firstMsgBare;
-    private String firstMsgResult;
-    private String sessionId;
-  }
-
 ////////////////////////////////////////////////////////////////
 // Utils
 ////////////////////////////////////////////////////////////////
 
-  private String getHeaderToLower(HttpURLConnection c, String key)
-  {
-    String val = c.getHeaderField("WWW-Authenticate");
-    if (val == null) return "";
-    return val.toLowerCase();
-  }
-
-  private HashMap parseResProps(InputStream in) throws Exception
-  {
-    // parse response as name:value pairs
-    HashMap props = new HashMap();
-    BufferedReader r = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-    for (String line; (line = r.readLine()) != null; )
-    {
-      int colon = line.indexOf(':');
-      String name = line.substring(0, colon).trim();
-      String val  = line.substring(colon+1).trim();
-      props.put(name, val);
-    }
-    return props;
-  }
-
   private HttpURLConnection openHttpConnection(URL url, String method)
-    throws IOException, ProtocolException
+    throws IOException
+  {
+    return openHttpConnection(url, method, this.connectTimeout, this.readTimeout);
+  }
+
+  public static HttpURLConnection openHttpConnection(URL url, String method, int connectTimeout, int readTimeout)
+    throws IOException
   {
     HttpURLConnection c = (HttpURLConnection)url.openConnection();
     c.setRequestMethod(method);
@@ -1036,11 +660,7 @@ public class HClient extends HProj
 // Fields
 //////////////////////////////////////////////////////////////////////////
 
-  private final String user;
-  private final String pass;
-  private Property authProperty;
-  private Property cookieProperty;
-
+  private AuthClientContext auth;
   private HashMap watches = new HashMap();
 
 }
