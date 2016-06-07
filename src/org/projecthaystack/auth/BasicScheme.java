@@ -34,7 +34,7 @@ final public class BasicScheme extends AuthScheme
     String cred = Base64.STANDARD.encodeUTF8(cx.user + ":" + cx.pass);
 
     // make another qrequest to verify
-    String headerKey = "Authorizaton";
+    String headerKey = "Authorization";
     String headerVal = "Basic " + cred;
 
     HttpURLConnection c = null;
