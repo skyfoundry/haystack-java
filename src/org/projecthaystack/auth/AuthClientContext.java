@@ -256,6 +256,9 @@ final public class AuthClientContext
 
   private String readContent(HttpURLConnection c) throws IOException
   {
+    // If there is non content-type header, then assume no content.
+    if (c.getHeaderField("Content-Type") == null) return null;
+
     StringBuffer sb = new StringBuffer();
     InputStream is  = null;
     try
