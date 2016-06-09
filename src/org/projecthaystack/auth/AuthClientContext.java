@@ -256,25 +256,41 @@ final public class AuthClientContext
 
   private String readContent(HttpURLConnection c) throws IOException
   {
+    // force HttpURLConnection to run request
+    c.getResponseCode();
+
     // If there is non content-type header, then assume no content.
     if (c.getHeaderField("Content-Type") == null) return null;
 
-    StringBuffer sb = new StringBuffer();
-    InputStream is  = null;
     try
     {
-      is = new BufferedInputStream(c.getInputStream());
-      BufferedReader br = new BufferedReader(new InputStreamReader(is));
-      String line = null;
-      while ((line = br.readLine()) != null)
+      // check for error stream first; if null, then get standard input stream
+      InputStream is = c.getErrorStream();
+      if (is == null)
+        is = c.getInputStream();
+
+      // read content
+      StringBuffer sb = new StringBuffer();
+      try
       {
-        sb.append(line);
+        is = new BufferedInputStream(c.getInputStream());
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        String line = null;
+        while ((line = br.readLine()) != null)
+        {
+          sb.append(line);
+        }
+        return sb.toString();
       }
-      return sb.toString();
+      finally
+      {
+        if (is != null) try { is.close(); } catch (Exception e) { }
+      }
     }
-    finally
+    catch (IOException e)
     {
-      if (is != null) try { is.close(); } catch (Exception e) { }
+      e.printStackTrace();
+      return null;
     }
   }
 
