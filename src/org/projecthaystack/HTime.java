@@ -51,9 +51,36 @@ public class HTime extends HVal
   /** Parse from string fomat "hh:mm:ss.FF" or raise ParseException */
   public static HTime make(String s)
   {
-    HVal val = new HZincReader(s).readScalar();
-    if (val instanceof HTime) return (HTime)val;
-    throw new ParseException(s);
+    ParseException err = new ParseException(s);
+    int hour, min, sec, ms;
+    try { hour = Integer.parseInt(s.substring(0, 2)); }
+    catch (Exception e) { throw new ParseException("Invalid hours: " + s); }
+    if (s.charAt(2) != ':') throw err;
+    try { min = Integer.parseInt(s.substring(3, 5)); }
+    catch (Exception e) { throw new ParseException("Invalid minutes: " + s); }
+    if (s.charAt(5) != ':') throw err;
+    try { sec = Integer.parseInt(s.substring(6, 8)); }
+    catch (Exception e) { throw new ParseException("invalid seconds: " + s); }
+    if (s.length() == "hh:mm:ss".length()) return HTime.make(hour, min, sec);
+    if (s.charAt(8) != '.') throw err;
+    ms = 0;
+    int pos = 9;
+    int places = 0;
+    int len = s.length();
+    while (pos < len)
+    {
+      ms = (ms * 10) + (s.charAt(pos) - '0');
+      ++pos;
+      ++places;
+    }
+    switch (places)
+    {
+      case 1: ms *= 100; break;
+      case 2: ms *= 10; break;
+      case 3: break;
+      default: throw err;
+    }
+    return HTime.make(hour, min, sec, ms);
   }
 
   /** Singleton for midnight 00:00 */

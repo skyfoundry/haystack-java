@@ -96,23 +96,33 @@ public class DictTest extends Test
 
   public void testZinc()
   {
-    verifyZinc("",
+    verifyZinc("{}",
       HDict.EMPTY);
-    verifyZinc("foo_12",
+    verifyZinc("{foo_12}",
       new HDictBuilder().add("foo_12").toDict());
-    verifyZinc("fooBar:123ft",
+    verifyZinc("{fooBar:123ft}",
       new HDictBuilder().add("fooBar", 123, "ft").toDict());
-    verifyZinc("dis:\"Bob\" bday:1970-06-03 marker",
+    verifyZinc("{dis:\"Bob\" bday:1970-06-03 marker}",
       new HDictBuilder().add("dis", "Bob").add("bday", HDate.make(1970,6,3)).add("marker").toDict());
-    verifyZinc("dis  :  \"Bob\"  bday : 1970-06-03  marker",
-      new HDictBuilder().add("dis", "Bob").add("bday", HDate.make(1970,6,3)).add("marker").toDict());
+
+    // nested dict
+    verifyZinc("{auth:{}}",
+      new HDictBuilder().add("auth", HDict.EMPTY).toDict());
+    verifyZinc("{auth:{alg:\"scram\" c:10000 marker}}",
+      new HDictBuilder().add("auth",
+        new HDictBuilder().add("alg", "scram").add("c", 10000).add("marker").toDict()
+      ).toDict());
+
+    // nested list
+    verifyZinc("{arr:[1,2,3] x}",
+      new HDictBuilder().add("arr", HList.make(new HVal[] {HNum.make(1), HNum.make(2), HNum.make(3)}))
+        .add("x").toDict());
   }
 
-  void verifyZinc(String s, HDict tags)
+  private void verifyZinc(String zinc, HDict dict)
   {
-    HDict x = new HZincReader(s).readDict();
-    if (tags.size() <= 1) verifyEq(tags.toZinc(), s);
-    verifyEq(x, tags);
+    HDict fromZinc = new HZincReader(zinc).readDict();
+    verifyEq(fromZinc, dict);
   }
 
   public void testDis()

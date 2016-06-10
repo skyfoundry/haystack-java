@@ -12,6 +12,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 import org.projecthaystack.io.HZincReader;
+import org.projecthaystack.io.HZincWriter;
 
 /**
  * HCoord models a geographic coordinate as latitude and longitude
@@ -23,20 +24,7 @@ public class HCoord extends HVal
   /** Parse from string fomat "C(lat,lng)" or raise ParseException */
   public static HCoord make(String s)
   {
-    try
-    {
-      if (!s.startsWith("C(")) throw new Exception();
-      if (!s.endsWith(")")) throw new Exception();
-      int comma = s.indexOf(',');
-      if (comma < 3) throw new Exception();
-      String lat = s.substring(2, comma);
-      String lng = s.substring(comma+1, s.length()-1);
-      return make(Double.parseDouble(lat), Double.parseDouble(lng));
-    }
-    catch (Exception e)
-    {
-      throw new ParseException(s);
-    }
+    return (HCoord)new HZincReader(s).readVal();
   }
 
   /** Construct from basic fields */
@@ -71,10 +59,10 @@ public class HCoord extends HVal
   public double lng() { return ulng / 1000000.0; }
 
   /** Latitude in micro-degrees */
-  final int ulat;
+  public final int ulat;
 
   /** Longitude in micro-degrees */
-  final int ulng;
+  public final int ulng;
 
   /** Hash is based on lat/lng */
   public int hashCode() { return (ulat << 7) ^ ulng; }
@@ -92,9 +80,9 @@ public class HCoord extends HVal
   {
     StringBuffer s = new StringBuffer();
     s.append("c:");
-    uToStr(s, ulat);
+    s.append(uToStr(ulat));
     s.append(',');
-    uToStr(s, ulng);
+    s.append(uToStr(ulng));
     return s.toString();
   }
 
@@ -103,20 +91,21 @@ public class HCoord extends HVal
   {
     StringBuffer s = new StringBuffer();
     s.append("C(");
-    uToStr(s, ulat);
+    s.append(uToStr(ulat));
     s.append(',');
-    uToStr(s, ulng);
-    s.append(")");
+    s.append(uToStr(ulng));
+    s.append(')');
     return s.toString();
   }
 
-  private void uToStr(StringBuffer s, int ud)
+  private static String uToStr(int ud)
   {
+    StringBuffer s = new StringBuffer();
     if (ud < 0) { s.append('-'); ud = -ud; }
     if (ud < 1000000.0)
     {
       s.append(new DecimalFormat("0.0#####", new DecimalFormatSymbols(Locale.ENGLISH)).format(ud/1000000.0));
-      return;
+      return s.toString();
     }
     String x = String.valueOf(ud);
     int dot = x.length() - 6;
@@ -125,5 +114,6 @@ public class HCoord extends HVal
     for (int i=0; i<dot; ++i) s.append(x.charAt(i));
     s.append('.');
     for (int i=dot; i<end; ++i) s.append(x.charAt(i));
+    return s.toString();
   }
 }

@@ -8,10 +8,8 @@
 package org.projecthaystack;
 
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.ArrayList;
+import java.util.*;
+
 import org.projecthaystack.io.*;
 
 /**
@@ -20,7 +18,7 @@ import org.projecthaystack.io.*;
  *
  * @see <a href='http://project-haystack.org/doc/Grids'>Project Haystack</a>
  */
-public class HGrid
+public class HGrid extends HVal
 {
 
 //////////////////////////////////////////////////////////////////////////
@@ -104,6 +102,41 @@ public class HGrid
   public Iterator iterator()
   {
     return new GridIterator();
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// HVal
+//////////////////////////////////////////////////////////////////////////
+
+  public String toZinc()
+  {
+    throw new UnsupportedOperationException();
+  }
+
+  public String toJson()
+  {
+    throw new UnsupportedOperationException();
+  }
+
+  public boolean equals(Object o)
+  {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    HGrid hGrid = (HGrid) o;
+
+    if (!meta.equals(hGrid.meta)) return false;
+    if (!Arrays.equals(cols, hGrid.cols)) return false;
+    if (!Arrays.equals(rows, hGrid.rows)) return false;
+    return true;
+  }
+
+  public int hashCode()
+  {
+    int result = Arrays.hashCode(rows);
+    result = 31 * result + Arrays.hashCode(cols);
+    result = 31 * result + meta.hashCode();
+    return result;
   }
 
 //////////////////////////////////////////////////////////////////////////

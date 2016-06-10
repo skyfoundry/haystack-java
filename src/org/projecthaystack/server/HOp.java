@@ -9,7 +9,6 @@ package org.projecthaystack.server;
 
 import java.io.*;
 import java.util.*;
-import javax.servlet.*;
 import javax.servlet.http.*;
 import org.projecthaystack.*;
 import org.projecthaystack.io.*;
@@ -100,7 +99,7 @@ public abstract class HOp
       HVal val;
       try
       {
-        val = new HZincReader(valStr).readScalar();
+        val = new HZincReader(valStr).readVal();
       }
       catch (Exception e)
       {

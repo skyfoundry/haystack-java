@@ -8,6 +8,8 @@
 package org.projecthaystack.io;
 
 import java.io.*;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.*;
 import org.projecthaystack.*;
 
@@ -44,35 +46,16 @@ public class HZincWriter extends HGridWriter
     return out.toString();
   }
 
-  private HZincWriter(StringWriter out) { this.out = new PrintWriter(out); }
-
-//////////////////////////////////////////////////////////////////////////
-// HGridWriter
-//////////////////////////////////////////////////////////////////////////
-
-  /** Write a grid */
-  public void writeGrid(HGrid grid)
+  public static String valToString(HVal val)
   {
-    // meta
-    out.write("ver:\"2.0\"");
-    writeMeta(grid.meta());
-    out.write('\n');
-
-    // cols
-    for (int i=0; i<grid.numCols(); ++i)
-    {
-      if (i > 0) out.write(',');
-      writeCol(grid.col(i));
-    }
-    out.write('\n');
-
-    // rows
-    for (int i=0; i<grid.numRows(); ++i)
-    {
-      writeRow(grid, grid.row(i));
-      out.write('\n');
-    }
+    StringWriter out = (val instanceof HGrid)
+      ? new StringWriter(((HGrid)val).numCols() * ((HGrid)val).numRows() * 16)
+      : new StringWriter();
+    new HZincWriter(out).writeVal(val);
+    return out.toString();
   }
+
+  private HZincWriter(StringWriter out) { this.out = new PrintWriter(out); }
 
   /** Flush underlying output stream */
   public void flush()
@@ -86,32 +69,136 @@ public class HZincWriter extends HGridWriter
     out.close();
   }
 
+  public HZincWriter writeVal(HVal val)
+  {
+    if (val instanceof HGrid)
+    {
+      HGrid grid = (HGrid)val;
+      try
+      {
+        boolean insideGrid = gridDepth > 0;
+        ++gridDepth;
+        if (insideGrid) writeNestedGrid(grid);
+        else writeGrid(grid);
+      }
+      finally
+      {
+        --gridDepth;
+      }
+    }
+    else if (val instanceof HList) writeList((HList)val);
+    else if (val instanceof HDict) writeDict((HDict)val);
+    else writeScalar(val);
+    return this;
+  }
+
+  private void writeNestedGrid(HGrid grid)
+  {
+    p("<<").nl();
+    writeGrid(grid);
+    p(">>");
+
+  }
+
+  private void writeList(HList list)
+  {
+    p('[');
+    for (int i=0; i<list.size(); ++i)
+    {
+      if (i > 0) p(',');
+      writeVal(list.get(i));
+    }
+    p(']');
+  }
+
+  private void writeDict(HDict dict)
+  {
+    p('{').writeMeta(dict).p('}');
+  }
+
+  private void writeScalar(HVal val)
+  {
+    if (val == null) p('N');
+    else if (val instanceof HBin) writeBin((HBin)val);
+    else if (val instanceof HXStr) writeXStr((HXStr)val);
+    else p(val.toZinc());
+  }
+
+
+  private void writeBin(HBin bin)
+  {
+    if (this.version < 3)
+    {
+      p("Bin(").p(bin.mime).p(')');
+    }
+    else
+    {
+      p(bin.toZinc());
+      p("Bin(").p('"').p(bin.mime).p('"').p(')');
+    }
+  }
+
+  private void writeXStr(HXStr xstr)
+  {
+    if (this.version < 3) throw new RuntimeException("XStr not supported for version: " + this.version);
+    p(xstr.toZinc());
+
+  }
+
 //////////////////////////////////////////////////////////////////////////
-// Implementation
+// HGridWriter
 //////////////////////////////////////////////////////////////////////////
 
-  private void writeMeta(HDict meta)
+  /** Write a grid */
+  public void writeGrid(HGrid grid)
   {
-    if (meta.isEmpty()) return;
+    // meta
+    p("ver:\"").p(version).p(".0\"").writeMeta(grid.meta()).nl();
+
+    // cols
+    if (grid.numCols() == 0)
+    {
+      // technically this shoudl be illegal, but
+      // for robustness handle it here
+    }
+    else
+    {
+      for (int i = 0; i < grid.numCols(); ++i)
+      {
+        if (i > 0) p(',');
+        writeCol(grid.col(i));
+      }
+    }
+    nl();
+
+    // rows
+    for (int i=0; i<grid.numRows(); ++i)
+    {
+      writeRow(grid, grid.row(i));
+      nl();
+    }
+  }
+
+  private HZincWriter writeMeta(HDict meta)
+  {
+    if (meta.isEmpty()) return this;
     for (Iterator it = meta.iterator(); it.hasNext(); )
     {
       Map.Entry entry = (Map.Entry)it.next();
       String name = (String)entry.getKey();
       HVal val = (HVal)entry.getValue();
-      out.write(' ');
-      out.write(name);
+      p(' ').p(name);
       if (val != HMarker.VAL)
       {
-        out.write(':');
-        out.write(val.toZinc());
+        p(':').writeVal(val);
       }
     }
+    return this;
   }
 
   private void writeCol(HCol col)
   {
-    out.write(col.name());
-    writeMeta(col.meta());
+    p(col.name()).writeMeta(col.meta());
   }
 
   private void writeRow(HGrid grid, HRow row)
@@ -132,9 +219,20 @@ public class HZincWriter extends HGridWriter
   }
 
 //////////////////////////////////////////////////////////////////////////
+// Utils
+//////////////////////////////////////////////////////////////////////////
+
+  private HZincWriter p(int i) { out.print(i); return this; }
+  private HZincWriter p(char c) { out.print(c); return this; }
+  private HZincWriter p(Object obj) { out.print(obj); return this; }
+  private HZincWriter nl() { out.print('\n'); return this; }
+
+//////////////////////////////////////////////////////////////////////////
 // Fields
 //////////////////////////////////////////////////////////////////////////
 
   private PrintWriter out;
+  private int version = 2;
+  private int gridDepth = 0;
 
 }
