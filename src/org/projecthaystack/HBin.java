@@ -7,6 +7,8 @@
 //
 package org.projecthaystack;
 
+import org.projecthaystack.io.HZincWriter;
+
 /**
  * HBin models a binary file with a MIME type.
  *
@@ -23,7 +25,11 @@ public class HBin extends HVal
   }
 
   /** Private constructor */
-  private HBin(String mime) { this.mime = mime; }
+  private HBin(String mime)
+  {
+    verifyMime(mime);
+    this.mime = mime;
+  }
 
   /** MIME type for binary file */
   public final String mime;
@@ -43,28 +49,24 @@ public class HBin extends HVal
   {
     StringBuffer s = new StringBuffer();
     s.append("b:");
-    encodeMime(s);
+    s.append(mime);
     return s.toString();
   }
 
-  /** Encode as "Bin(<mime>)" */
+  /** Encode as Bin("<mime>") */
   public String toZinc()
   {
     StringBuffer s = new StringBuffer();
-    s.append("Bin(");
-    encodeMime(s);
-    s.append(')');
+    s.append("Bin(").append('"').append(mime).append('"').append(')');
     return s.toString();
   }
 
-  private void encodeMime(StringBuffer s)
+  private static void verifyMime(String mime)
   {
     for (int i=0; i<mime.length(); ++i)
     {
       int c = mime.charAt(i);
       if (c > 127 || c == ')') throw new IllegalArgumentException("Invalid mime, char='" + (char)c + "'");
-      s.append((char)c);
     }
   }
-
 }

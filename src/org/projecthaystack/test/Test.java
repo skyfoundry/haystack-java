@@ -23,8 +23,10 @@ public abstract class Test
 
   public static String[] TESTS =
   {
+    "org.projecthaystack.test.TokenizerTest",
     "org.projecthaystack.test.ValTest",
     "org.projecthaystack.test.DictTest",
+    "org.projecthaystack.test.ListTest",
     "org.projecthaystack.test.FilterTest",
     "org.projecthaystack.test.GridTest",
     "org.projecthaystack.test.ZincTest",

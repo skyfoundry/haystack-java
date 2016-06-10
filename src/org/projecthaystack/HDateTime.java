@@ -84,9 +84,45 @@ public class HDateTime extends HVal
     */
   public static HDateTime make(String s)
   {
-    HVal val = new HZincReader(s).readScalar();
-    if (val instanceof HDateTime) return (HDateTime)val;
-    throw new ParseException(s);
+    // date
+    int tIdx = s.indexOf('T');
+    if (tIdx < 0) throw new ParseException(s);
+    HDate date = HDate.make(s.substring(0, tIdx));
+
+    // find timezone offset and name indices.
+    // this, in turn, allows us to find the time
+    if (s.endsWith("Z"))
+      return HDateTime.make(date, HTime.make(s.substring(tIdx+1, s.length() - 1)), HTimeZone.UTC);
+    else if (s.endsWith("Z UTC"))
+      return HDateTime.make(date, HTime.make(s.substring(tIdx+1, s.length() - "Z UTC".length())), HTimeZone.UTC);
+
+    // have tz offset and name
+    int spIdx = s.indexOf(' ');
+    if (spIdx < 0) throw new ParseException("Expected time zone name: " + s);
+    // work backward from space to find beginning of offset
+    int offsetIdx = spIdx-1;
+    while (true)
+    {
+      if (offsetIdx <= tIdx) throw new ParseException("Expected Z or -/+ for timezone offset: " + s);
+      char c = s.charAt(offsetIdx);
+      if (c == '-' || c == '+' || c == 'Z') break;
+      --offsetIdx;
+    }
+    String offsetStr = s.substring(offsetIdx, spIdx);
+    int offset = "Z".equals(offsetStr) ? 0 : parseOffset(offsetStr);
+    HTimeZone tz = HTimeZone.make(s.substring(spIdx+1));
+
+    return HDateTime.make(date, HTime.make(s.substring(tIdx+1, offsetIdx)), tz, offset);
+  }
+
+  private static int parseOffset(String s)
+  {
+    if (s.length() != "-HH:MM".length()) throw new ParseException("Invalid tz offset: " + s);
+    int sign = s.startsWith("-") ? -1 : 1;
+    int tzHours = Integer.parseInt(s.substring(1, 3));
+    if (s.charAt(3) != ':') throw new ParseException("Invalid tz offset: " + s);
+    int tzMins = Integer.parseInt(s.substring(4));
+    return sign * (tzHours * 3600) + (tzMins * 60);
   }
 
   /** Get HDateTime for current time in default timezone */

@@ -42,12 +42,12 @@ public class HDateTimeRange
     HVal start = null, end = null;
     if (comma < 0)
     {
-      start = new HZincReader(str).readScalar();
+      start = new HZincReader(str).readVal();
     }
     else
     {
-      start = new HZincReader(str.substring(0, comma)).readScalar();
-      end   = new HZincReader(str.substring(comma+1)).readScalar();
+      start = new HZincReader(str.substring(0, comma)).readVal();
+      end   = new HZincReader(str.substring(comma+1)).readVal();
     }
 
     // figure out what we parsed for start,end

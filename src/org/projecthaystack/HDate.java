@@ -39,9 +39,18 @@ public class HDate extends HVal
   /** Parse from string fomat "YYYY-MM-DD" or raise ParseException */
   public static HDate make(String s)
   {
-    HVal val = new HZincReader(s).readScalar();
-    if (val instanceof HDate) return (HDate)val;
-    throw new ParseException(s);
+    ParseException err = new ParseException(s);
+    if (s.length() != "YYYY-MM-DD".length()) throw err;
+    int year, month, day;
+    try { year = Integer.parseInt(s.substring(0, 4)); }
+    catch (Exception e) { throw new ParseException ("Invalid year: " + s); }
+    if (s.charAt(4) != '-') throw err;
+    try { month = Integer.parseInt(s.substring(5, 7)); }
+    catch (Exception e) { throw new ParseException("Invalid month: " + s); }
+    if (s.charAt(7) != '-') throw err;
+    try { day = Integer.parseInt(s.substring(8)); }
+    catch (Exception e) { throw new ParseException("Invalid day: " + s); }
+    return HDate.make(year, month, day);
   }
 
   /** Get HDate for current time in default timezone */

@@ -17,7 +17,7 @@ import java.util.Map.Entry;
  *
  * @see <a href='http://project-haystack.org/doc/TagModel#tags'>Project Haystack</a>
  */
-public abstract class HDict
+public abstract class HDict extends HVal
 {
 
 //////////////////////////////////////////////////////////////////////////
@@ -161,21 +161,38 @@ public abstract class HDict
     tagChars['_'] = true;
   }
 
+//////////////////////////////////////////////////////////////////////////
+// HVal
+//////////////////////////////////////////////////////////////////////////
+
   /** Encode value to zinc format */
   public final String toZinc()
   {
-    StringBuffer s = new StringBuffer();
+    StringBuffer sb = new StringBuffer();
+    sb.append('{').append(toZincMeta(this)).append('}');
+    return sb.toString();
+  }
+
+  static String toZincMeta(HDict dict)
+  {
+    StringBuffer sb = new StringBuffer();
     boolean first = true;
-    for (Iterator it = iterator(); it.hasNext(); )
+    for (Iterator iter = dict.iterator(); iter.hasNext(); )
     {
-      Entry e = (Entry)it.next();
+      if (first) first = false; else sb.append(' ');
+      Entry e = (Entry)iter.next();
       String name = (String)e.getKey();
-      HVal val    = (HVal)e.getValue();
-      if (first) first = false; else s.append(' ');
-      s.append(name);
-      if (val != HMarker.VAL) { s.append(':').append(val.toZinc()); }
+      HVal val = (HVal)e.getValue();
+      sb.append(name);
+      if (val != HMarker.VAL) { sb.append(':').append(val.toZinc()); }
     }
-    return s.toString();
+    return sb.toString();
+  }
+
+  /** Encode value to json format */
+  public String toJson()
+  {
+    throw new UnsupportedOperationException();
   }
 
 //////////////////////////////////////////////////////////////////////////

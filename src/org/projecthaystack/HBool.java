@@ -7,6 +7,8 @@
 //
 package org.projecthaystack;
 
+import org.projecthaystack.io.HZincWriter;
+
 /**
  * HBool defines singletons for true/false tag values.
  *
@@ -42,6 +44,9 @@ public class HBool extends HVal
   public String toJson() { throw new UnsupportedOperationException(); }
 
   /** Encode as "T" or "F" */
-  public String toZinc() { return val ? "T" : "F"; }
+  public String toZinc()
+  {
+    return val ? "T" : "F";
+  }
 
 }

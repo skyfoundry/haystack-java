@@ -7,8 +7,11 @@
 //
 package org.projecthaystack;
 
+import java.io.StringReader;
 import java.util.*;
 import org.projecthaystack.io.HZincReader;
+import org.projecthaystack.io.HaystackToken;
+import org.projecthaystack.io.HaystackTokenizer;
 
 /**
  * HFilter models a parsed tag query string.
@@ -31,7 +34,7 @@ public abstract class HFilter
   {
     try
     {
-      return new HZincReader(s).readFilter();
+      return new FilterParser(s).parse();
     }
     catch (Exception e)
     {
@@ -411,4 +414,146 @@ public abstract class HFilter
     }
   }
 
+//////////////////////////////////////////////////////////////////////////
+// FilterParser
+//////////////////////////////////////////////////////////////////////////
+
+  static final class FilterParser
+  {
+    public FilterParser(String in)
+    {
+      this.tokenizer = new HaystackTokenizer(new StringReader(in));
+      consume();
+      consume();
+    }
+
+    public HFilter parse()
+    {
+      HFilter f = condOr();
+      verify(HaystackToken.eof);
+      return f;
+    }
+
+    private HFilter condOr()
+    {
+      HFilter lhs = condAnd();
+      if (!isKeyword("or")) return lhs;
+      consume();
+      return lhs.or(condOr());
+    }
+
+    private HFilter condAnd()
+    {
+      HFilter lhs = term();
+      if (!isKeyword("and")) return lhs;
+      consume();
+      return lhs.and(condAnd());
+    }
+
+    private HFilter term()
+    {
+      if (cur == HaystackToken.lparen)
+      {
+        consume();
+        HFilter f = condOr();
+        consume(HaystackToken.rparen);
+        return f;
+      }
+
+      if (isKeyword("not") && peek == HaystackToken.id)
+      {
+        consume();
+        return new Missing(path());
+      }
+
+      Path p = path();
+      if (cur == HaystackToken.eq){ consume(); return new Eq(p, val()); }
+      if (cur == HaystackToken.notEq) { consume(); return new Ne(p, val()); }
+      if (cur == HaystackToken.lt) { consume(); return new Lt(p, val()); }
+      if (cur == HaystackToken.ltEq) { consume(); return new Le(p ,val()); }
+      if (cur == HaystackToken.gt) { consume(); return new Gt(p, val()); }
+      if (cur == HaystackToken.gtEq) { consume(); return new Ge(p, val()); }
+
+      return new Has(p);
+    }
+
+    private Path path()
+    {
+      String id = pathName();
+      if (cur != HaystackToken.arrow)
+        return Path1.make(id);
+
+      List segments = new ArrayList();
+      segments.add(id);
+      StringBuffer s = new StringBuffer().append(id);
+      while (cur == HaystackToken.arrow)
+      {
+        consume(HaystackToken.arrow);
+        id = pathName();
+        segments.add(id);
+        s.append(HaystackToken.arrow).append(id);
+      }
+      return new PathN(s.toString(), (String[])segments.toArray(new String[segments.size()]));
+    }
+
+    private String pathName()
+    {
+      if (cur != HaystackToken.id) throw err("Expecting tag name, not " + curToStr());
+      String id = (String)curVal;
+      consume();
+      return id;
+    }
+
+    private HVal val()
+    {
+      if (cur.literal)
+      {
+        HVal val = (HVal)curVal;
+        consume();
+        return val;
+      }
+
+      if (cur == HaystackToken.id)
+      {
+        if ("true".equals(curVal)) { consume(); return HBool.TRUE; }
+        if ("false".equals(curVal)) { consume(); return HBool.FALSE; }
+      }
+
+      throw err("Expecting value literal, not " + curToStr());
+    }
+
+    private boolean isKeyword(String n)
+    {
+      return cur == HaystackToken.id && n.equals(curVal);
+    }
+
+    private void verify(HaystackToken expected)
+    {
+      if (cur != expected) throw err("Expected " + expected + " not " + curToStr());
+    }
+
+    private String curToStr()
+    {
+      return curVal != null ? "" + cur + " " + curVal : cur.toString();
+    }
+
+    private void consume() { consume(null); }
+    private void consume(HaystackToken expected)
+    {
+      if (expected != null) verify(expected);
+      cur = peek;
+      curVal = peekVal;
+      peek = tokenizer.next();
+      peekVal = tokenizer.val;
+    }
+
+    private ParseException err(String msg) { return new ParseException(msg); }
+
+    private HaystackTokenizer tokenizer;
+    private HaystackToken cur;
+    private Object curVal;
+    private HaystackToken peek;
+    private Object peekVal;
+
+  }
 }
