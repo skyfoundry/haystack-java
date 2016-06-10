@@ -1,71 +1,31 @@
 //
-// Copyright (c) 2011, Brian Frank
+// Copyright (c) 2016, Brian Frank
 // Licensed under the Academic Free License version 3.0
 //
 // History:
-//   04 Oct 2011  Brian Frank  Creation
+//   10 Jun 2016  Matthew Giannini  Creation
 //
-package org.projecthaystack.test;
+package org.projecthaystack;
 
-import org.projecthaystack.*;
-import java.util.*;
+import static org.testng.Assert.*;
 
-/**
- * FilterTest tests parsing and filtering of HFilter
- */
-public class FilterTest extends Test
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import java.util.HashMap;
+
+public class HFilterTest extends HaystackTest
 {
-
-//////////////////////////////////////////////////////////////////////////
-// Path
-//////////////////////////////////////////////////////////////////////////
-
-  /* Path isn't public, so we can't run these tests all the time
-  public void testPath()
-  {
-    // single name
-    HFilter.Path path = HFilter.Path.make("foo");
-    verifyEq(path.size(), 1);
-    verifyEq(path.get(0), "foo");
-    verifyEq(path.toString(), "foo");
-    verifyEq(path, HFilter.Path.make("foo"));
-
-    // two names
-    path = HFilter.Path.make("foo->bar");
-    verifyEq(path.size(), 2);
-    verifyEq(path.get(0), "foo");
-    verifyEq(path.get(1), "bar");
-    verifyEq(path.toString(), "foo->bar");
-    verifyEq(path, HFilter.Path.make("foo->bar"));
-
-    // three names
-    path = HFilter.Path.make("x->y->z");
-    verifyEq(path.size(), 3);
-    verifyEq(path.get(0), "x");
-    verifyEq(path.get(1), "y");
-    verifyEq(path.get(2), "z");
-    verifyEq(path.toString(), "x->y->z");
-    verifyEq(path, HFilter.Path.make("x->y->z"));
-  }
-  */
-
-//////////////////////////////////////////////////////////////////////////
-// Identity
-//////////////////////////////////////////////////////////////////////////
-
+  @Test
   public void testIdentity()
   {
-    verifyEq(HFilter.has("a"), HFilter.has("a"));
-    verifyNotEq(HFilter.has("a"), HFilter.has("b"));
+    assertEquals(HFilter.has("a"), HFilter.has("a"));
+    assertNotEquals(HFilter.has("a"), HFilter.has("b"));
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Parse
-//////////////////////////////////////////////////////////////////////////
-
-  public void testParse()
+  @Test
+  public void testBasics()
   {
-    // basics
     verifyParse("x", HFilter.has("x"));
     verifyParse("foo", HFilter.has("foo"));
     verifyParse("fooBar", HFilter.has("fooBar"));
@@ -73,67 +33,106 @@ public class FilterTest extends Test
     verifyParse("foo_bar->a", HFilter.has("foo_bar->a"));
     verifyParse("a->b->c", HFilter.has("a->b->c"));
     verifyParse("not foo", HFilter.missing("foo"));
+  }
 
-    // verify Zinc only literals do not work
-    verifyEq(HFilter.make("x==T", false), null);
-    verifyEq(HFilter.make("x==F", false), null);
-    verifyEq(HFilter.make("x==F", false), null);
+  @Test
+  public void testZincOnlyLiteralsDontWork()
+  {
+    assertNull(HFilter.make("x==T", false));
+    assertNull(HFilter.make("x==F", false));
+    assertNull(HFilter.make("x==F", false));
+  }
 
-    // bool literals
+  @Test
+  public void testBool()
+  {
     verifyParse("x->y==true", HFilter.eq("x->y", HBool.TRUE));
     verifyParse("x->y!=false", HFilter.ne("x->y", HBool.FALSE));
+  }
 
-    // str literals
+  @Test
+  public void testStr()
+  {
     verifyParse("x==\"hi\"", HFilter.eq("x", HStr.make("hi")));
     verifyParse("x!=\"\\\"hi\\\"\"",  HFilter.ne("x", HStr.make("\"hi\"")));
     verifyParse("x==\"_\\uabcd_\\n_\"", HFilter.eq("x", HStr.make("_\uabcd_\n_")));
+  }
 
-    // uri literals
+  @Test
+  public void testUri()
+  {
     verifyParse("ref==`http://foo/?bar`", HFilter.eq("ref", HUri.make("http://foo/?bar")));
     verifyParse("ref->x==`file name`", HFilter.eq("ref->x", HUri.make("file name")));
     verifyParse("ref == `foo bar`", HFilter.eq("ref", HUri.make("foo bar")));
+  }
 
-    // int literals
+  @Test
+  public void testInt()
+  {
     verifyParse("num < 4", HFilter.lt("num", n(4)));
     verifyParse("num <= -99", HFilter.le("num", n(-99)));
+  }
 
-    // float literals
+  @Test
+  public void testFloat()
+  {
     verifyParse("num < 4.0", HFilter.lt("num", n(4f)));
     verifyParse("num <= -9.6", HFilter.le("num", n(-9.6f)));
     verifyParse("num > 400000", HFilter.gt("num", n(4e5f)));
     verifyParse("num >= 16000", HFilter.ge("num", n(1.6e+4f)));
     verifyParse("num >= 2.16", HFilter.ge("num", n(2.16)));
+  }
 
-    // unit literals
+  @Test
+  public void testUnit()
+  {
     verifyParse("dur < 5ns", HFilter.lt("dur", n(5,"ns")));
     verifyParse("dur < 10kg", HFilter.lt("dur", n(10, "kg")));
     verifyParse("dur < -9sec", HFilter.lt("dur", n(-9, "sec")));
     verifyParse("dur < 2.5hr", HFilter.lt("dur", n(2.5, "hr")));
+  }
 
-    // date, time, datetime
+  @Test
+  public void testDateTime()
+  {
     verifyParse("foo < 2009-10-30", HFilter.lt("foo", HDate.make("2009-10-30")));
     verifyParse("foo < 08:30:00", HFilter.lt("foo", HTime.make("08:30:00")));
     verifyParse("foo < 13:00:00", HFilter.lt("foo", HTime.make("13:00:00")));
+  }
 
-    // ref literals
+  @Test
+  public void testRef()
+  {
     verifyParse("author == @xyz", HFilter.eq("author", HRef.make("xyz")));
     verifyParse("author==@xyz:foo.bar", HFilter.eq("author", HRef.make("xyz:foo.bar")));
+  }
 
-    // and
+  @Test
+  public void testAnd()
+  {
     verifyParse("a and b", HFilter.has("a").and(HFilter.has("b")));
     verifyParse("a and b and c == 3", HFilter.has("a").and( HFilter.has("b").and(HFilter.eq("c", n(3))) ));
+  }
 
-    // or
+  @Test
+  public void testOr()
+  {
     verifyParse("a or b", HFilter.has("a").or(HFilter.has("b")));
     verifyParse("a or b or c == 3", HFilter.has("a").or(HFilter.has("b").or(HFilter.eq("c", n(3)))));
+  }
 
-    // parens
+  @Test
+  public void testParens()
+  {
     verifyParse("(a)", HFilter.has("a"));
     verifyParse("(a) and (b)", HFilter.has("a").and(HFilter.has("b")));
     verifyParse("( a )  and  ( b ) ", HFilter.has("a").and(HFilter.has("b")));
     verifyParse("(a or b) or (c == 3)", HFilter.has("a").or(HFilter.has("b")).or(HFilter.eq("c", n(3))));
+  }
 
-    // combo
+  @Test
+  public void testCombo()
+  {
     HFilter isA = HFilter.has("a");
     HFilter isB = HFilter.has("b");
     HFilter isC = HFilter.has("c");
@@ -148,13 +147,10 @@ public class FilterTest extends Test
   void verifyParse(String s, HFilter expected)
   {
     HFilter actual = HFilter.make(s);
-    verifyEq(actual, expected);
+    assertEquals(actual, expected);
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Include
-//////////////////////////////////////////////////////////////////////////
-
+  @Test
   public void testInclude()
   {
     HDict a = new HDictBuilder()
@@ -164,7 +160,7 @@ public class FilterTest extends Test
       .add("date", HDate.make(2011,10,5))
       .toDict();
 
-   HDict b = new HDictBuilder()
+    HDict b = new HDictBuilder()
       .add("dis", "b")
       .add("num", 200)
       .add("foo", 88)
@@ -173,14 +169,14 @@ public class FilterTest extends Test
       .add("ref", HRef.make("a"))
       .toDict();
 
-   HDict c = new HDictBuilder()
+    HDict c = new HDictBuilder()
       .add("dis", "c")
       .add("num", 300)
       .add("ref", HRef.make("b"))
       .add("bar")
       .toDict();
 
-    final HashMap db = new HashMap();
+    final HashMap<String, HDict> db = new HashMap<String, HDict>();
     db.put("a", a);
     db.put("b", b);
     db.put("c", c);
@@ -213,11 +209,11 @@ public class FilterTest extends Test
     verifyInclude(db, "foo and bar and num==300",   "");
   }
 
-  void verifyInclude(final HashMap map, String query, String expected)
+  void verifyInclude(final HashMap<String, HDict> map, String query, String expected)
   {
     HFilter.Pather db = new HFilter.Pather()
     {
-      public HDict find(String id) { return (HDict)map.get(id); }
+      public HDict find(String id) { return map.get(id); }
     };
 
     HFilter q = HFilter.make(query);
@@ -229,14 +225,34 @@ public class FilterTest extends Test
       if (q.include(db.find(id), db))
         actual += actual.length() > 0 ? ","+id : id;
     }
-    verifyEq(expected, actual);
+    assertEquals(expected, actual);
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Utils
-//////////////////////////////////////////////////////////////////////////
+  @Test
+  public void testPath()
+  {
+    // single name
+    HFilter.Path path = HFilter.Path.make("foo");
+    assertEquals(path.size(), 1);
+    assertEquals(path.get(0), "foo");
+    assertEquals(path.toString(), "foo");
+    assertEquals(path, HFilter.Path.make("foo"));
 
-  HNum n(double v) { return HNum.make(v); }
-  HNum n(double v, String u) { return HNum.make(v, u); }
+    // two names
+    path = HFilter.Path.make("foo->bar");
+    assertEquals(path.size(), 2);
+    assertEquals(path.get(0), "foo");
+    assertEquals(path.get(1), "bar");
+    assertEquals(path.toString(), "foo->bar");
+    assertEquals(path, HFilter.Path.make("foo->bar"));
 
+    // three names
+    path = HFilter.Path.make("x->y->z");
+    assertEquals(path.size(), 3);
+    assertEquals(path.get(0), "x");
+    assertEquals(path.get(1), "y");
+    assertEquals(path.get(2), "z");
+    assertEquals(path.toString(), "x->y->z");
+    assertEquals(path, HFilter.Path.make("x->y->z"));
+  }
 }
