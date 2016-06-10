@@ -13,3 +13,7 @@ haystack.jar
 .idea/
 out/
 *.iml
+
+# Gradle
+.gradle/
+build/

@@ -1,19 +1,18 @@
 //
-// Copyright (c) 2012, Brian Frank
+// Copyright (c) 2016, Brian Frank
 // Licensed under the Academic Free License version 3.0
 //
 // History:
-//   24 Sep 2012  Brian Frank  Creation
+//   10 Jun 2016  Matthew Giannini  Creation
 //
-package org.projecthaystack.test;
+package org.projecthaystack.io;
+
+import static org.testng.Assert.*;
 
 import org.projecthaystack.*;
-import org.projecthaystack.io.*;
+import org.testng.annotations.Test;
 
-/**
- * ZincTest tests the zinc reader/writer
- */
-public class ZincTest extends Test
+public class ZincGridTest extends HValTest
 {
 
 //////////////////////////////////////////////////////////////////////////
@@ -21,16 +20,17 @@ public class ZincTest extends Test
 // test code in a crappy language like Java
 //////////////////////////////////////////////////////////////////////////
 
+  @Test
   public void test()
   {
 
     verifyGrid(
       "ver:\"2.0\"\n" +
-      "fooBar33\n" +
-      "\n",
+        "fooBar33\n" +
+        "\n",
       null,
       new Object[] {
-         "fooBar33", null,
+        "fooBar33", null,
       },
       new HVal[][] {
       }
@@ -38,12 +38,12 @@ public class ZincTest extends Test
 
     verifyGrid(
       "ver:\"2.0\" tag foo:\"bar\"\n" +
-      "xyz\n" +
-      "\"val\"\n" +
-      "\n",
+        "xyz\n" +
+        "\"val\"\n" +
+        "\n",
       new HDictBuilder().add("tag", HMarker.VAL).add("foo", HStr.make("bar")).toDict(),
       new Object[] {
-         "xyz", null,
+        "xyz", null,
       },
       new HVal[][] {
         new HVal[] {HStr.make("val"), },
@@ -52,12 +52,12 @@ public class ZincTest extends Test
 
     verifyGrid(
       "ver:\"2.0\"\n" +
-      "val\n" +
-      "N\n" +
-      "\n",
+        "val\n" +
+        "N\n" +
+        "\n",
       null,
       new Object[] {
-         "val", null,
+        "val", null,
       },
       new HVal[][] {
         new HVal[] {null, },
@@ -66,14 +66,14 @@ public class ZincTest extends Test
 
     verifyGrid(
       "ver:\"2.0\"\n" +
-      "a,b\n" +
-      "1,2\n" +
-      "3,4\n" +
-      "\n",
+        "a,b\n" +
+        "1,2\n" +
+        "3,4\n" +
+        "\n",
       null,
       new Object[] {
-         "a", null,
-         "b", null,
+        "a", null,
+        "b", null,
       },
       new HVal[][] {
         new HVal[] {HNum.make(1.0), HNum.make(2.0), },
@@ -102,22 +102,22 @@ public class ZincTest extends Test
 
     verifyGrid(
       "ver:\"2.0\"\n" +
-      "a,    b,      c,      d\n" +
-      "T,    F,      N,   -99\n" +
-      "2.3,  -5e-10, 2.4e20, 123e-10\n" +
-      "\"\",   \"a\",   \"\\\" \\\\ \\t \\n \\r\", \"\\uabcd\"\n" +
-      "`path`, @12cbb082-0c02ae73, 4s, -2.5min\n" +
-      "M,R,Bin(image/png),Bin(image/png)\n" +
-      "2009-12-31, 23:59:01, 01:02:03.123, 2009-02-03T04:05:06Z\n" +
-      "INF, -INF, \"\", NaN\n" +
-      "C(12,-34),C(0.123,-0.789),C(84.5,-77.45),C(-90,180)\n" +
-      "\n",
+        "a,    b,      c,      d\n" +
+        "T,    F,      N,   -99\n" +
+        "2.3,  -5e-10, 2.4e20, 123e-10\n" +
+        "\"\",   \"a\",   \"\\\" \\\\ \\t \\n \\r\", \"\\uabcd\"\n" +
+        "`path`, @12cbb082-0c02ae73, 4s, -2.5min\n" +
+        "M,R,Bin(image/png),Bin(image/png)\n" +
+        "2009-12-31, 23:59:01, 01:02:03.123, 2009-02-03T04:05:06Z\n" +
+        "INF, -INF, \"\", NaN\n" +
+        "C(12,-34),C(0.123,-0.789),C(84.5,-77.45),C(-90,180)\n" +
+        "\n",
       null,
       new Object[] {
-         "a", null,
-         "b", null,
-         "c", null,
-         "d", null,
+        "a", null,
+        "b", null,
+        "c", null,
+        "d", null,
       },
       new HVal[][] {
         new HVal[] {HBool.TRUE, HBool.FALSE, null, HNum.make(-99.0), },
@@ -133,14 +133,14 @@ public class ZincTest extends Test
 
     verifyGrid(
       "ver:\"2.0\"\n" +
-      "foo\n" +
-      "`foo$20bar`\n" +
-      "`foo\\`bar`\n" +
-      "`file \\#2`\n" +
-      "\"$15\"\n",
+        "foo\n" +
+        "`foo$20bar`\n" +
+        "`foo\\`bar`\n" +
+        "`file \\#2`\n" +
+        "\"$15\"\n",
       null,
       new Object[] {
-         "foo", null,
+        "foo", null,
       },
       new HVal[][] {
         new HVal[] {HUri.make("foo$20bar"), },
@@ -152,15 +152,15 @@ public class ZincTest extends Test
 
     verifyGrid(
       "ver:\"2.0\"\n" +
-      "a, b\n" +
-      "-3.1kg,4kg\n" +
-      "5%,3.2%\n" +
-      "5kWh/ft\u00b2,-15kWh/m\u00b2\n" +
-      "123e+12kJ/kg_dry,74\u0394\u00b0F\n",
+        "a, b\n" +
+        "-3.1kg,4kg\n" +
+        "5%,3.2%\n" +
+        "5kWh/ft\u00b2,-15kWh/m\u00b2\n" +
+        "123e+12kJ/kg_dry,74\u0394\u00b0F\n",
       null,
       new Object[] {
-         "a", null,
-         "b", null,
+        "a", null,
+        "b", null,
       },
       new HVal[][] {
         new HVal[] {HNum.make(-3.1, "kg"), HNum.make(4.0, "kg"), },
@@ -172,19 +172,19 @@ public class ZincTest extends Test
 
     verifyGrid(
       "ver:\"2.0\"\n" +
-      "a, b, c\n" +
-      ", 1, 2\n" +
-      "3, , 5\n" +
-      "6, 7_000,\n" +
-      ",,10\n" +
-      ",,\n" +
-      "14,,\n" +
-      "\n",
+        "a, b, c\n" +
+        ", 1, 2\n" +
+        "3, , 5\n" +
+        "6, 7_000,\n" +
+        ",,10\n" +
+        ",,\n" +
+        "14,,\n" +
+        "\n",
       null,
       new Object[] {
-         "a", null,
-         "b", null,
-         "c", null,
+        "a", null,
+        "b", null,
+        "c", null,
       },
       new HVal[][] {
         new HVal[] {null, HNum.make(1.0), HNum.make(2.0), },
@@ -198,12 +198,12 @@ public class ZincTest extends Test
 
     verifyGrid(
       "ver:\"2.0\"\n" +
-      "a,b\n" +
-      "2010-03-01T23:55:00.013-05:00 GMT+5,2010-03-01T23:55:00.013+10:00 GMT-10\n",
+        "a,b\n" +
+        "2010-03-01T23:55:00.013-05:00 GMT+5,2010-03-01T23:55:00.013+10:00 GMT-10\n",
       null,
       new Object[] {
-         "a", null,
-         "b", null,
+        "a", null,
+        "b", null,
       },
       new HVal[][] {
         new HVal[] {HDateTime.make(HDate.make(2010, 3, 1),HTime.make(23, 55, 0, 13),HTimeZone.make("GMT+5")), HDateTime.make(HDate.make(2010, 3, 1),HTime.make(23, 55, 0, 13),HTimeZone.make("GMT-10")), },
@@ -212,20 +212,20 @@ public class ZincTest extends Test
 
     verifyGrid(
       "ver:\"2.0\" a: 2009-02-03T04:05:06Z foo b: 2010-02-03T04:05:06Z UTC bar c: 2009-12-03T04:05:06Z London baz\n" +
-      "a\n" +
-      "3.814697265625E-6\n" +
-      "2010-12-18T14:11:30.924Z\n" +
-      "2010-12-18T14:11:30.925Z UTC\n" +
-      "2010-12-18T14:11:30.925Z London\n" +
-      "45$\n" +
-      "33\u00a3\n" +
-      "@12cbb08e-0c02ae73\n" +
-      "7.15625E-4kWh/ft\u00b2\n" +
-      "R\n" +
-      "NA\n",
+        "a\n" +
+        "3.814697265625E-6\n" +
+        "2010-12-18T14:11:30.924Z\n" +
+        "2010-12-18T14:11:30.925Z UTC\n" +
+        "2010-12-18T14:11:30.925Z London\n" +
+        "45$\n" +
+        "33\u00a3\n" +
+        "@12cbb08e-0c02ae73\n" +
+        "7.15625E-4kWh/ft\u00b2\n" +
+        "R\n" +
+        "NA\n",
       new HDictBuilder().add("b", HDateTime.make(HDate.make(2010, 2, 3),HTime.make(4, 5, 6, 0),HTimeZone.make("UTC"))).add("baz", HMarker.VAL).add("c", HDateTime.make(HDate.make(2009, 12, 3),HTime.make(4, 5, 6, 0),HTimeZone.make("London"))).add("a", HDateTime.make(HDate.make(2009, 2, 3),HTime.make(4, 5, 6, 0),HTimeZone.make("UTC"))).add("foo", HMarker.VAL).add("bar", HMarker.VAL).toDict(),
       new Object[] {
-         "a", null,
+        "a", null,
       },
       new HVal[][] {
         new HVal[] {HNum.make(3.814697265625E-6), },
@@ -273,25 +273,25 @@ public class ZincTest extends Test
   void verifyGridEq(HGrid grid, HDict meta, Object[] cols, HVal[][] rows)
   {
     // meta
-    verifyEq(grid.meta(), meta);
+    assertEquals(grid.meta(), meta);
 
     // cols
-    verifyEq(grid.numCols(), cols.length/2);
+    assertEquals(grid.numCols(), cols.length/2);
     for (int i=0; i<grid.numCols(); ++i)
     {
-      verifyEq(grid.col(i).name(), cols[i*2+0]);
-      verifyEq(grid.col(i).meta(), cols[i*2+1]);
+      assertEquals(grid.col(i).name(), cols[i*2+0]);
+      assertEquals(grid.col(i).meta(), cols[i*2+1]);
     }
 
     // rows
-    verifyEq(grid.numRows(), rows.length);
+    assertEquals(grid.numRows(), rows.length);
     for (int ri=0; ri<rows.length; ++ri)
     {
       HVal[] expected = rows[ri];
       HRow actual = grid.row(ri);
       for (int ci=0; ci<expected.length; ++ci)
       {
-        verifyEq(expected[ci], actual.get(grid.col(ci).name(), false));
+        assertEquals(expected[ci], actual.get(grid.col(ci).name(), false));
       }
     }
   }
