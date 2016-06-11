@@ -8,6 +8,8 @@
 apply plugin: 'java'
 
 
+version = '3.0.0-SNAPSHOT'
+
 compileJava {
     sourceCompatibility = 1.4
     targetCompatibility = 1.4
