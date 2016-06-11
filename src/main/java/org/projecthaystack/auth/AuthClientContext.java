@@ -73,6 +73,9 @@ final public class AuthClientContext
       // first try standard authentication va RFC 7235 process
       if (openStd(helloResp)) return success();
 
+      // check if we have a 200
+      if (helloResp.getResponseCode() == 200) return success();
+
       String content = readContent(helloResp);
       AuthScheme[] schemes = AuthScheme.list();
       for (int i = 0; i< schemes.length; ++i)
