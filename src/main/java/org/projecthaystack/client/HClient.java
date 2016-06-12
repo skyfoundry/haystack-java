@@ -541,7 +541,7 @@ public class HClient extends HProj
           throw new CallHttpException(c.getResponseCode(), c.getResponseMessage());
 
         // read response into string
-        StringBuilder s = new StringBuilder(1024);
+        StringBuffer s = new StringBuffer(1024);
         Reader r = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"));
         int n;
         while ((n = r.read()) > 0) s.append((char)n);
@@ -630,16 +630,16 @@ public class HClient extends HProj
 
   static HClient makeClient(String uri, String user, String pass) throws Exception
   {
-    // get bad credentials
-    try {
-      HClient.open(uri, "baduser", "badpass").about();
-      throw new IllegalStateException();
-    } catch (CallException e) { }
-
-    try {
-        HClient.open(uri, "haystack", "badpass").about();
-        throw new IllegalStateException();
-    } catch (CallException e) {  }
+//    // get bad credentials
+//    try {
+//      HClient.open(uri, "baduser", "badpass").about();
+//      throw new IllegalStateException();
+//    } catch (CallException e) { }
+//
+//    try {
+//        HClient.open(uri, "haystack", "badpass").about();
+//        throw new IllegalStateException();
+//    } catch (CallException e) {  }
 
     // create proper client
     return HClient.open(uri, user, pass);

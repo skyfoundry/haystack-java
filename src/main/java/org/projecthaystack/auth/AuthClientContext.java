@@ -276,7 +276,7 @@ final public class AuthClientContext
       StringBuffer sb = new StringBuffer();
       try
       {
-        is = new BufferedInputStream(c.getInputStream());
+        is = new BufferedInputStream(is);
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         String line = null;
         while ((line = br.readLine()) != null)
