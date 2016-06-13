@@ -8,11 +8,18 @@
 apply plugin: 'java'
 
 
-version = '3.0.0-SNAPSHOT'
+version = '3.0.0'
 
 compileJava {
     sourceCompatibility = 1.4
     targetCompatibility = 1.4
+}
+
+// Not sure if this is best way to handle SNAPSHOT versions, but it works for now
+task release(dependsOn: build) << { }
+
+gradle.taskGraph.whenReady {taskGraph ->
+    if (!taskGraph.hasTask(release)) version += "-SNAPSHOT"
 }
 
 repositories {
