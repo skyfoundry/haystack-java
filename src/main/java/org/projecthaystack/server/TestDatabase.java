@@ -5,12 +5,11 @@
 // History:
 //   03 Nov 2011  Brian Frank  Creation
 //
-package org.projecthaystack.test;
+package org.projecthaystack.server;
 
 import java.net.*;
 import java.util.*;
 import org.projecthaystack.*;
-import org.projecthaystack.server.*;
 
 /**
  * TestDatabase provides a simple implementation of
