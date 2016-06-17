@@ -18,6 +18,3 @@ out/
 .gradle/
 build/
 
-# Maven
-pom.xml
-
