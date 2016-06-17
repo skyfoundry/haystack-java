@@ -17,3 +17,7 @@ out/
 # Gradle
 .gradle/
 build/
+
+# Maven
+pom.xml
+

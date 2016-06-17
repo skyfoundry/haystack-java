@@ -6,6 +6,7 @@
 //   10 Jun 2016  Matthew Giannini  Creation
 //
 apply plugin: 'java'
+apply plugin: 'maven'
 
 
 version = '3.0.0'
@@ -13,13 +14,6 @@ version = '3.0.0'
 compileJava {
     sourceCompatibility = 1.4
     targetCompatibility = 1.4
-}
-
-// Not sure if this is best way to handle SNAPSHOT versions, but it works for now
-task release(dependsOn: build) << { }
-
-gradle.taskGraph.whenReady {taskGraph ->
-    if (!taskGraph.hasTask(release)) version += "-SNAPSHOT"
 }
 
 repositories {
@@ -48,4 +42,31 @@ test {
             }
         }
     }
+}
+
+task wrapper(type: Wrapper) { gradleVersion = '2.13' }
+
+// Maven pom generation
+task createPom {
+    outputs.file("pom.xml")
+    outputs.upToDateWhen { false }
+
+    doLast {
+        pom {
+            project {
+                groupId 'org.projecthaystack'
+                artifactId 'haystack-java'
+                version project.version
+            }
+        }.writeTo("pom.xml")
+    }
+}
+compileJava << { tasks.createPom.execute() }
+clean << { tasks.cleanCreatePom.execute() }
+
+// Not sure if this is best way to handle SNAPSHOT versions, but it works for now
+task release(dependsOn: build) << { }
+
+gradle.taskGraph.whenReady {taskGraph ->
+    if (!taskGraph.hasTask(release)) version += "-SNAPSHOT"
 }
