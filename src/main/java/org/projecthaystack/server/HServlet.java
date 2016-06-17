@@ -12,7 +12,6 @@ import java.net.*;
 import java.util.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
-import org.projecthaystack.*;
 
 /**
  * HServlet implements the haystack HTTP REST API for
@@ -33,7 +32,7 @@ public class HServlet extends HttpServlet
    */
   public HServer db()
   {
-    return new org.projecthaystack.test.TestDatabase();
+    return new org.projecthaystack.server.TestDatabase();
   }
 
 //////////////////////////////////////////////////////////////////////////
