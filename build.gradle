@@ -7,6 +7,7 @@
 //
 apply plugin: 'java'
 apply plugin: 'maven'
+apply plugin: 'idea'
 
 version = '3.0.0'
 
