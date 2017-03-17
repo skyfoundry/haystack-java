@@ -44,7 +44,7 @@ test {
     }
 }
 
-task wrapper(type: Wrapper) { gradleVersion = '2.13' }
+task wrapper(type: Wrapper) { gradleVersion = '3.4.1' }
 
 // Maven pom generation
 task createPom {
