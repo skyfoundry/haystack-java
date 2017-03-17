@@ -14,6 +14,17 @@ import org.testng.annotations.Test;
 
 public class ZincGridTest extends HValTest
 {
+  @Test
+  public void testNullGridMetaAndColMeta()
+  {
+    verifyGrid("ver:\"2.0\" tag:N\n" +
+        "a nullmetatag:N, b markermetatag\n" +
+        "",
+      new HDictBuilder().add("tag", (HVal)null).toDict(), // meta
+      new Object[] { "a", new HDictBuilder().add("nullmetatag",(HVal)null).toDict(), "b", new HDictBuilder().add("markermetatag").toDict() },
+      new HVal[][] {}
+    );
+  }
 
 //////////////////////////////////////////////////////////////////////////
 // Auto-generated test code - else could you possibly write
@@ -23,7 +34,6 @@ public class ZincGridTest extends HValTest
   @Test
   public void test()
   {
-
     verifyGrid(
       "ver:\"2.0\"\n" +
         "fooBar33\n" +
@@ -240,9 +250,11 @@ public class ZincGridTest extends HValTest
         new HVal[] {HNA.VAL},
       }
     );
+
+
   }
 
-//////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////i///////
 // Utils
 //////////////////////////////////////////////////////////////////////////
 
