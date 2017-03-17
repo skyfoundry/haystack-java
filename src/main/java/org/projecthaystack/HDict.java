@@ -7,6 +7,8 @@
 //
 package org.projecthaystack;
 
+import org.projecthaystack.io.HZincWriter;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -106,6 +108,7 @@ public abstract class HDict extends HVal
         Entry entry = (Entry)it.next();
         Object key = entry.getKey();
         Object val = entry.getValue();
+        if (val == null) continue;
         x ^= (key.hashCode() << 7) ^ val.hashCode();
       }
       hashCode = x;
@@ -119,12 +122,12 @@ public abstract class HDict extends HVal
   {
     if (!(that instanceof HDict)) return false;
     HDict x = (HDict)that;
-    if (size() != x.size()) return false;
     for (Iterator it = iterator(); it.hasNext(); )
     {
       Entry entry = (Entry)it.next();
       String key = (String)entry.getKey();
       Object val = entry.getValue();
+      if (val == null) continue;
       if (!val.equals(x.get(key,false))) return false;
     }
     return true;
@@ -168,25 +171,7 @@ public abstract class HDict extends HVal
   /** Encode value to zinc format */
   public final String toZinc()
   {
-    StringBuffer sb = new StringBuffer();
-    sb.append('{').append(toZincMeta(this)).append('}');
-    return sb.toString();
-  }
-
-  static String toZincMeta(HDict dict)
-  {
-    StringBuffer sb = new StringBuffer();
-    boolean first = true;
-    for (Iterator iter = dict.iterator(); iter.hasNext(); )
-    {
-      if (first) first = false; else sb.append(' ');
-      Entry e = (Entry)iter.next();
-      String name = (String)e.getKey();
-      HVal val = (HVal)e.getValue();
-      sb.append(name);
-      if (val != HMarker.VAL) { sb.append(':').append(val.toZinc()); }
-    }
-    return sb.toString();
+    return HZincWriter.valToString(this);
   }
 
   /** Encode value to json format */

@@ -113,7 +113,7 @@ public class HZincWriter extends HGridWriter
 
   private void writeDict(HDict dict)
   {
-    p('{').writeMeta(dict).p('}');
+    p('{').writeDictKeyVals(dict).p('}');
   }
 
   private void writeScalar(HVal val)
@@ -182,16 +182,26 @@ public class HZincWriter extends HGridWriter
   private HZincWriter writeMeta(HDict meta)
   {
     if (meta.isEmpty()) return this;
-    for (Iterator it = meta.iterator(); it.hasNext(); )
+    p(' ');
+    return writeDictKeyVals(meta);
+  }
+
+  private HZincWriter writeDictKeyVals(HDict dict)
+  {
+    if (dict.isEmpty()) return this;
+    boolean first = true;
+    for (Iterator it = dict.iterator(); it.hasNext(); )
     {
       Map.Entry entry = (Map.Entry)it.next();
       String name = (String)entry.getKey();
       HVal val = (HVal)entry.getValue();
-      p(' ').p(name);
+      if (!first) p(' ');
+      p(name);
       if (val != HMarker.VAL)
       {
         p(':').writeVal(val);
       }
+      first = false;
     }
     return this;
   }

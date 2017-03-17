@@ -68,10 +68,11 @@ public class HDictTest extends HValTest
       .add("geoAddr", "Richmond, Va")
       .add("area", 1200, "ft")
       .add("date", HDate.make(2000, 12, 3))
+      .add("null", (HVal)null)
       .toDict();
 
     // size
-    assertEquals(tags.size(), 5);
+    assertEquals(tags.size(), 6);
     assertFalse(tags.isEmpty());
 
     // configured tags
@@ -80,6 +81,8 @@ public class HDictTest extends HValTest
     assertEquals(tags.get("geoAddr"), HStr.make("Richmond, Va"));
     assertEquals(tags.get("area"),    HNum.make(1200, "ft"));
     assertEquals(tags.get("date"),    HDate.make(2000, 12, 3));
+    assertEquals(tags.get("null", false), null);
+    try { tags.get("null"); fail(); } catch (UnknownNameException e) { assertTrue(true); }
 
     // missing tag
     assertFalse(tags.has("foo"));
@@ -106,6 +109,11 @@ public class HDictTest extends HValTest
     assertNotEquals(a, new HDictBuilder().add("y", "str").toDict());
     assertNotEquals(a, new HDictBuilder().add("x").toDict());
     assertNotEquals(a, new HDictBuilder().add("x").add("yy", "str").toDict());
+
+    a = new HDictBuilder().add("x", (HVal)null).toDict();
+    assertEquals(a, new HDictBuilder().add("x", (HVal)null).toDict());
+    assertEquals(a, new HDictBuilder().add("foo", (HVal)null).add("bar", (HVal)null).toDict());
+    assertEquals(a, HDict.EMPTY);
   }
 
   @Test
