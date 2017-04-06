@@ -25,6 +25,8 @@ public class HTzTest
     verifyTz("Phoenix",  "America/Phoenix");
     verifyTz("London",   "Europe/London");
     verifyTz("UTC",      "Etc/UTC");
+    verifyTz("GMT",      "Etc/GMT");
+    verifyTz("Rel",      "GMT");
   }
 
   private void verifyTz(String name, String javaId)
