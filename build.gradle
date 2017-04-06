@@ -8,6 +8,7 @@
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'idea'
+apply plugin: 'war'
 
 version = '3.0.0'
 
@@ -25,6 +26,8 @@ dependencies {
 
     // Use TestNG framework, also requires calling test.useTestNG() below
     testCompile 'org.testng:testng:6.9.11'
+
+    providedRuntime 'javax.servlet:servlet-api:2.5'
 }
 
 test {
@@ -61,11 +64,11 @@ task createPom {
         }.writeTo("pom.xml")
     }
 }
-compileJava << { tasks.createPom.execute() }
-clean << { tasks.cleanCreatePom.execute() }
+compileJava { doLast { tasks.createPom.execute() } }
+clean { doLast { tasks.cleanCreatePom.execute() } }
 
 // Not sure if this is best way to handle SNAPSHOT versions, but it works for now
-task release(dependsOn: build) << { }
+task release(dependsOn: build) { doLast { } }
 
 gradle.taskGraph.whenReady {taskGraph ->
     if (!taskGraph.hasTask(release)) version += "-SNAPSHOT"
