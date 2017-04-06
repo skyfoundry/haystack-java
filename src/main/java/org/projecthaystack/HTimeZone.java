@@ -149,6 +149,12 @@ public final class HTimeZone
         toJava.put(haystack, java);
         fromJava.put(java, haystack);
       }
+
+      // Special handling for Etc/Rel which java does not understand.
+      // It treats Etc/Rel as GMT. Note that Etc/GMT will map to javaId Etc/GMT
+      // whereas Etc/Rel will mape to javaId GMT
+      toJava.put("Rel", "GMT");
+      fromJava.put("GMT", "Rel");
     }
     catch (Throwable e)
     {
@@ -161,6 +167,9 @@ public final class HTimeZone
   /** UTC timezone */
   public static final HTimeZone UTC;
 
+  /** Rel timezone */
+  public static final HTimeZone REL;
+
   /** Default timezone for VM */
   public static final HTimeZone DEFAULT;
 
@@ -170,6 +179,16 @@ public final class HTimeZone
     try
     {
       utc = HTimeZone.make(TimeZone.getTimeZone("Etc/UTC"));
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+    }
+
+    HTimeZone rel = null;
+    try
+    {
+      rel = HTimeZone.make(TimeZone.getTimeZone("Etc/Rel"));
     }
     catch (Exception e)
     {
@@ -199,5 +218,6 @@ public final class HTimeZone
 
     DEFAULT = def;
     UTC = utc;
+    REL = rel;
   }
 }
