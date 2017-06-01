@@ -36,6 +36,14 @@ public class HClient extends HProj
   }
 
   /**
+   * Convenience for constructing client with custom timeouts and call to open()
+   */
+  public static HClient open(String uri, String user, String pass, final int connectTimeout, final int readTimeout)
+  {
+    return new HClient(uri, user, pass).setTimeouts(connectTimeout, readTimeout).open();
+  }
+
+  /**
    * Constructor with URI to server's API and authentication credentials.
    */
   public HClient(String uri, String user, String pass)
@@ -62,8 +70,30 @@ public class HClient extends HProj
   /** Timeout in milliseconds for opening the HTTP socket */
   public int connectTimeout = 60 * 1000;
 
+  /** Set the connect timeout and return this */
+  public HClient setConnectTimeout(final int timeout)
+  {
+    if (timeout < 0) throw new IllegalArgumentException("Invalid timeout: " + timeout);
+    this.connectTimeout = timeout;
+    return this;
+  }
+
   /** Timeout in milliseconds for reading from the HTTP socket */
   public int readTimeout = 60 * 1000;
+
+  /** Set the read timeout and return this */
+  public HClient setReadTimeout(final int timeout)
+  {
+    if (timeout < 0) throw new IllegalArgumentException("Invalid timeout: " + timeout);
+    this.readTimeout = timeout;
+    return this;
+  }
+
+  /** Set the connect and read timeouts and return this */
+  public HClient setTimeouts(final int connectTimeout, final int readTimeout)
+  {
+    return setConnectTimeout(connectTimeout).setReadTimeout(readTimeout);
+  }
 
 //////////////////////////////////////////////////////////////////////////
 // Operations
