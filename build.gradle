@@ -30,6 +30,9 @@ dependencies {
     providedRuntime 'javax.servlet:servlet-api:2.5'
 }
 
+// Stupid war plugin disable jar for some reason. Force jar creation
+assemble.dependsOn(jar)
+
 test {
     useTestNG() {
         outputDirectory = file("$project.buildDir/reports/testng")
