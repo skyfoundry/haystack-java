@@ -69,6 +69,7 @@ public class HZincWriter extends HGridWriter
     out.close();
   }
 
+  /** Write a zinc value */
   public HZincWriter writeVal(HVal val)
   {
     if (val instanceof HGrid)
@@ -241,8 +242,10 @@ public class HZincWriter extends HGridWriter
 // Fields
 //////////////////////////////////////////////////////////////////////////
 
+  /** Version of Zinc to write */
+  public int version = 3;
+
   private PrintWriter out;
-  private int version = 2;
   private int gridDepth = 0;
 
 }
