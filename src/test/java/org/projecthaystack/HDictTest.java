@@ -112,8 +112,8 @@ public class HDictTest extends HValTest
 
     a = new HDictBuilder().add("x", (HVal)null).toDict();
     assertEquals(a, new HDictBuilder().add("x", (HVal)null).toDict());
-    assertEquals(a, new HDictBuilder().add("foo", (HVal)null).add("bar", (HVal)null).toDict());
-    assertEquals(a, HDict.EMPTY);
+    assertNotEquals(a, new HDictBuilder().add("foo", (HVal)null).add("bar", (HVal)null).toDict());
+    assertNotEquals(a, HDict.EMPTY);
   }
 
   @Test
