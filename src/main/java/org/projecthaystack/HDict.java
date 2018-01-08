@@ -122,6 +122,7 @@ public abstract class HDict extends HVal
   {
     if (!(that instanceof HDict)) return false;
     HDict x = (HDict)that;
+    if (this.size() != x.size()) return false;
     for (Iterator it = iterator(); it.hasNext(); )
     {
       Entry entry = (Entry)it.next();
