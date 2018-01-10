@@ -46,6 +46,7 @@ public class HTimeTest extends HValTest
     verifyZinc(HTime.make(10, 59, 30), "10:59:30");
     verifyZinc(HTime.make(23, 59, 59, 999), "23:59:59.999");
     verifyZinc(HTime.make(3, 20, 0), "03:20:00");
+    assertEquals(HTime.make("10:04:19.181511"), HTime.make(10,04,19,181));
   }
 
   @Test (expectedExceptions = ParseException.class,
@@ -61,7 +62,8 @@ public class HTimeTest extends HValTest
     return new Object[][] {
       {"13:xx:00"},
       {"13:45:0x"},
-      {"13:45:00.4561"},
+      {"13:45:00."},
+      {"13:45:00.x"},
     };
   }
 }
