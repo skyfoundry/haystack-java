@@ -67,7 +67,8 @@ public class HTime extends HVal
     int pos = 9;
     int places = 0;
     int len = s.length();
-    while (pos < len)
+    // HTime only stores ms precision, so truncate anything after that
+    while (pos < len && places < 3)
     {
       ms = (ms * 10) + (s.charAt(pos) - '0');
       ++pos;
@@ -78,7 +79,7 @@ public class HTime extends HVal
       case 1: ms *= 100; break;
       case 2: ms *= 10; break;
       case 3: break;
-      default: throw err;
+      default: throw new IllegalStateException("Too much fractional precision: " + s);
     }
     return HTime.make(hour, min, sec, ms);
   }
