@@ -11,6 +11,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import javax.servlet.*;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 
 /**
@@ -19,6 +20,7 @@ import javax.servlet.http.*;
  *
  * @see <a href='http://project-haystack.org/doc/Rest'>Project Haystack</a>
  */
+@WebServlet(name = "Haystack", urlPatterns = "/*")
 public class HServlet extends HttpServlet
 {
 
@@ -65,7 +67,7 @@ public class HServlet extends HttpServlet
     String path = req.getPathInfo();
     if (path == null || path.length() == 0 || path.equals("/"))
     {
-      res.sendRedirect(req.getServletPath() + "/about");
+      res.sendRedirect(req.getContextPath() + "/about");
       return;
     }
 

@@ -13,25 +13,39 @@ apply plugin: 'war'
 version = '3.0.0'
 
 compileJava {
-    sourceCompatibility = 1.4
-    targetCompatibility = 1.4
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.akhikhl.gretty:gretty:2.0.0'
+    }
 }
 
 repositories {
     jcenter()
 }
 
+apply plugin: 'org.akhikhl.gretty'
+
 dependencies {
+
     compile 'javax.servlet:servlet-api:2.5'
 
     // Use TestNG framework, also requires calling test.useTestNG() below
     testCompile 'org.testng:testng:6.9.11'
 
-    providedRuntime 'javax.servlet:servlet-api:2.5'
+    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
 }
 
 // Stupid war plugin disable jar for some reason. Force jar creation
 assemble.dependsOn(jar)
+
 
 test {
     useTestNG() {
@@ -48,6 +62,10 @@ test {
             }
         }
     }
+}
+
+gretty {
+    contextPath = 'haystack'
 }
 
 task wrapper(type: Wrapper) { gradleVersion = '3.4.1' }
