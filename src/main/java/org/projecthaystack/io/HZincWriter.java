@@ -38,11 +38,26 @@ public class HZincWriter extends HGridWriter
     }
   }
 
-  /** Write a grid to an in-memory a string */
-  public static String gridToString(HGrid grid)
+
+  /**
+   * Convenience for {@code gridToString(grid, 3)}
+   * See {@link HZincWriter#gridToString(HGrid, int)}
+   */
+  public static String gridToString(HGrid grid) { return gridToString(grid, 3); }
+
+  /**
+   * Write a grid to an in-memory string using the given zinc version.
+   * @param grid the grid to write
+   * @param version the grid version (2 or 3)
+   * @return the zinc encoding of the grid
+   */
+  public static String gridToString(HGrid grid, final int version)
   {
+    if (version != 2 && version != 3) throw new IllegalArgumentException("Invalid version: " + version);
     StringWriter out = new StringWriter(grid.numCols() * grid.numRows() * 16);
-    new HZincWriter(out).writeGrid(grid);
+    HZincWriter w = new HZincWriter(out);
+    w.version = version;
+    w.writeGrid(grid);
     return out.toString();
   }
 

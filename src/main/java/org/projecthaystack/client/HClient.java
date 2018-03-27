@@ -95,6 +95,25 @@ public class HClient extends HProj
     return setConnectTimeout(connectTimeout).setReadTimeout(readTimeout);
   }
 
+  private int version = 2;
+
+  /**
+   * @return the zinc version to use when encoding ops
+   */
+  public int getVersion() { return version; }
+
+  /**
+   * Set the zinc version to use when encoding ops
+   *
+   * @param version the zinc version to use
+   * @return this
+   */
+  public HClient setVersion(final int version)
+  {
+    this.version = version;
+    return this;
+  }
+
 //////////////////////////////////////////////////////////////////////////
 // Operations
 //////////////////////////////////////////////////////////////////////////
@@ -535,7 +554,7 @@ public class HClient extends HProj
 
   private HGrid postGrid(String op, HGrid req)
   {
-    String reqStr = HZincWriter.gridToString(req);
+    String reqStr = HZincWriter.gridToString(req, this.version);
     String resStr = postString(uri + op, reqStr);
     return new HZincReader(resStr).readGrid();
   }
