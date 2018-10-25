@@ -60,7 +60,8 @@ public class HJsonWriter extends HGridWriter
     out.print("{\n");
 
     // meta
-    out.print("\"meta\": {\"ver\":\"2.0\"");
+    String ver = grid.meta().getStr("ver");//Resolve the grid version
+    out.print("\"meta\": {\"ver\":\""+ver+"\"");
     writeDictTags(grid.meta(), false);
     out.print("},\n");
 
@@ -116,6 +117,8 @@ public class HJsonWriter extends HGridWriter
   {
     if (val == null) out.print("null");
     else if (val instanceof HBool) out.print(val);
+    else if(val instanceof HDict) writeDict((HDict) val);
+    else if(val instanceof HGrid) writeGrid((HGrid) val);
     else out.print(HStr.toCode(val.toJson()));
   }
 
