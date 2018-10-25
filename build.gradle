@@ -10,7 +10,7 @@ apply plugin: 'maven'
 apply plugin: 'idea'
 apply plugin: 'war'
 
-version = '3.0.0'
+version = '3.0.2'
 
 compileJava {
     sourceCompatibility = 1.7
