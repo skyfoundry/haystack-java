@@ -61,7 +61,7 @@ public class HJsonWriter extends HGridWriter
 
     // meta
     HDict meta = grid.meta();
-    String ver = meta.has("ver")?meta.getStr("ver"):"3";//Resolve the grid version
+    String ver = meta.has("ver")?meta.getStr("ver"):"3.0";
     out.print("\"meta\": {\"ver\":\""+ver+"\"");
     writeDictTags(grid.meta(), false);
     out.print("},\n");
@@ -126,12 +126,12 @@ public class HJsonWriter extends HGridWriter
 
   private void writeList(HList list)
   {
-    out.print("[\n");//Start Array
+    out.print("[");
     for(int i = 0;i<list.size();++i) {
       if (i > 0) out.print(",");
       writeVal(list.get(i));
     }
-    out.print("]");//End Array
+    out.print("]");
   }
 
   /** Flush underlying output stream */

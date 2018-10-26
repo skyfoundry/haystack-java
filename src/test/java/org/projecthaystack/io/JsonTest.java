@@ -35,7 +35,7 @@ public class JsonTest
     // System.out.println(actual);
     String[] lines = HStr.split(actual, '\n', false);
     assertEquals(lines[0], "{");
-    assertEquals(lines[1], "\"meta\": {\"ver\":\"2.0\"},");
+    assertEquals(lines[1], "\"meta\": {\"ver\":\"3.0\"},");
     assertEquals(lines[2], "\"cols\":[");
     assertEquals(lines[3], "{\"name\":\"a\"},");
     assertEquals(lines[4], "{\"name\":\"b\"}");
