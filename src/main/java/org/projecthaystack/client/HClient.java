@@ -59,6 +59,25 @@ public class HClient extends HProj
     this.auth = new AuthClientContext(uri + "about", user, pass);
   }
 
+  /**
+   * Copy constructor using same auth and timeouts, but for different uri
+   */
+  public HClient(HClient copy, String uri)
+  {
+    this.uri            = checkUri(uri);
+    this.auth           = copy.auth;
+    this.connectTimeout = copy.connectTimeout;
+    this.readTimeout    = copy.readTimeout;
+    this.version        = copy.version;
+  }
+
+  private static String checkUri(String uri)
+  {
+    if (!uri.startsWith("http://") && !uri.startsWith("https://")) throw new IllegalArgumentException("Invalid uri format: " + uri);
+    if (!uri.endsWith("/")) uri = uri + "/";
+    return uri;
+  }
+
 //////////////////////////////////////////////////////////////////////////
 // State
 //////////////////////////////////////////////////////////////////////////
