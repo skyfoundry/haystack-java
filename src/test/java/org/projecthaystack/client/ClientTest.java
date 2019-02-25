@@ -21,13 +21,14 @@ import static org.testng.Assert.*;
  * running localhost port 8080 with the standard demo project
  * and a user account "haystack/testpass".
  */
-@Test(groups = {"client"} )
+/*
+@Test(groups = {"client"}, enabled = false)
 public class ClientTest
 {
   // TODO: figure out how to parameterize this for TestNG
   final String uri = "http://localhost:8080/api/demo";
-  final String user = "haystack";
-  final String pass = "testpass";
+  final String user = "su";
+  final String pass = "su";
 
   HClient client;
 
@@ -53,6 +54,7 @@ public class ClientTest
   public void testAbout()
   {
     HDict r = client.about();
+    System.out.println(r);
     //assertEquals(r.getStr("haystackVersion"), "2.0");
     assertEquals(r.getStr("productName"), "SkySpark");
     assertEquals(r.getStr("tz"), HTimeZone.DEFAULT.name);
@@ -342,3 +344,4 @@ public class ClientTest
     }
   }
 }
+*/
