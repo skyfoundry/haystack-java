@@ -596,7 +596,7 @@ public class HClient extends HProj
         c.setDoOutput(true);
         c.setDoInput(true);
         c.setRequestProperty("Connection", "Close");
-        c.setRequestProperty("Content-Type", mimeType == null ? "text/plain; charset=utf-8": mimeType);
+        c.setRequestProperty("Content-Type", mimeType == null ? "text/zinc; charset=utf-8": mimeType);
         c.connect();
 
         // post expression
