@@ -15,6 +15,9 @@ import org.projecthaystack.*;
 import org.projecthaystack.auth.AuthClientContext;
 import org.projecthaystack.io.*;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSocketFactory;
+
 /**
  * HClient manages a logical connection to a HTTP REST haystack server.
  *
@@ -23,9 +26,9 @@ import org.projecthaystack.io.*;
 public class HClient extends HProj
 {
 
-//////////////////////////////////////////////////////////////////////////
-// Construction
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // Construction
+  //////////////////////////////////////////////////////////////////////////
 
   /**
    * Convenience for construction and call to open().
@@ -36,11 +39,28 @@ public class HClient extends HProj
   }
 
   /**
+   * Convenience for constructing client with custom SSL configuration and call to open().
+   */
+  public static HClient open(String uri, String user, String pass,SSLSocketFactory sslSF)
+  {
+    return new HClient(uri, user, pass,sslSF).open();
+  }
+
+  /**
    * Convenience for constructing client with custom timeouts and call to open()
    */
   public static HClient open(String uri, String user, String pass, final int connectTimeout, final int readTimeout)
   {
     return new HClient(uri, user, pass).setTimeouts(connectTimeout, readTimeout).open();
+  }
+
+  /**
+   * Convenience for constructing client with custom SSL configuration with custom timeouts and call to open().
+   */
+  public static HClient open(String uri, String user, String pass,SSLSocketFactory sslSF,final int connectTimeout,
+                             final int readTimeout)
+  {
+    return new HClient(uri, user, pass,sslSF).setTimeouts(connectTimeout, readTimeout).open();
   }
 
   /**
@@ -57,6 +77,22 @@ public class HClient extends HProj
 
     this.uri  = uri;
     this.auth = new AuthClientContext(uri + "about", user, pass);
+  }
+
+  /**
+   * Constructor with URI to server's API and authentication credentials with custom SSL configuration
+   */
+  public HClient(String uri, String user, String pass,SSLSocketFactory sslSF)
+  {
+    // check uri
+    if (!uri.startsWith("http://") && !uri.startsWith("https://")) throw new IllegalArgumentException("Invalid uri format: " + uri);
+    if (!uri.endsWith("/")) uri = uri + "/";
+
+    // sanity check arguments
+    if (user.length() == 0) throw new IllegalArgumentException("user cannot be empty string");
+
+    this.uri  = uri;
+    this.auth = new AuthClientContext(uri + "about", user, pass,sslSF);
   }
 
   /**
@@ -78,12 +114,12 @@ public class HClient extends HProj
     return uri;
   }
 
-//////////////////////////////////////////////////////////////////////////
-// State
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // State
+  //////////////////////////////////////////////////////////////////////////
 
   /** Base URI for connection such as "http://host/api/demo/".
-      This string always ends with slash. */
+   This string always ends with slash. */
   public final String uri;
 
   /** Timeout in milliseconds for opening the HTTP socket */
@@ -133,9 +169,9 @@ public class HClient extends HProj
     return this;
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Operations
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // Operations
+  //////////////////////////////////////////////////////////////////////////
 
   /**
    * Authenticate the client and return this.
@@ -172,9 +208,9 @@ public class HClient extends HProj
     return call("formats", HGrid.EMPTY);
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Reads
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // Reads
+  //////////////////////////////////////////////////////////////////////////
 
   protected HDict onReadById(HRef id)
   {
@@ -205,9 +241,9 @@ public class HClient extends HProj
     return call("read", req);
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Evals
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // Evals
+  //////////////////////////////////////////////////////////////////////////
 
   /**
    * Call "eval" operation to evaluate a vendor specific
@@ -268,9 +304,9 @@ public class HClient extends HProj
     return res;
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Watches
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // Watches
+  //////////////////////////////////////////////////////////////////////////
 
   /**
    * Create a new watch with an empty subscriber list.  The dis
@@ -442,23 +478,23 @@ public class HClient extends HProj
     boolean closed;
   }
 
-//////////////////////////////////////////////////////////////////////////
-// PointWrite
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // PointWrite
+  //////////////////////////////////////////////////////////////////////////
 
   /**
-    * Write to a given level of a writable point, and return the current status
-    * of a writable point's priority array (see pointWriteArray()).
-    *
-    * @param id Ref identifier of writable point
-    * @param level Number from 1-17 for level to write
-    * @param val value to write or null to auto the level
-    * @param who optional username performing the write, otherwise user dis is used
-    * @param dur Number with duration unit if setting level 8
-    */
+   * Write to a given level of a writable point, and return the current status
+   * of a writable point's priority array (see pointWriteArray()).
+   *
+   * @param id Ref identifier of writable point
+   * @param level Number from 1-17 for level to write
+   * @param val value to write or null to auto the level
+   * @param who optional username performing the write, otherwise user dis is used
+   * @param dur Number with duration unit if setting level 8
+   */
   public HGrid pointWrite(
-    HRef id, int level, String who,
-    HVal val, HNum dur)
+          HRef id, int level, String who,
+          HVal val, HNum dur)
   {
     HGridBuilder b = new HGridBuilder();
     b.addCol("id");
@@ -468,11 +504,11 @@ public class HClient extends HProj
     b.addCol("duration");
 
     b.addRow(new HVal[] {
-      id,
-      HNum.make(level),
-      HStr.make(who),
-      val,
-      dur });
+            id,
+            HNum.make(level),
+            HStr.make(who),
+            val,
+            dur });
 
     HGrid req = b.toGrid();
     HGrid res = call("pointWrite", req);
@@ -480,16 +516,16 @@ public class HClient extends HProj
   }
 
   /**
-    * Return the current status
-    * of a point's priority array.
-    * The result is returned grid with following columns:
-    * <ul>
-    *   <li>level: number from 1 - 17 (17 is default)
-    *   <li>levelDis: human description of level
-    *   <li>val: current value at level or null
-    *   <li>who: who last controlled the value at this level
-    * </ul>
-    */
+   * Return the current status
+   * of a point's priority array.
+   * The result is returned grid with following columns:
+   * <ul>
+   *   <li>level: number from 1 - 17 (17 is default)
+   *   <li>levelDis: human description of level
+   *   <li>val: current value at level or null
+   *   <li>who: who last controlled the value at this level
+   * </ul>
+   */
   public HGrid pointWriteArray(HRef id)
   {
     HGridBuilder b = new HGridBuilder();
@@ -501,9 +537,9 @@ public class HClient extends HProj
     return res;
   }
 
-//////////////////////////////////////////////////////////////////////////
-// History
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // History
+  //////////////////////////////////////////////////////////////////////////
 
   /**
    * Read history time-series data for given record and time range. The
@@ -539,9 +575,9 @@ public class HClient extends HProj
     call("hisWrite", req);
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Actions
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // Actions
+  //////////////////////////////////////////////////////////////////////////
 
   /**
    * Invoke a remote action using the "invokeAction" REST operation.
@@ -553,9 +589,9 @@ public class HClient extends HProj
     return call("invokeAction", req);
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Call
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // Call
+  //////////////////////////////////////////////////////////////////////////
 
   /**
    * Make a call to the given operation.  The request grid is posted
@@ -623,30 +659,48 @@ public class HClient extends HProj
     catch (Exception e) { throw new CallNetworkException(e); }
   }
 
-////////////////////////////////////////////////////////////////
-// Utils
-////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////
+  // Utils
+  ////////////////////////////////////////////////////////////////
 
   private HttpURLConnection openHttpConnection(URL url, String method)
-    throws IOException
+          throws IOException
   {
-    return openHttpConnection(url, method, this.connectTimeout, this.readTimeout);
+    return openHttpConnection(url, method, this.connectTimeout, this.readTimeout,this.auth.getSSLSocketFactory());
   }
 
-  public static HttpURLConnection openHttpConnection(URL url, String method, int connectTimeout, int readTimeout)
-    throws IOException
+  public static HttpURLConnection openHttpConnection(URL url, String method, int connectTimeout, int readTimeout,
+                                                     SSLSocketFactory sslSF)
+          throws IOException
   {
-    HttpURLConnection c = (HttpURLConnection)url.openConnection();
-    c.setRequestMethod(method);
-    c.setInstanceFollowRedirects(false);
-    c.setConnectTimeout(connectTimeout);
-    c.setReadTimeout(readTimeout);
-    return c;
+    HttpURLConnection httpURLConnection = null;
+    URLConnection urlConnection = url.openConnection();
+
+    if(urlConnection instanceof HttpsURLConnection) {
+      httpURLConnection = openHttpsConnection(urlConnection,sslSF);
+    }
+    else {
+      httpURLConnection = (HttpURLConnection) urlConnection;
+    }
+    httpURLConnection.setRequestMethod(method);
+    httpURLConnection.setInstanceFollowRedirects(false);
+    httpURLConnection.setConnectTimeout(connectTimeout);
+    httpURLConnection.setReadTimeout(readTimeout);
+    return httpURLConnection;
   }
 
-////////////////////////////////////////////////////////////////
-// Property
-////////////////////////////////////////////////////////////////
+  private static HttpsURLConnection openHttpsConnection(URLConnection urlConnection,SSLSocketFactory sslSF)
+  {
+    HttpsURLConnection httpsURLConnection = (HttpsURLConnection) urlConnection;
+    if (sslSF != null) {
+      httpsURLConnection.setSSLSocketFactory(sslSF);
+    }
+    return httpsURLConnection;
+  }
+
+  ////////////////////////////////////////////////////////////////
+  // Property
+  ////////////////////////////////////////////////////////////////
 
   static class Property
   {
@@ -659,17 +713,17 @@ public class HClient extends HProj
     public String toString()
     {
       return "[Property " +
-        "key:" + key + ", " +
-        "value:" + value + "]";
+              "key:" + key + ", " +
+              "value:" + value + "]";
     }
 
     final String key;
     final String value;
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Debug Utils
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // Debug Utils
+  //////////////////////////////////////////////////////////////////////////
 
   /*
   private void dumpRes(HttpURLConnection c, boolean body) throws Exception
@@ -692,22 +746,22 @@ public class HClient extends HProj
   }
   */
 
-////////////////////////////////////////////////////////////////
-// main
-////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////
+  // main
+  ////////////////////////////////////////////////////////////////
 
   static HClient makeClient(String uri, String user, String pass) throws Exception
   {
-//    // get bad credentials
-//    try {
-//      HClient.open(uri, "baduser", "badpass").about();
-//      throw new IllegalStateException();
-//    } catch (CallException e) { }
-//
-//    try {
-//        HClient.open(uri, "haystack", "badpass").about();
-//        throw new IllegalStateException();
-//    } catch (CallException e) {  }
+    //    // get bad credentials
+    //    try {
+    //      HClient.open(uri, "baduser", "badpass").about();
+    //      throw new IllegalStateException();
+    //    } catch (CallException e) { }
+    //
+    //    try {
+    //        HClient.open(uri, "haystack", "badpass").about();
+    //        throw new IllegalStateException();
+    //    } catch (CallException e) {  }
 
     // create proper client
     return HClient.open(uri, user, pass);
@@ -716,19 +770,18 @@ public class HClient extends HProj
   public static void main(String[] args) throws Exception
   {
     if (args.length != 3) {
-        System.out.println("usage: HClient <uri> <user> <pass>");
-        System.exit(0);
+      System.out.println("usage: HClient <uri> <user> <pass>");
+      System.exit(0);
     }
 
     HClient client = makeClient(args[0], args[1], args[2]);
     System.out.println(client.about());
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Fields
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // Fields
+  //////////////////////////////////////////////////////////////////////////
 
   private AuthClientContext auth;
   private HashMap watches = new HashMap();
-
 }
