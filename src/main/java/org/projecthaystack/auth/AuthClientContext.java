@@ -11,6 +11,7 @@ import org.projecthaystack.client.CallNetworkException;
 import org.projecthaystack.client.HClient;
 import org.projecthaystack.util.Base64;
 
+import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -19,9 +20,9 @@ import java.util.*;
 final public class AuthClientContext
 {
 
-//////////////////////////////////////////////////////////////////////////
-// Construction
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // Construction
+  //////////////////////////////////////////////////////////////////////////
 
   public AuthClientContext(String uri, String user, String pass)
   {
@@ -30,9 +31,17 @@ final public class AuthClientContext
     this.pass = pass;
   }
 
-//////////////////////////////////////////////////////////////////////////
-// State
-//////////////////////////////////////////////////////////////////////////
+  public AuthClientContext(String uri, String user, String pass,SSLSocketFactory sslSF)
+  {
+    this.uri   = uri;
+    this.user  = user;
+    this.pass  = pass;
+    this.sslSF = sslSF;
+  }
+
+  //////////////////////////////////////////////////////////////////////////
+  // State
+  //////////////////////////////////////////////////////////////////////////
 
   /** URI used to open the connection */
   public final String uri;
@@ -58,9 +67,9 @@ final public class AuthClientContext
   /** Have we successfully authenticated to the server */
   public boolean isAuthenticated() { return this.authenticated; }
 
-//////////////////////////////////////////////////////////////////////////
-// Open
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // Open
+  //////////////////////////////////////////////////////////////////////////
 
   public AuthClientContext open()
   {
@@ -68,7 +77,7 @@ final public class AuthClientContext
     {
       // send initial hello message
       HttpURLConnection helloResp = sendHello();
-//try { dumpRes(helloResp, false); } catch (Exception e) { e.printStackTrace(); }
+      //try { dumpRes(helloResp, false); } catch (Exception e) { e.printStackTrace(); }
 
       // first try standard authentication va RFC 7235 process
       if (openStd(helloResp)) return success();
@@ -153,7 +162,7 @@ final public class AuthClientContext
 
       // send request back to the server
       resp = getAuth(reqMsg);
-//try { dumpRes(resp, false); } catch (Exception e) { e.printStackTrace(); }
+      //try { dumpRes(resp, false); } catch (Exception e) { e.printStackTrace(); }
 
       // 200 means we are done, 401 means keep looping,
       // consider anything else a failure
@@ -177,16 +186,16 @@ final public class AuthClientContext
     return true;
   }
 
-////////////////////////////////////////////////////////////////
-// HTTP Messaging
-////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////
+  // HTTP Messaging
+  ////////////////////////////////////////////////////////////////
 
   /**
    * Get a new http connection to the given uri.
    */
   public HttpURLConnection openHttpConnection(String uri, String method) throws IOException
   {
-    return HClient.openHttpConnection(new URL(uri), method, this.connectTimeout, this.readTimeout);
+    return HClient.openHttpConnection(new URL(uri), method, this.connectTimeout, this.readTimeout,this.sslSF);
   }
 
   public void addCookiesToHeaders(HttpURLConnection c)
@@ -304,9 +313,9 @@ final public class AuthClientContext
     return val;
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Debug Utils
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // Debug Utils
+  //////////////////////////////////////////////////////////////////////////
 
   private void dumpRes(HttpURLConnection c, boolean body) throws Exception
   {
@@ -327,9 +336,9 @@ final public class AuthClientContext
     }
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Fields
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  // Fields
+  //////////////////////////////////////////////////////////////////////////
 
 
   /** Set true after successful authentication */
@@ -340,5 +349,11 @@ final public class AuthClientContext
 
   /** Timeout in milliseconds for reading from the HTTP socket */
   public int readTimeout = 60 * 1000;
+
+  private SSLSocketFactory sslSF;
+
+  public SSLSocketFactory getSSLSocketFactory(){
+    return sslSF;
+  }
 }
 
