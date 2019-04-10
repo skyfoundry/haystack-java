@@ -15,6 +15,9 @@ import org.projecthaystack.*;
 import org.projecthaystack.auth.AuthClientContext;
 import org.projecthaystack.io.*;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSocketFactory;
+
 /**
  * HClient manages a logical connection to a HTTP REST haystack server.
  *
@@ -36,11 +39,28 @@ public class HClient extends HProj
   }
 
   /**
+   * Convenience for constructing client with custom SSL configuration and call to open().
+   */
+  public static HClient open(String uri, String user, String pass, SSLSocketFactory sslSF)
+  {
+    return new HClient(uri, user, pass,sslSF).open();
+  }
+
+  /**
    * Convenience for constructing client with custom timeouts and call to open()
    */
   public static HClient open(String uri, String user, String pass, final int connectTimeout, final int readTimeout)
   {
     return new HClient(uri, user, pass).setTimeouts(connectTimeout, readTimeout).open();
+  }
+
+  /**
+   * Convenience for constructing client with custom SSL configuration with custom timeouts and call to open().
+   */
+  public static HClient open(String uri, String user, String pass,SSLSocketFactory sslSF,final int connectTimeout,
+                             final int readTimeout)
+  {
+    return new HClient(uri, user, pass,sslSF).setTimeouts(connectTimeout, readTimeout).open();
   }
 
   /**
@@ -57,6 +77,22 @@ public class HClient extends HProj
 
     this.uri  = uri;
     this.auth = new AuthClientContext(uri + "about", user, pass);
+  }
+
+  /**
+   * Constructor with URI to server's API and authentication credentials with custom SSL configuration
+   */
+  public HClient(String uri, String user, String pass,SSLSocketFactory sslSF)
+  {
+    // check uri
+    if (!uri.startsWith("http://") && !uri.startsWith("https://")) throw new IllegalArgumentException("Invalid uri format: " + uri);
+    if (!uri.endsWith("/")) uri = uri + "/";
+
+    // sanity check arguments
+    if (user.length() == 0) throw new IllegalArgumentException("user cannot be empty string");
+
+    this.uri  = uri;
+    this.auth = new AuthClientContext(uri + "about", user, pass,sslSF);
   }
 
   /**
@@ -633,15 +669,33 @@ public class HClient extends HProj
     return openHttpConnection(url, method, this.connectTimeout, this.readTimeout);
   }
 
-  public static HttpURLConnection openHttpConnection(URL url, String method, int connectTimeout, int readTimeout)
-    throws IOException
+  public static HttpURLConnection openHttpConnection(URL url, String method, int connectTimeout, int readTimeout,
+                                                     SSLSocketFactory sslSF)
+          throws IOException
   {
-    HttpURLConnection c = (HttpURLConnection)url.openConnection();
-    c.setRequestMethod(method);
-    c.setInstanceFollowRedirects(false);
-    c.setConnectTimeout(connectTimeout);
-    c.setReadTimeout(readTimeout);
-    return c;
+    HttpURLConnection httpURLConnection = null;
+    URLConnection urlConnection = url.openConnection();
+
+    if(urlConnection instanceof HttpsURLConnection) {
+      httpURLConnection = openHttpsConnection(urlConnection,sslSF);
+    }
+    else {
+      httpURLConnection = (HttpURLConnection) urlConnection;
+    }
+    httpURLConnection.setRequestMethod(method);
+    httpURLConnection.setInstanceFollowRedirects(false);
+    httpURLConnection.setConnectTimeout(connectTimeout);
+    httpURLConnection.setReadTimeout(readTimeout);
+    return httpURLConnection;
+  }
+
+  private static HttpsURLConnection openHttpsConnection(URLConnection urlConnection,SSLSocketFactory sslSF)
+  {
+    HttpsURLConnection httpsURLConnection = (HttpsURLConnection) urlConnection;
+    if (sslSF != null) {
+      httpsURLConnection.setSSLSocketFactory(sslSF);
+    }
+    return httpsURLConnection;
   }
 
 ////////////////////////////////////////////////////////////////
