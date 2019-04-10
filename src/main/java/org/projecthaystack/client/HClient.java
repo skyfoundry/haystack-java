@@ -664,9 +664,9 @@ public class HClient extends HProj
 ////////////////////////////////////////////////////////////////
 
   private HttpURLConnection openHttpConnection(URL url, String method)
-    throws IOException
+        throws IOException
   {
-    return openHttpConnection(url, method, this.connectTimeout, this.readTimeout);
+    return openHttpConnection(url, method, this.connectTimeout, this.readTimeout,this.auth.getSSLSocketFactory());
   }
 
   public static HttpURLConnection openHttpConnection(URL url, String method, int connectTimeout, int readTimeout,
