@@ -11,6 +11,7 @@ import org.projecthaystack.client.CallNetworkException;
 import org.projecthaystack.client.HClient;
 import org.projecthaystack.util.Base64;
 
+import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -28,6 +29,14 @@ final public class AuthClientContext
     this.uri  = uri;
     this.user = user;
     this.pass = pass;
+  }
+
+  public AuthClientContext(String uri, String user, String pass, SSLSocketFactory sslSF)
+  {
+    this.uri   = uri;
+    this.user  = user;
+    this.pass  = pass;
+    this.sslSF = sslSF;
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -186,7 +195,7 @@ final public class AuthClientContext
    */
   public HttpURLConnection openHttpConnection(String uri, String method) throws IOException
   {
-    return HClient.openHttpConnection(new URL(uri), method, this.connectTimeout, this.readTimeout);
+    return HClient.openHttpConnection(new URL(uri), method, this.connectTimeout, this.readTimeout,this.sslSF);
   }
 
   public void addCookiesToHeaders(HttpURLConnection c)
@@ -340,5 +349,11 @@ final public class AuthClientContext
 
   /** Timeout in milliseconds for reading from the HTTP socket */
   public int readTimeout = 60 * 1000;
+
+  private SSLSocketFactory sslSF;
+
+  public SSLSocketFactory getSSLSocketFactory(){
+    return sslSF;
+  }
 }
 
