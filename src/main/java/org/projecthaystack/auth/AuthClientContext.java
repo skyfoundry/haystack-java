@@ -31,14 +31,6 @@ final public class AuthClientContext
     this.pass = pass;
   }
 
-  public AuthClientContext(String uri, String user, String pass, SSLSocketFactory sslSF)
-  {
-    this.uri   = uri;
-    this.user  = user;
-    this.pass  = pass;
-    this.sslSF = sslSF;
-  }
-
 //////////////////////////////////////////////////////////////////////////
 // State
 //////////////////////////////////////////////////////////////////////////
@@ -350,10 +342,15 @@ final public class AuthClientContext
   /** Timeout in milliseconds for reading from the HTTP socket */
   public int readTimeout = 60 * 1000;
 
+  /** Custom SSLSocketFactory to override global JVM Keystores for SSL connections*/
   private SSLSocketFactory sslSF;
 
   public SSLSocketFactory getSSLSocketFactory(){
     return sslSF;
+  }
+  public void setSslSocketFactory(SSLSocketFactory sslSF)
+  {
+    this.sslSF = sslSF;
   }
 }
 
