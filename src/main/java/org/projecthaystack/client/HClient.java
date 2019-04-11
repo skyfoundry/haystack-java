@@ -43,7 +43,7 @@ public class HClient extends HProj
    */
   public static HClient open(String uri, String user, String pass, SSLSocketFactory sslSF)
   {
-    return new HClient(uri, user, pass,sslSF).open();
+    return new HClient(uri, user, pass).setSslSocketFactory(sslSF).open();
   }
 
   /**
@@ -60,7 +60,9 @@ public class HClient extends HProj
   public static HClient open(String uri, String user, String pass,SSLSocketFactory sslSF,final int connectTimeout,
                              final int readTimeout)
   {
-    return new HClient(uri, user, pass,sslSF).setTimeouts(connectTimeout, readTimeout).open();
+    return new HClient(uri, user, pass)
+            .setSslSocketFactory(sslSF)
+            .setTimeouts(connectTimeout, readTimeout).open();
   }
 
   /**
@@ -77,22 +79,6 @@ public class HClient extends HProj
 
     this.uri  = uri;
     this.auth = new AuthClientContext(uri + "about", user, pass);
-  }
-
-  /**
-   * Constructor with URI to server's API and authentication credentials with custom SSL configuration
-   */
-  public HClient(String uri, String user, String pass,SSLSocketFactory sslSF)
-  {
-    // check uri
-    if (!uri.startsWith("http://") && !uri.startsWith("https://")) throw new IllegalArgumentException("Invalid uri format: " + uri);
-    if (!uri.endsWith("/")) uri = uri + "/";
-
-    // sanity check arguments
-    if (user.length() == 0) throw new IllegalArgumentException("user cannot be empty string");
-
-    this.uri  = uri;
-    this.auth = new AuthClientContext(uri + "about", user, pass,sslSF);
   }
 
   /**
@@ -141,6 +127,12 @@ public class HClient extends HProj
   {
     if (timeout < 0) throw new IllegalArgumentException("Invalid timeout: " + timeout);
     this.readTimeout = timeout;
+    return this;
+  }
+
+  public HClient setSslSocketFactory(SSLSocketFactory sslSF)
+  {
+    this.auth.setSslSocketFactory(sslSF);
     return this;
   }
 
