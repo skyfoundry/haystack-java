@@ -242,13 +242,19 @@ public abstract class HFilter
       HVal val = dict.get(path.get(0), false);
       if (path.size() != 1)
       {
-        HDict nt = dict;
-        for (int i=1; i<path.size(); ++i)
+        if (pather == null) val = null;
+        else
         {
-          if (!(val instanceof HRef)) { val = null; break; }
-          nt = pather.find(((HRef)val).val);
-          if (nt == null) { val = null; break; }
-          val = nt.get(path.get(i), false);
+          HDict nt = dict;
+          for (int i=1; i<path.size(); ++i)
+          {
+            if (val instanceof HDict)
+              nt = (HDict)val;
+            else if (val instanceof HRef)
+              nt = pather.find(((HRef)val).val);
+            else { val = null; break; }
+            val = nt.get(path.get(i), false);
+          }
         }
       }
       return doInclude(val);

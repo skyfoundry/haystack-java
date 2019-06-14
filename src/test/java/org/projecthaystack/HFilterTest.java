@@ -155,58 +155,106 @@ public class HFilterTest extends HaystackTest
   {
     HDict a = new HDictBuilder()
       .add("dis", "a")
-      .add("num", 100)
-      .add("foo", 99)
-      .add("date", HDate.make(2011,10,5))
+      .add("num", 10)
+      .add("date", HDate.make(2016,1,1))
+      .add("foo", "baz")
       .toDict();
 
     HDict b = new HDictBuilder()
       .add("dis", "b")
-      .add("num", 200)
-      .add("foo", 88)
-      .add("date", HDate.make(2011,10,20))
-      .add("bar")
+      .add("num", 20)
+      .add("date", HDate.make(2016,1,2))
+      .add("foo", 12)
       .add("ref", HRef.make("a"))
       .toDict();
 
     HDict c = new HDictBuilder()
       .add("dis", "c")
-      .add("num", 300)
+      .add("num", 30)
+      .add("date", HDate.make(2016,1,3))
+      .add("foo", 13)
       .add("ref", HRef.make("b"))
-      .add("bar")
+      .add("thru", "c")
+      .toDict();
+
+    HDict d = new HDictBuilder()
+      .add("dis", "d")
+      .add("num", 30)
+      .add("date", HDate.make(2016,1,3))
+      .add("ref", HRef.make("c"))
+      .toDict();
+
+    HDict e = new HDictBuilder()
+      .add("dis", "e")
+      .add("num", 40)
+      .add("date", HDate.make(2016,1,6))
+      .add("ref", new HDictBuilder().add("thru", "e").toDict())
       .toDict();
 
     final HashMap<String, HDict> db = new HashMap<String, HDict>();
     db.put("a", a);
     db.put("b", b);
     db.put("c", c);
+    db.put("d", d);
+    db.put("e", e);
 
-    verifyInclude(db, "dis",                "a,b,c");
-    verifyInclude(db, "dis == \"b\"",       "b");
-    verifyInclude(db, "dis != \"b\"",       "a,c");
-    verifyInclude(db, "dis <= \"b\"",       "a,b");
-    verifyInclude(db, "dis >  \"b\"",       "c");
-    verifyInclude(db, "num < 200",          "a");
-    verifyInclude(db, "num <= 200",         "a,b");
-    verifyInclude(db, "num > 200",          "c");
-    verifyInclude(db, "num >= 200",         "b,c");
-    verifyInclude(db, "date",               "a,b");
-    verifyInclude(db, "date == 2011-10-20", "b");
-    verifyInclude(db, "date < 2011-10-10",  "a");
-    verifyInclude(db, "foo",                "a,b");
-    verifyInclude(db, "not foo",            "c");
-    verifyInclude(db, "foo == 88",          "b");
-    verifyInclude(db, "foo != 88",          "a");
-    verifyInclude(db, "foo == \"x\"",       "");
-    verifyInclude(db, "ref",                "b,c");
-    verifyInclude(db, "ref->dis",           "b,c");
-    verifyInclude(db, "ref->dis == \"a\"",  "b");
-    verifyInclude(db, "ref->bar",           "c");
-    verifyInclude(db, "not ref->bar",       "a,b");
-    verifyInclude(db, "foo and bar",        "b");
-    verifyInclude(db, "foo or bar",         "a,b,c");
-    verifyInclude(db, "(foo and bar) or num==300",  "b,c");
-    verifyInclude(db, "foo and bar and num==300",   "");
+    verifyInclude(db, "ref->thru", "d,e");
+
+    verifyInclude(db, "dis",            "a,b,c,d,e");
+    verifyInclude(db, "foo",            "a,b,c");
+
+    verifyInclude(db, "not dis",        "");
+    verifyInclude(db, "not foo",        "d,e");
+
+    verifyInclude(db, "dis == \"c\"",     "c");
+    verifyInclude(db, "num == 30",        "c,d");
+    verifyInclude(db, "date==2016-01-02", "b");
+    verifyInclude(db, "foo==12",          "b");
+
+    verifyInclude(db, "dis != \"c\"",       "a,b,d,e");
+    verifyInclude(db, "num != 30",          "a,b,e");
+    verifyInclude(db, "date != 2016-01-02", "a,c,d,e");
+    verifyInclude(db, "foo != 13",          "a,b");
+
+    verifyInclude(db, "dis < \"c\"",        "a,b");
+    verifyInclude(db, "num < 20",           "a");
+    verifyInclude(db, "date < 2016-01-04",  "a,b,c,d");
+    verifyInclude(db, "foo < 13",           "b");
+    verifyInclude(db, "foo < \"c\"",        "a");
+
+    verifyInclude(db, "dis <= \"c\"",       "a,b,c");
+    verifyInclude(db, "num <= 20",          "a,b");
+    verifyInclude(db, "date <= 2016-01-02", "a,b");
+    verifyInclude(db, "foo <= 13",          "b,c");
+    verifyInclude(db, "foo <= \"baz\"",     "a");
+
+    verifyInclude(db, "dis > \"c\"",       "d,e");
+    verifyInclude(db, "num > 20",          "c,d,e");
+    verifyInclude(db, "date > 2016-01-02", "c,d,e");
+    verifyInclude(db, "foo > 12",          "c");
+    verifyInclude(db, "foo > \"a\"",       "a");
+
+    verifyInclude(db, "dis >= \"c\"",       "c,d,e");
+    verifyInclude(db, "num >= 20",          "b,c,d,e");
+    verifyInclude(db, "date >= 2016-01-02", "b,c,d,e");
+    verifyInclude(db, "foo >= 12",          "b,c");
+    verifyInclude(db, "foo >= \"baz\"",     "a");
+
+    verifyInclude(db, "dis==\"c\" or num == 30",  "c,d");
+    verifyInclude(db, "dis==\"c\" and num == 30", "c");
+    verifyInclude(db, "dis==\"c\" or num == 30 or dis==\"b\"", "b,c,d");
+    verifyInclude(db, "dis==\"c\" and num == 30 and foo==13",  "c");
+    verifyInclude(db, "dis==\"c\" and num == 30 and foo==12",  "");
+    verifyInclude(db, "dis==\"c\" and num == 30 or foo==12",   "b,c");
+    verifyInclude(db, "(dis==\"c\" or num == 30) and not foo", "d");
+    verifyInclude(db, "(num == 30 and foo) or (num <= 10)",    "a,c");
+
+    verifyInclude(db, "ref->dis == \"a\"", "b");
+    verifyInclude(db, "ref->ref->dis == \"a\"", "c");
+    verifyInclude(db, "ref->ref->ref->dis == \"a\"", "d");
+    verifyInclude(db, "ref->num <= 20", "b,c");
+    verifyInclude(db, "ref->thru", "d,e");
+    verifyInclude(db, "ref->thru == \"e\"", "e");
   }
 
   void verifyInclude(final HashMap<String, HDict> map, String query, String expected)
@@ -219,13 +267,13 @@ public class HFilterTest extends HaystackTest
     HFilter q = HFilter.make(query);
 
     String actual = "";
-    for (int c='a'; c<='c'; ++c)
+    for (int c='a'; c<='e'; ++c)
     {
       String id = "" + (char)c;
       if (q.include(db.find(id), db))
         actual += actual.length() > 0 ? ","+id : id;
     }
-    assertEquals(expected, actual);
+    assertEquals(actual, expected);
   }
 
   @Test
