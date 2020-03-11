@@ -5,47 +5,36 @@
 // History:
 //   10 Jun 2016  Matthew Giannini  Creation
 //
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'idea'
-apply plugin: 'war'
-
-version = '3.0.3'
-
-compileJava {
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'war'
+    id 'com.jfrog.bintray' version '1.8.4'
+    id 'idea'
 }
 
-buildscript {
-    repositories {
-        jcenter()
-    }
+group = "org.projecthaystack"
+version = "3.0.4"
 
-    dependencies {
-        classpath 'org.akhikhl.gretty:gretty:2.0.0'
-    }
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_7
+    targetCompatibility = JavaVersion.VERSION_1_7
+
+//    withJavadocJar()
+    withSourcesJar()
 }
+
 
 repositories {
     jcenter()
 }
 
-apply plugin: 'org.akhikhl.gretty'
-
 dependencies {
-
-    compile 'javax.servlet:servlet-api:2.5'
+    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
 
     // Use TestNG framework, also requires calling test.useTestNG() below
-    testCompile 'org.testng:testng:6.13.1'
-
-    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
+    testImplementation 'org.testng:testng:7.1.0'
 }
-
-// Stupid war plugin disable jar for some reason. Force jar creation
-assemble.dependsOn(jar)
-
 
 test {
     useTestNG() {
@@ -64,33 +53,42 @@ test {
     }
 }
 
-gretty {
-    contextPath = 'haystack'
-}
+// Stupid war plugin disable jar for some reason. Force jar creation
+assemble.dependsOn(jar)
 
-task wrapper(type: Wrapper) { gradleVersion = '3.4.1' }
+publishing {
+    publications {
+        create("haystack-java", MavenPublication) {
+            artifactId = 'haystack-java'
 
-// Maven pom generation
-task createPom {
-    outputs.file("pom.xml")
-    outputs.upToDateWhen { false }
-
-    doLast {
-        pom {
-            project {
-                groupId 'org.projecthaystack'
-                artifactId 'haystack-java'
-                version project.version - "-SNAPSHOT"
-            }
-        }.writeTo("pom.xml")
+            from components.java
+        }
     }
 }
-compileJava { doLast { tasks.createPom.execute() } }
-clean { doLast { tasks.cleanCreatePom.execute() } }
 
-// Not sure if this is best way to handle SNAPSHOT versions, but it works for now
-task release(dependsOn: build) { doLast { } }
+String findProperty(String s) { project.findProperty(s) }
 
-gradle.taskGraph.whenReady {taskGraph ->
-    if (!taskGraph.hasTask(release)) version += "-SNAPSHOT"
+bintray {
+    user = findProperty("bintrayUser")
+    key  = findProperty("bintrayApiKey")
+    publish = true
+    setPublications("haystack-java")
+    pkg {
+        repo    = 'maven'
+        name    = 'haystack-java'
+        userOrg = 'skyfoundry'
+        vcsUrl  = 'https://bitbucket.org/brianfrank/haystack-java'
+
+    }
 }
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
+
+//gradle.taskGraph.whenReady {taskGraph ->
+//    if (!taskGraph.hasTask(release)) version += "-SNAPSHOT"
+//}
+
