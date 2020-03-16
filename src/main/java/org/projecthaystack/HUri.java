@@ -46,7 +46,7 @@ public class HUri extends HVal
     return val;
   }
 
-  /** Encode as "u:<val>" */
+  /** Encode as {@code "u:<val>"} */
   public String toJson()
   {
     return "u:" + val;

@@ -17,7 +17,7 @@ import org.projecthaystack.*;
  * <li>CallHttpException: HTTP response error such as 404</li>
  * <li>CallErrException: server errors with server side stack trace</li>
  * <li>CallAuthException: authentication error</li>
- * <ul>
+ * </ul>
  */
 public class CallException extends RuntimeException
 {

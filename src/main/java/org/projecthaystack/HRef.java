@@ -59,7 +59,7 @@ public class HRef extends HVal
   /** Encode as "@id" */
   public String toCode() { return "@" + val; }
 
-  /** Encode as "r:<id> [dis]" */
+  /** Encode as {@code "r:<id> [dis]"} */
   public String toJson()
   {
     StringBuffer s = new StringBuffer();
@@ -68,7 +68,7 @@ public class HRef extends HVal
     return s.toString();
   }
 
-  /** Encode as "@<id> [dis]" */
+  /** Encode as {@code "@<id> [dis]"} */
   public String toZinc()
   {
     StringBuffer s = new StringBuffer();
