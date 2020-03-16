@@ -77,8 +77,7 @@ bintray {
         repo    = 'maven'
         name    = 'haystack-java'
         userOrg = 'skyfoundry'
-        vcsUrl  = 'https://bitbucket.org/brianfrank/haystack-java'
-
+        vcsUrl  = 'https://github.com/skyfoundry/haystack-java'
     }
 }
 
