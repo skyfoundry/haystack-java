@@ -44,7 +44,7 @@ public class HBin extends HVal
     return this.mime.equals(((HBin)that).mime);
   }
 
-  /** Encode as "b:<mime>" */
+  /** Encode as {@code "b:<mime>"} */
   public String toJson()
   {
     StringBuffer s = new StringBuffer();
@@ -53,7 +53,7 @@ public class HBin extends HVal
     return s.toString();
   }
 
-  /** Encode as Bin("<mime>") */
+  /** Encode as {@code Bin("<mime>")} */
   public String toZinc()
   {
     StringBuffer s = new StringBuffer();

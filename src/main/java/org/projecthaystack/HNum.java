@@ -112,7 +112,7 @@ public class HNum extends HVal
     return 1;
   }
 
-  /** Encode as "n:<float> [unit]" */
+  /** Encode as {@code "n:<float> [unit]"} */
   public String toJson()
   {
     StringBuffer s = new StringBuffer();
