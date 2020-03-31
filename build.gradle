@@ -8,7 +8,11 @@
 //
 plugins {
     id 'com.jfrog.bintray' version '1.8.4'
+    id 'maven-publish'
 }
+
+group   = 'org.projecthaystack'
+version = '3.1.0'
 
 allprojects {
     apply plugin: 'idea'
@@ -16,11 +20,6 @@ allprojects {
 
 subprojects {
     apply plugin: 'java-library'
-    apply plugin: 'maven-publish'
-
-    version = '3.1.0'
-    group = "org.projecthaystack"
-
 
     repositories {
         jcenter()
@@ -61,17 +60,31 @@ subprojects {
             options.addBooleanOption('html5', true)
         }
     }
+}
 
-    publishing {
-        publications {
-            create(project.name, MavenPublication) {
-                artifactId = project.name
-                from components.java
-            }
+publishing {
+    publications {
+        core(MavenPublication) {
+            def project = project(':haystack-core')
+            from project.components.java
+            artifactId project.name
         }
     }
 }
 
+bintray {
+    user = project.findProperty("bintrayUser")
+    key  = project.findProperty("bintrayApiKey")
+    publish = true
+    publications = ['core']
+    pkg {
+        repo    = 'maven'
+        name    = 'haystack-java'
+        userOrg = 'skyfoundry'
+        vcsUrl  = 'https://github.com/skyfoundry/haystack-java'
+    }
+}
+/*
 project(':haystack-core') {
     bintray {
         user = project.findProperty("bintrayUser")
@@ -86,6 +99,7 @@ project(':haystack-core') {
         }
     }
 }
+*/
 
 project(':haystack-server') {
     apply plugin: 'war'
