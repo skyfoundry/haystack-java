@@ -4,79 +4,75 @@
 //
 // History:
 //   10 Jun 2016  Matthew Giannini  Creation
-//   24 Mar 2020  Matthew Giannini  multi-project build
 //
 plugins {
-    id 'com.jfrog.bintray' version '1.8.4'
+    id 'java-library'
     id 'maven-publish'
+    id 'war'
+    id 'com.jfrog.bintray' version '1.8.4'
+    id 'idea'
 }
 
-group   = 'org.projecthaystack'
-version = '3.1.0'
+group = "org.projecthaystack"
+version = "3.0.4"
 
-allprojects {
-    apply plugin: 'idea'
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_7
+    targetCompatibility = JavaVersion.VERSION_1_7
+
+    withJavadocJar()
+    withSourcesJar()
 }
 
-subprojects {
-    apply plugin: 'java-library'
 
-    repositories {
-        jcenter()
+repositories {
+    jcenter()
+}
+
+dependencies {
+    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
+
+    // Use TestNG framework, also requires calling test.useTestNG() below
+    testImplementation 'org.testng:testng:7.1.0'
+}
+
+test {
+    useTestNG() {
+        outputDirectory = file("$project.buildDir/reports/testng")
+        useDefaultListeners = true
     }
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_1_7
-        targetCompatibility = JavaVersion.VERSION_1_7
+    testLogging.showStandardStreams = true;
 
-        withJavadocJar()
-        withSourcesJar()
-    }
-
-    dependencies {
-        // Use TestNG framework, also requires calling test.useTestNG() below
-        testImplementation 'org.testng:testng:7.1.0'
-    }
-
-    test {
-        useTestNG() {
-            outputDirectory = file("$project.buildDir/reports/testng")
-            useDefaultListeners = true
-        }
-
-        testLogging.showStandardStreams = true;
-
-        testLogging {
-            afterSuite { desc, result ->
-                if (!desc.parent) { // will match the outermost suite
-                    println "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
-                }
+    testLogging {
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                println "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
             }
         }
     }
-
-    javadoc {
-        if(JavaVersion.current().isJava9Compatible()) {
-            options.addBooleanOption('html5', true)
-        }
-    }
 }
+
+// Stupid war plugin disable jar for some reason. Force jar creation
+assemble.dependsOn(jar)
 
 publishing {
     publications {
-        core(MavenPublication) {
-            def project = project(':haystack-core')
-            from project.components.java
-            artifactId project.name
+        create("haystack-java", MavenPublication) {
+            artifactId = 'haystack-java'
+
+            from components.java
         }
     }
 }
 
+String findProperty(String s) { project.findProperty(s) }
+
 bintray {
-    user = project.findProperty("bintrayUser")
-    key  = project.findProperty("bintrayApiKey")
+    user = findProperty("bintrayUser")
+    key  = findProperty("bintrayApiKey")
     publish = true
-    publications = ['core']
+    setPublications("haystack-java")
     pkg {
         repo    = 'maven'
         name    = 'haystack-java'
@@ -84,33 +80,14 @@ bintray {
         vcsUrl  = 'https://github.com/skyfoundry/haystack-java'
     }
 }
-/*
-project(':haystack-core') {
-    bintray {
-        user = project.findProperty("bintrayUser")
-        key  = project.findProperty("bintrayApiKey")
-        publish = true
-        setPublications("haystack-core")
-        pkg {
-            repo    = 'maven'
-            name    = 'haystack-core'
-            userOrg = 'skyfoundry'
-            vcsUrl  = 'https://github.com/skyfoundry/haystack-java'
-        }
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
     }
 }
-*/
 
-project(':haystack-server') {
-    apply plugin: 'war'
-
-    dependencies {
-        providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
-
-        implementation project(':haystack-core')
-    }
-
-    // Stupid war plugin disable jar for some reason. Force jar creation
-    assemble.dependsOn(jar)
-}
+//gradle.taskGraph.whenReady {taskGraph ->
+//    if (!taskGraph.hasTask(release)) version += "-SNAPSHOT"
+//}
 
