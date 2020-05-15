@@ -82,6 +82,9 @@ final public class BasicScheme extends AuthScheme
       // fallback to basic if server says it's Niagara.
       if (server.startsWith("niagara")) return true;
 
+      //There is something here let's try it
+      if(resCode == 302) return true;
+      
       // detect N4 by their bug - lolol
       if (resCode == 500 && content != null && content.contains("wrong 4-byte ending")) return true;
     }
