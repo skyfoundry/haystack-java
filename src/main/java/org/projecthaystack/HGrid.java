@@ -110,7 +110,7 @@ public class HGrid extends HVal
 
   public String toZinc()
   {
-    throw new UnsupportedOperationException();
+    return HZincWriter.gridToString(this);
   }
 
   public String toJson()
