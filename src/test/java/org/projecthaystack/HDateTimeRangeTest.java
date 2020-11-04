@@ -18,7 +18,6 @@ public class HDateTimeRangeTest
   @Test
   public void testRange()
   {
-    System.out.println("Default timezone is " + HTimeZone.DEFAULT);
     HTimeZone tz = HTimeZone.DEFAULT;
     HDate today = HDate.today();
     HDate yesterday = today.minusDays(1);
