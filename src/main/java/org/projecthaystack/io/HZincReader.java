@@ -199,7 +199,7 @@ public class HZincReader extends HGridReader
     StringBuffer s = new StringBuffer();
     while (cur != HaystackToken.rparen && cur != HaystackToken.eof)
     {
-      if (curVal == null) s.append(cur.symbol);
+      if (curVal == null) s.append(cur.dis);
       else s.append(curVal);
       consume();
     }

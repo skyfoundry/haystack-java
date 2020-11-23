@@ -29,6 +29,7 @@ public class JsonTest
     gb.addRow(new HVal[] { HDateTime.make(1307377618069L, HTimeZone.make("New_York")), HUri.make("foo.txt") });
     gb.addRow(new HVal[] { HRef.make("abc"), HRef.make("abc", "A B C") });
     gb.addRow(new HVal[] { HBin.make("text/plain"), HCoord.make(90, -123) });
+    gb.addRow(new HVal[] { HSymbol.make("foo"), HSymbol.make("a-b") });
     HGrid grid = gb.toGrid();
 
     String actual = HJsonWriter.gridToString(grid);
@@ -50,8 +51,9 @@ public class JsonTest
     assertEquals(lines[13], "{\"a\":\"d:2015-06-09\", \"b\":\"h:01:02:03\"},");
     assertEquals(lines[14], "{\"a\":\"t:2011-06-06T12:26:58.069-04:00 New_York\", \"b\":\"u:foo.txt\"},");
     assertEquals(lines[15], "{\"a\":\"r:abc\", \"b\":\"r:abc A B C\"},");
-    assertEquals(lines[16], "{\"a\":\"b:text/plain\", \"b\":\"c:90.0,-123.0\"}");
-    assertEquals(lines[17], "]");
-    assertEquals(lines[18], "}");
+    assertEquals(lines[16], "{\"a\":\"b:text/plain\", \"b\":\"c:90.0,-123.0\"},");
+    assertEquals(lines[17], "{\"a\":\"y:foo\", \"b\":\"y:a-b\"}");
+    assertEquals(lines[18], "]");
+    assertEquals(lines[19], "}");
   }
 }

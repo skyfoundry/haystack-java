@@ -18,6 +18,7 @@ public class HaystackToken
   public static final HaystackToken num = new HaystackToken("Number", true);
   public static final HaystackToken str = new HaystackToken("Str", true);
   public static final HaystackToken ref = new HaystackToken("Ref", true);
+  public static final HaystackToken symbol = new HaystackToken("Symbol", true);
   public static final HaystackToken uri = new HaystackToken("Uri", true);
   public static final HaystackToken date = new HaystackToken("Date", true);
   public static final HaystackToken time = new HaystackToken("Time", true);
@@ -47,14 +48,14 @@ public class HaystackToken
   public static final HaystackToken bang = new HaystackToken("!");
   public static final HaystackToken nl = new HaystackToken("newline");
 
-  public HaystackToken(String symbol)
+  public HaystackToken(String dis)
   {
-    this(symbol, false);
+    this(dis, false);
   }
 
-  public HaystackToken(String symbol, boolean literal)
+  public HaystackToken(String dis, boolean literal)
   {
-    this.symbol  = symbol;
+    this.dis = dis;
     this.literal = literal;
   }
 
@@ -66,22 +67,22 @@ public class HaystackToken
     HaystackToken that = (HaystackToken) o;
 
     if (literal != that.literal) return false;
-    return symbol.equals(that.symbol);
+    return dis.equals(that.dis);
 
   }
 
   public int hashCode()
   {
-    int result = symbol.hashCode();
+    int result = dis.hashCode();
     result = 31 * result + (literal ? 1 : 0);
     return result;
   }
 
   public String toString()
   {
-    return symbol;
+    return dis;
   }
 
-  public final String symbol;
+  public final String dis;
   public final boolean literal;
 }

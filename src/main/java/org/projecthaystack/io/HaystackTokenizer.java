@@ -82,11 +82,12 @@ public class HaystackTokenizer
     if (isIdStart(cur)) return tok = id();
     if (cur == '"')     return tok = str();
     if (cur == '@')     return tok = ref();
+    if (cur == '^')     return tok = symbol();
     if (isDigit(cur))   return tok = num();
     if (cur == '`')     return tok = uri();
     if (cur == '-' && isDigit(peek)) return tok = num();
 
-    return tok = symbol();
+    return tok = operator();
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -282,6 +283,27 @@ public class HaystackTokenizer
     return HaystackToken.str;
   }
 
+  private HaystackToken symbol()
+  {
+    consume('^');
+    StringBuffer s = new StringBuffer();
+    while (true)
+    {
+      if (HRef.isIdChar((char)cur))
+      {
+        s.append((char)cur);
+        consume();
+      }
+      else
+      {
+        break;
+      }
+    }
+    if (s.length() == 0) throw err("Invalid empty symbol");
+    this.val = HSymbol.make(s.toString());
+    return HaystackToken.symbol;
+  }
+
   private HaystackToken ref()
   {
     consume('@');
@@ -382,7 +404,8 @@ public class HaystackTokenizer
     throw err("Invalid escape sequence: " + (char)cur);
   }
 
-  private HaystackToken symbol()
+  /** parse a symbol token (typically into an operator). */
+  private HaystackToken operator()
   {
     int c = cur;
     consume();

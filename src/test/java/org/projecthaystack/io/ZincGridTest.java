@@ -26,6 +26,20 @@ public class ZincGridTest extends HValTest
     );
   }
 
+  @Test
+  public void testGridWithSymbols()
+  {
+    verifyGrid("ver:\"3.0\"\n" +
+      "a,b\n" +
+      "^foo,^a-b\n" +
+      "\n",
+      null,
+      new Object[] {"a", null, "b", null},
+      new HVal[][] {
+        {HSymbol.make("foo"), HSymbol.make("a-b")}
+      });
+  }
+
 //////////////////////////////////////////////////////////////////////////
 // Auto-generated test code - else could you possibly write
 // test code in a crappy language like Java

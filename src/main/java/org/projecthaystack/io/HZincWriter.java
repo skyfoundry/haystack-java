@@ -137,9 +137,9 @@ public class HZincWriter extends HGridWriter
     if (val == null) p('N');
     else if (val instanceof HBin) writeBin((HBin)val);
     else if (val instanceof HXStr) writeXStr((HXStr)val);
+    else if (val instanceof HSymbol) writeSymbol((HSymbol)val);
     else p(val.toZinc());
   }
-
 
   private void writeBin(HBin bin)
   {
@@ -158,7 +158,12 @@ public class HZincWriter extends HGridWriter
   {
     if (this.version < 3) throw new RuntimeException("XStr not supported for version: " + this.version);
     p(xstr.toZinc());
+  }
 
+  private void writeSymbol(HSymbol symbol)
+  {
+    if (this.version < 3) throw new RuntimeException("Symbol not supported for version: " + this.version);
+    p(symbol.toZinc());
   }
 
 //////////////////////////////////////////////////////////////////////////
