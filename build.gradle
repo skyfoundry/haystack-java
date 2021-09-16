@@ -9,7 +9,6 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'war'
-    id 'com.jfrog.bintray' version '1.8.4'
     id 'idea'
 }
 
@@ -64,22 +63,24 @@ publishing {
             from components.java
         }
     }
+    repositories {
+        maven {
+            name = "haystack-java"
+            url = uri("https://maven.pkg.github.com/wattsense/haystack-java")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+            }
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            from(components.java)
+        }
+    }
 }
 
 String findProperty(String s) { project.findProperty(s) }
-
-bintray {
-    user = findProperty("bintrayUser")
-    key  = findProperty("bintrayApiKey")
-    publish = true
-    setPublications("haystack-java")
-    pkg {
-        repo    = 'maven'
-        name    = 'haystack-java'
-        userOrg = 'skyfoundry'
-        vcsUrl  = 'https://github.com/skyfoundry/haystack-java'
-    }
-}
 
 javadoc {
     if(JavaVersion.current().isJava9Compatible()) {
