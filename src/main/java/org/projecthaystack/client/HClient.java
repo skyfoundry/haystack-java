@@ -177,6 +177,11 @@ public class HClient extends HProj
   }
 
   /**
+   * Close the session by sending the "close" op.
+   */
+  public HGrid close() { return call("close", HGrid.EMPTY); }
+
+  /**
    * Call "about" to query summary info.
    */
   public HDict about()
