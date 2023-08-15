@@ -57,7 +57,10 @@ public class HZincWriter extends HGridWriter
     StringWriter out = new StringWriter(grid.numCols() * grid.numRows() * 16);
     HZincWriter w = new HZincWriter(out);
     w.version = version;
-    w.writeGrid(grid);
+
+    if (grid.meta().has("nested")) w.writeNestedGrid(grid);
+    else w.writeGrid(grid);
+
     return out.toString();
   }
 

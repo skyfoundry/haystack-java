@@ -40,6 +40,36 @@ public class ZincGridTest extends HValTest
       });
   }
 
+  @Test
+  public void testEncodeGridWithNestedGrid()
+  {
+    HVal facets = null;
+    String enumDef = "false,true";
+    facets = HStr.make(enumDef);
+
+    HDict[] dicts = new HDict[8];
+    dicts[0] = new HDictBuilder().add("start", HTime.make("04:30:00")).add("end", HTime.make("06:00:00")).add("dates", "N").add("weekdays", "0").add("val", HBool.TRUE).toDict();
+    dicts[1] = new HDictBuilder().add("start", HTime.make("09:00:00")).add("end", HTime.make("15:30:00")).add("dates", "N").add("weekdays", "0").add("val", HBool.TRUE).toDict();
+    dicts[2] = new HDictBuilder().add("start", HTime.make("04:00:00")).add("end", HTime.make("20:00:00")).add("dates", "N").add("weekdays", "1").add("val", HBool.TRUE).toDict();
+    dicts[3] = new HDictBuilder().add("start", HTime.make("02:00:00")).add("end", HTime.make("20:00:00")).add("dates", "N").add("weekdays", "2").add("val", HBool.TRUE).toDict();
+    dicts[4] = new HDictBuilder().add("start", HTime.make("01:30:00")).add("end", HTime.make("20:30:00")).add("dates", "N").add("weekdays", "3").add("val", HBool.TRUE).toDict();
+    dicts[5] = new HDictBuilder().add("start", HTime.make("02:30:00")).add("end", HTime.make("18:30:00")).add("dates", "N").add("weekdays", "4").add("val", HBool.TRUE).toDict();
+    dicts[6] = new HDictBuilder().add("start", HTime.make("02:30:00")).add("end", HTime.make("12:00:00")).add("dates", "N").add("weekdays", "5").add("val", HBool.TRUE).toDict();
+    dicts[7] = new HDictBuilder().add("start", HTime.make("08:30:00")).add("end", HTime.make("15:30:00")).add("dates", "N").add("weekdays", "6").add("val", HBool.TRUE).toDict();
+
+    HGrid schGrid = HGridBuilder.dictsToGrid(new HDictBuilder().add("nested").toDict(), dicts);
+
+    HDictBuilder sch = new HDictBuilder();
+    sch.add("enum", facets);
+    sch.add("tz", HStr.make("Australia/Sydney"));
+    sch.add("schedule");
+    sch.add("scheduleGrid", schGrid);
+    sch.add("dis", HStr.make("BooleanSchedule"));
+
+    HGrid result = HGridBuilder.dictToGrid(sch.toDict());
+    verifyNestedGridEq(NESTED_GRID, result);
+  }
+
 //////////////////////////////////////////////////////////////////////////
 // Auto-generated test code - else could you possibly write
 // test code in a crappy language like Java
@@ -322,4 +352,25 @@ public class ZincGridTest extends HValTest
     }
   }
 
+  void verifyNestedGridEq(String str, HGrid grid)
+  {
+//    System.out.println(grid.toZinc());
+    assertEquals(str, grid.toZinc());
+  }
+
+  public final static String NESTED_GRID =
+        "ver:\"3.0\"\n" +
+        "scheduleGrid,tz,dis,enum,schedule\n" +
+        "<<\n" +
+        "ver:\"3.0\" nested\n" +
+        "end,val,weekdays,start,dates\n" +
+        "06:00:00,T,\"0\",04:30:00,\"N\"\n" +
+        "15:30:00,T,\"0\",09:00:00,\"N\"\n" +
+        "20:00:00,T,\"1\",04:00:00,\"N\"\n" +
+        "20:00:00,T,\"2\",02:00:00,\"N\"\n" +
+        "20:30:00,T,\"3\",01:30:00,\"N\"\n" +
+        "18:30:00,T,\"4\",02:30:00,\"N\"\n" +
+        "12:00:00,T,\"5\",02:30:00,\"N\"\n" +
+        "15:30:00,T,\"6\",08:30:00,\"N\"\n" +
+        ">>,\"Australia/Sydney\",\"BooleanSchedule\",\"false,true\",M\n";
 }
