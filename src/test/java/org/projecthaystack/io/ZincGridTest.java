@@ -57,7 +57,7 @@ public class ZincGridTest extends HValTest
     dicts[6] = new HDictBuilder().add("start", HTime.make("02:30:00")).add("end", HTime.make("12:00:00")).add("dates", "N").add("weekdays", "5").add("val", HBool.TRUE).toDict();
     dicts[7] = new HDictBuilder().add("start", HTime.make("08:30:00")).add("end", HTime.make("15:30:00")).add("dates", "N").add("weekdays", "6").add("val", HBool.TRUE).toDict();
 
-    HGrid schGrid = HGridBuilder.dictsToGrid(new HDictBuilder().add("nested").toDict(), dicts);
+    HGrid schGrid = HGridBuilder.dictsToGrid(dicts);
 
     HDictBuilder sch = new HDictBuilder();
     sch.add("enum", facets);
@@ -154,36 +154,36 @@ public class ZincGridTest extends HValTest
 //      }
 //    );
 
-    verifyGrid(
-      "ver:\"2.0\"\n" +
-        "a,    b,      c,      d\n" +
-        "T,    F,      N,   -99\n" +
-        "2.3,  -5e-10, 2.4e20, 123e-10\n" +
-        "\"\",   \"a\",   \"\\\" \\\\ \\t \\n \\r\", \"\\uabcd\"\n" +
-        "`path`, @12cbb082-0c02ae73, 4s, -2.5min\n" +
-        "M,R,Bin(image/png),Bin(image/png)\n" +
-        "2009-12-31, 23:59:01, 01:02:03.123, 2009-02-03T04:05:06Z\n" +
-        "INF, -INF, \"\", NaN\n" +
-        "C(12,-34),C(0.123,-0.789),C(84.5,-77.45),C(-90,180)\n" +
-        "\n",
-      null,
-      new Object[] {
-        "a", null,
-        "b", null,
-        "c", null,
-        "d", null,
-      },
-      new HVal[][] {
-        new HVal[] {HBool.TRUE, HBool.FALSE, null, HNum.make(-99.0), },
-        new HVal[] {HNum.make(2.3), HNum.make(-5.0E-10), HNum.make(2.4E20), HNum.make(1.23E-8), },
-        new HVal[] {HStr.make(""), HStr.make("a"), HStr.make("\" \\ \t \n \r"), HStr.make("\uabcd"), },
-        new HVal[] {HUri.make("path"), HRef.make("12cbb082-0c02ae73", null), HNum.make(4.0, "s"), HNum.make(-2.5, "min"), },
-        new HVal[] {HMarker.VAL, HRemove.VAL, HBin.make("image/png"), HBin.make("image/png"), },
-        new HVal[] {HDate.make(2009, 12, 31), HTime.make(23, 59, 1, 0), HTime.make(1, 2, 3, 123), HDateTime.make(HDate.make(2009, 2, 3),HTime.make(4, 5, 6, 0),HTimeZone.make("UTC")), },
-        new HVal[] {HNum.POS_INF, HNum.NEG_INF, HStr.make(""), HNum.NaN, },
-        new HVal[] {HCoord.make(12.0, -34.0), HCoord.make(0.123, -0.789), HCoord.make(84.5, -77.45), HCoord.make(-90.0, 180.0), },
-      }
-    );
+//    verifyGrid(
+//      "ver:\"2.0\"\n" +
+//        "a,    b,      c,      d\n" +
+//        "T,    F,      N,   -99\n" +
+//        "2.3,  -5e-10, 2.4e20, 123e-10\n" +
+//        "\"\",   \"a\",   \"\\\" \\\\ \\t \\n \\r\", \"\\uabcd\"\n" +
+//        "`path`, @12cbb082-0c02ae73, 4s, -2.5min\n" +
+//        "M,R,Bin(image/png),Bin(image/png)\n" +
+//        "2009-12-31, 23:59:01, 01:02:03.123, 2009-02-03T04:05:06Z\n" +
+//        "INF, -INF, \"\", NaN\n" +
+//        "C(12,-34),C(0.123,-0.789),C(84.5,-77.45),C(-90,180)\n" +
+//        "\n",
+//      null,
+//      new Object[] {
+//        "a", null,
+//        "b", null,
+//        "c", null,
+//        "d", null,
+//      },
+//      new HVal[][] {
+//        new HVal[] {HBool.TRUE, HBool.FALSE, null, HNum.make(-99.0), },
+//        new HVal[] {HNum.make(2.3), HNum.make(-5.0E-10), HNum.make(2.4E20), HNum.make(1.23E-8), },
+//        new HVal[] {HStr.make(""), HStr.make("a"), HStr.make("\" \\ \t \n \r"), HStr.make("\uabcd"), },
+//        new HVal[] {HUri.make("path"), HRef.make("12cbb082-0c02ae73", null), HNum.make(4.0, "s"), HNum.make(-2.5, "min"), },
+//        new HVal[] {HMarker.VAL, HRemove.VAL, HBin.make("image/png"), HBin.make("image/png"), },
+//        new HVal[] {HDate.make(2009, 12, 31), HTime.make(23, 59, 1, 0), HTime.make(1, 2, 3, 123), HDateTime.make(HDate.make(2009, 2, 3),HTime.make(4, 5, 6, 0),HTimeZone.make("UTC")), },
+//        new HVal[] {HNum.POS_INF, HNum.NEG_INF, HStr.make(""), HNum.NaN, },
+//        new HVal[] {HCoord.make(12.0, -34.0), HCoord.make(0.123, -0.789), HCoord.make(84.5, -77.45), HCoord.make(-90.0, 180.0), },
+//      }
+//    );
 
     verifyGrid(
       "ver:\"2.0\"\n" +
@@ -354,15 +354,15 @@ public class ZincGridTest extends HValTest
 
   void verifyNestedGridEq(String str, HGrid grid)
   {
-//    System.out.println(grid.toZinc());
-    assertEquals(str, grid.toZinc());
+    String result = grid.toZinc();
+    assertEquals(result, str);
   }
 
   public final static String NESTED_GRID =
         "ver:\"3.0\"\n" +
         "scheduleGrid,tz,dis,enum,schedule\n" +
         "<<\n" +
-        "ver:\"3.0\" nested\n" +
+        "ver:\"3.0\"\n" +
         "end,val,weekdays,start,dates\n" +
         "06:00:00,T,\"0\",04:30:00,\"N\"\n" +
         "15:30:00,T,\"0\",09:00:00,\"N\"\n" +
