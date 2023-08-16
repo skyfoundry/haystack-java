@@ -43,6 +43,21 @@ public class ZincGridTest extends HValTest
   @Test
   public void testEncodeGridWithNestedGrid()
   {
+    HGrid result = createNestedGridExample();
+    verifyNestedGridEq(NESTED_GRID, result);
+  }
+
+  @Test
+  public void testDecodeGridWithNestedGrid()
+  {
+    HGrid expected = createNestedGridExample();
+    HGrid actual = new HZincReader(NESTED_GRID).readGrid();
+
+    assertEquals(actual, expected);
+  }
+
+  private HGrid createNestedGridExample()
+  {
     HVal facets = null;
     String enumDef = "false,true";
     facets = HStr.make(enumDef);
@@ -66,8 +81,7 @@ public class ZincGridTest extends HValTest
     sch.add("scheduleGrid", schGrid);
     sch.add("dis", HStr.make("BooleanSchedule"));
 
-    HGrid result = HGridBuilder.dictToGrid(sch.toDict());
-    verifyNestedGridEq(NESTED_GRID, result);
+    return HGridBuilder.dictToGrid(sch.toDict());
   }
 
 //////////////////////////////////////////////////////////////////////////
