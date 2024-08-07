@@ -16,33 +16,36 @@ It is highly recommended to enable the [gradle daemon](https://docs.gradle.org/c
 
 ### Gradle Dependency ###
 
-If you have Gradle-based java projects that depend on this library, you can configure your build scripts to get the artifact from BinTray/JCenter.
+If you have Gradle-based java projects that depend on this library, you can configure your build scripts to get the 
+artifact from GitHub using https://jitpack.io
 
 ```
 repositories {
-    jcenter()
+    mavenCentral()
+    maven { url = 'https://jitpack.io' }
 }
 
 dependencies {
-    implementation 'org.projecthaystack:haystack-java:3.0.7'
+    implementation 'com.github.skyfoundry:haystack-java:3.0.7'
 }
 ```
 
 ### Maven Dependency ###
 
-If you have Maven-based java projects that depend on this library, you can configure your build scripts to get the artifact from BinTray/JCenter.
+If you have Maven-based java projects that depend on this library, you can configure your build scripts to get the 
+artifact from GitHub using https://jitpack.io
 
 ```
 <repositories>
     <repository>
-        <id>bintray</id>
-        <name>Bintray</name>
-        <url>https://jcenter.bintray.com/</url>
+        <id>jitpack.io</id>
+        <name>JitPack</name>
+        <url>https://jitpack.io</url>
     </repository>
 </repositories>
 
 <dependency>
-  <groupId>org.projecthaystack</groupId>
+  <groupId>com.github.skyfoundry</groupId>
   <artifactId>haystack-java</artifactId>
   <version>3.0.7</version>
 </dependency>

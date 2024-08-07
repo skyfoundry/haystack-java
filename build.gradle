@@ -9,7 +9,6 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'war'
-    id 'com.jfrog.bintray' version '1.8.4'
     id 'idea'
 }
 
@@ -26,7 +25,7 @@ java {
 
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
@@ -68,18 +67,18 @@ publishing {
 
 String findProperty(String s) { project.findProperty(s) }
 
-bintray {
-    user = findProperty("bintrayUser")
-    key  = findProperty("bintrayApiKey")
-    publish = true
-    setPublications("haystack-java")
-    pkg {
-        repo    = 'maven'
-        name    = 'haystack-java'
-        userOrg = 'skyfoundry'
-        vcsUrl  = 'https://github.com/skyfoundry/haystack-java'
-    }
-}
+//bintray {
+//    user = findProperty("bintrayUser")
+//    key  = findProperty("bintrayApiKey")
+//    publish = true
+//    setPublications("haystack-java")
+//    pkg {
+//        repo    = 'maven'
+//        name    = 'haystack-java'
+//        userOrg = 'skyfoundry'
+//        vcsUrl  = 'https://github.com/skyfoundry/haystack-java'
+//    }
+//}
 
 javadoc {
     if(JavaVersion.current().isJava9Compatible()) {
