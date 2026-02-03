@@ -10,9 +10,9 @@ package org.projecthaystack.server;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import javax.servlet.*;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
+import jakarta.servlet.*;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.*;
 
 /**
  * HServlet implements the haystack HTTP REST API for
